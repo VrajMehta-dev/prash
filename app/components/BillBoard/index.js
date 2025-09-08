@@ -1,0 +1,999 @@
+import React, {useEffect, useState, useCallback} from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Animated,
+  Dimensions,
+  Platform,
+  PermissionsAndroid,
+  Linking,
+  ActivityIndicator,
+} from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import {LinearGradient} from 'react-native-linear-gradient';
+import BaseSetting from '@config/setting';
+import {useSelector} from 'react-redux';
+import CPageLoader from '@components/CPageLoader';
+import {Images} from '@config/images';
+import {BaseColors, ToastConfig} from '@config/theme';
+import {isNull} from 'lodash';
+import {useIsFocused} from '@react-navigation/native';
+import RNFS from 'react-native-fs';
+import FileViewer from 'react-native-file-viewer';
+const {width} = Dimensions.get('window');
+import * as Animatable from 'react-native-animatable';
+import Toast from 'react-native-toast-message';
+import SettleBillsModal from '@components/PendingModal';
+import moment from 'moment';
+
+const TabSelector = ({activeTab, onTabChange}) => (
+  <View style={styles.tabContainer}>
+    <View style={styles.tabWrapper}>
+      <TouchableOpacity
+        style={[
+          styles.tabButton,
+          activeTab === 'pending' && styles.tabButtonActive,
+        ]}
+        onPress={() => onTabChange('pending')}>
+        <Icon
+          name={activeTab === 'pending' ? 'clock' : 'clock-outline'}
+          size={20}
+          color={activeTab === 'pending' ? '#632240' : '#9e9e9e'}
+        />
+        <Text
+          style={[
+            styles.tabText,
+            activeTab === 'pending' && styles.tabTextActive,
+          ]}>
+          Pending
+        </Text>
+        {activeTab === 'pending' && <View style={styles.activeTabLine} />}
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[
+          styles.tabButton,
+          activeTab === 'paid' && styles.tabButtonActive,
+        ]}
+        onPress={() => onTabChange('paid')}>
+        <Icon
+          name={activeTab === 'paid' ? 'check-circle' : 'check-circle-outline'}
+          size={20}
+          color={activeTab === 'paid' ? '#632240' : '#9e9e9e'}
+        />
+        <Text
+          style={[
+            styles.tabText,
+            activeTab === 'paid' && styles.tabTextActive,
+          ]}>
+          Paid
+        </Text>
+        {activeTab === 'paid' && <View style={styles.activeTabLine} />}
+      </TouchableOpacity>
+    </View>
+  </View>
+);
+
+const BillCard = ({
+  bill,
+  onPayNow,
+  onDownloadInvoice,
+  onDownloadReceipt,
+  isLast,
+}) => {
+
+  const {
+    month,
+    rent,
+    variable_rent,
+    cgst,
+    sgst,
+    igst,
+    electricity_bill,
+    penalty,
+    tds_percent,
+    extra_charges,
+    payment_amount,
+    status,
+    due_date,
+    sgst_percent,
+    cgst_percent,
+    igst_percent,
+    tds,
+    bill_id,
+    default_charges,
+    other_charges,
+  } = bill;
+
+  const isPaid = status === 'paid';
+  console.log('isPaid', isPaid);
+  const statusNow = status;
+  const dueDateObj = new Date(due_date);
+  const today = new Date();
+
+  // Remove time part to avoid partial-day differences
+  dueDateObj.setHours(0, 0, 0, 0);
+  today.setHours(0, 0, 0, 0);
+
+  const diffTime = dueDateObj - today; // milliseconds
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  // Handle new data structure with default_charges array
+  const getChargeAmount = title => {
+    if (default_charges && Array.isArray(default_charges)) {
+      const charge = default_charges.find(c => c.title === title);
+      return charge ? charge.amount : 0;
+    }
+    return 0;
+  };
+
+  // Fallback to old structure if default_charges not available
+  const rentAmount = getChargeAmount('Rent') || rent || 0;
+  const maintenanceAmount =
+    getChargeAmount('Maintenance and other reimbursement') || 0;
+  const commissionAmount = getChargeAmount('Commission') || 0;
+  const penaltyAmount = getChargeAmount('Overdue Penalty') || penalty || 0;
+
+  const totalGST = cgst + sgst + igst;
+  // Calculate GST percentage based on available data
+  const gstPercentage =
+    cgst_percent && sgst_percent && igst_percent
+      ? Number(
+          parseFloat(cgst_percent) +
+            parseFloat(sgst_percent) +
+            parseFloat(igst_percent),
+        )
+      : totalGST > 0
+      ? Math.round(
+          (totalGST / (parseFloat(payment_amount || 0) - totalGST)) * 100,
+        )
+      : 0;
+  const [loader, setLoader] = useState(false);
+
+  // Rounded amount display - only show if greater than 0
+  const roundedAmount = bill?.rounded_amount || 0;
+  return (
+    <Animated.View
+      style={[
+        styles.cardContainer,
+        isLast && {marginBottom: 100}, // Add extra bottom margin for last item
+      ]}>
+      <LinearGradient
+        colors={isPaid ? ['#ffffff', '#f8f9fa'] : ['#ffffff', '#fff5f5']}
+        style={styles.card}>
+        <View style={styles.cardHeader}>
+          <View>
+            <Text style={styles.month}>{moment(month).format('MMM YYYY')}</Text>
+            <Text style={styles.statusText}>
+              {isPaid
+                ? 'Payment completed'
+                : due_date
+                ? (() => {
+                    const dueDateObj = new Date(due_date);
+                    if (isNaN(dueDateObj)) return 'Invalid due date';
+
+                    const today = new Date();
+                    dueDateObj.setHours(0, 0, 0, 0);
+                    today.setHours(0, 0, 0, 0);
+
+                    const diffTime = dueDateObj - today;
+                    const diffDays = Math.ceil(
+                      diffTime / (1000 * 60 * 60 * 24),
+                    );
+
+                    return `Due on: ${dueDateObj.toLocaleDateString('en-GB', {
+                      day: '2-digit',
+                      month: 'short',
+                      year: 'numeric',
+                    })} (${
+                      diffDays > 0
+                        ? `${diffDays} days left`
+                        : diffDays === 0
+                        ? 'Due today'
+                        : `${Math.abs(diffDays)} days overdue`
+                    })`;
+                  })()
+                : 'No due date available'}
+            </Text>
+          </View>
+          <View
+            style={[
+              styles.statusBadge,
+              statusNow === 'overdue'
+                ? styles.overdueBadge
+                : isPaid
+                ? styles.paidBadge
+                : styles.pendingBadge,
+            ]}>
+            <Icon
+              name={isPaid ? 'check-circle' : 'clock'}
+              size={16}
+              color={
+                statusNow === 'overdue'
+                  ? BaseColors.white
+                  : isPaid
+                  ? '#4caf50'
+                  : '#ff9800'
+              }
+            />
+            <Text
+              style={[
+                styles.statusBadgeText,
+                statusNow === 'overdue'
+                  ? styles.overdueText
+                  : isPaid
+                  ? styles.paidText
+                  : styles.pendingText,
+              ]}>
+              {statusNow === 'overdue'
+                ? 'OVERDUE'
+                : isPaid
+                ? 'PAID'
+                : 'PENDING'}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.billDetails}>
+          <View style={styles.row}>
+            <Text style={styles.label}>Rent</Text>
+            <Text style={styles.value}>₹{rentAmount?.toLocaleString()}</Text>
+          </View>
+
+          {maintenanceAmount > 0 && (
+            <View style={styles.row}>
+              <Text style={styles.label}>Maintenance</Text>
+              <Text style={styles.value}>
+                ₹{maintenanceAmount?.toLocaleString()}
+              </Text>
+            </View>
+          )}
+
+          {commissionAmount > 0 && (
+            <View style={styles.row}>
+              <Text style={styles.label}>Commission</Text>
+              <Text style={styles.value}>
+                ₹{commissionAmount?.toLocaleString()}
+              </Text>
+            </View>
+          )}
+
+          {penaltyAmount > 0 && (
+            <View style={styles.row}>
+              <View style={styles.labelWithIcon}>
+                <Icon name="alert-circle" size={16} color="#ff9800" />
+                <Text style={[styles.label, styles.penaltyLabel]}>Penalty</Text>
+              </View>
+              <Text style={[styles.value, styles.penaltyValue]}>
+                ₹{penaltyAmount?.toLocaleString()}
+              </Text>
+            </View>
+          )}
+
+          {/* Show other charges if available */}
+          {other_charges &&
+            Array.isArray(other_charges) &&
+            other_charges.length > 0 &&
+            other_charges.map((charge, index) => (
+              <View key={index} style={styles.row}>
+                <Text style={styles.label}>
+                  {charge.title || 'Other Charge'}
+                </Text>
+                <Text style={styles.value}>
+                  ₹{charge.amount?.toLocaleString()}
+                </Text>
+              </View>
+            ))}
+          <View style={styles.row}>
+            <Text style={styles.label}>
+              GST {gstPercentage > 0 ? `(${gstPercentage}%)` : ''}
+            </Text>
+            <Text style={styles.value}>₹{totalGST?.toLocaleString()}</Text>
+          </View>
+
+          {tds > 0 && (
+            <View style={styles.row}>
+              <Text style={styles.label}>
+                TDS ({tds_percent ? `${tds_percent}%` : 'N/A'})
+              </Text>
+              <Text style={styles.value}>₹{tds?.toLocaleString()}</Text>
+            </View>
+          )}
+
+          {/* Rounded Amount - only show if greater than 0 */}
+          {roundedAmount > 0 && (
+            <View style={styles.row}>
+              <View style={styles.labelWithIcon}>
+                <Text style={[styles.label, styles.roundedLabel]}>
+                  Rounded Amount
+                </Text>
+              </View>
+              <Text style={[styles.value, styles.roundedValue]}>
+                ₹{roundedAmount?.toLocaleString()}
+              </Text>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.totalContainer}>
+          <View style={styles.totalRow}>
+            <Text style={styles.totalLabel}>Total Amount</Text>
+            <Text style={styles.totalValue}>
+              ₹{payment_amount?.toLocaleString()}
+            </Text>
+          </View>
+        </View>
+
+        <TouchableOpacity
+          onPress={() => {
+            if (!isPaid) {
+              onPayNow(bill_id);
+            } else {
+              onDownloadReceipt(bill_id);
+            }
+          }}
+          style={[
+            styles.button,
+            isPaid ? styles.downloadButton : styles.payButton,
+          ]}
+          activeOpacity={0.8}>
+          <Icon
+            name={isPaid ? 'download' : 'credit-card'}
+            size={20}
+            color="#fff"
+          />
+          <Text style={styles.buttonText}>
+            {isPaid ? 'Download Receipt' : 'Pay Now'}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          disabled={loader}
+          onPress={() => {
+            onDownloadInvoice(bill_id);
+            setLoader(true);
+            setTimeout(() => {
+              setLoader(false);
+            }, 5000);
+          }}
+          style={[styles.button, {borderColor: '#632240', borderWidth: 1}]}
+          activeOpacity={0.8}>
+          {loader ? (
+            <ActivityIndicator size="small" color="#632240" />
+          ) : (
+            <>
+              <Icon name={'download'} size={20} color="#632240" />
+              <Text style={{color: '#632240', marginLeft: 6}}>
+                Download Invoice
+              </Text>
+            </>
+          )}
+        </TouchableOpacity>
+      </LinearGradient>
+    </Animated.View>
+  );
+};
+
+const BillsDashboard = ({navigation}) => {
+  const [activeTab, setActiveTab] = useState('pending');
+  const [billsList, setBillsList] = useState([]);
+  const [paymentLink, setPaymentLink] = useState(null);
+  const [accessKey, setAccessKey] = useState(null);
+  const [invoiceLink, setinvoiceLink] = useState(null);
+  const {accessToken} = useSelector(state => state.auth);
+  const {shopSelected} = useSelector(state => state.auth);
+  const [showModal, setShowModal] = useState(false);
+  const [isAdditionalChargePending, setIsAdditionalChargePending] =
+    useState(false);
+  const [isPreviousBillPending, setIsPreviousBillPending] = useState(false);
+
+  const isFocused = useIsFocused();
+  useEffect(() => {
+    fetchData();
+    checkAdditionalCharges();
+  }, [fetchData, checkAdditionalCharges, isFocused]);
+
+  useEffect(() => {
+    if (!isNull(accessKey || paymentLink)) {
+      navigation.navigate('Settings', {
+        link: paymentLink,
+        accessKey: accessKey,
+      });
+    }
+  }, [accessKey, navigation]);
+
+  // Manage modal visibility based on pending states
+
+  const checkAdditionalCharges = useCallback(async () => {
+    if (!shopSelected?.pr_id) return;
+
+    const url =
+      BaseSetting.baseUrl +
+      BaseSetting.endpoints.getAdditionalCharges +
+      shopSelected.pr_id;
+    const headers = {
+      Accept: '*/*',
+      Authorization: 'Bearer ' + accessToken,
+    };
+
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: headers,
+      });
+
+      const text = await response.text();
+      const data = text ? JSON.parse(text) : {};
+
+      if (response.ok && data && data.data) {
+        // Check if there are any pending additional charges
+        const hasPendingCharges = data.data.some(
+          charge => charge.status === 'pending' || charge.status === 'overdue',
+        );
+        setIsAdditionalChargePending(hasPendingCharges);
+      } else {
+        setIsAdditionalChargePending(false);
+      }
+    } catch (error) {
+      console.error('Error checking additional charges:', error);
+      setIsAdditionalChargePending(false);
+    }
+  }, [shopSelected?.pr_id, accessToken]);
+
+  const fetchData = useCallback(async () => {
+    const url =
+      BaseSetting.baseUrl +
+      BaseSetting.endpoints.getBills +
+      '/' +
+      shopSelected?.pr_id;
+
+    console.log('url', url);
+    const headers = {
+      Accept: '*/*',
+      Authorization: 'Bearer ' + accessToken,
+    };
+    console.log('accessToken', accessToken);
+
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: headers,
+      });
+
+      const text = await response.text();
+      const data = text ? JSON.parse(text) : {};
+      // console.log('dataiygjusfgjdfuydf', JSON.stringify(data));
+
+      if (response.ok) {
+        // Handle new nested response structure
+        if (data && data.bills) {
+          // Combine paid and unpaid bills into a single array
+          const allBills = [
+            ...(data.bills.paid || []),
+            ...(data.bills.unpaid || []),
+          ];
+         
+          setBillsList(allBills);
+
+          // Reset pending states based on actual data
+          setIsPreviousBillPending(false);
+          setIsAdditionalChargePending(false);
+        } else {
+          // Fallback for old structure or empty response
+          console.log('Using fallback structure');
+          setBillsList([]);
+          setIsPreviousBillPending(false);
+          setIsAdditionalChargePending(false);
+        }
+      } else {
+        console.log('Error fetching bills');
+        setBillsList([]);
+        setIsPreviousBillPending(false);
+        setIsAdditionalChargePending(false);
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setIsPreviousBillPending(false);
+      setIsAdditionalChargePending(false);
+    }
+  }, [shopSelected?.pr_id, accessToken]);
+  const fetchPaymentLink = async id => {
+    const url = BaseSetting.baseUrl + BaseSetting.endpoints.getPaymentLink + id;
+
+    console.log('url', url);
+    const headers = {
+      Accept: '*/*',
+      Authorization: 'Bearer ' + accessToken,
+    };
+
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: headers,
+      });
+
+      const text = await response.text();
+      const data = text ? JSON.parse(text) : {};
+      console.log('lkjhbvbjklkbvbjklkjhghjkjhhj', data);
+
+      if (response.ok) {
+        setPaymentLink(data?.payment_link || null);
+        setAccessKey(data?.access_key || null);
+      } else {
+        console.log('Error fetching bills');
+        setPaymentLink(null);
+        setAccessKey(data?.access_key || null);
+        if (data?.is_prev_bill_pending) {
+          setIsPreviousBillPending(true);
+          setShowModal(true);
+        }
+        if (data?.is_additional_charge_pending) {
+          setIsAdditionalChargePending(true);
+          setShowModal(true);
+        }
+
+        // Show modal if either state is true
+        if (data?.is_prev_bill_pending || data?.is_additional_charge_pending) {
+          setShowModal(true);
+        }
+        Toast.show({
+          text1: 'Opps!',
+          text2: data?.msg || 'Something went wrong',
+          type: 'error',
+        });
+        // setBillsList([]);
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
+  const fetchInvoiceLink = async id => {
+    const url = `${BaseSetting.baseUrl}${BaseSetting.endpoints.invoiceDownload}/${id}`;
+    console.log('Fetching Invoice URL:', url);
+
+    const headers = {
+      Accept: 'application/pdf',
+      Authorization: `Bearer ${accessToken}`,
+    };
+
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: headers,
+      });
+      console.log('response', response);
+
+      if (!response.ok) {
+        console.error(
+          'Error fetching invoice:',
+          response.status,
+          response.statusText,
+        );
+        return;
+      }
+
+      // ✅ Convert response to a Blob
+      const blob = await response.blob();
+
+      // ✅ File Name
+      const fileName = `invoice-${id}.pdf`;
+      let filePath = '';
+
+      // ✅ Use the system's default storage path
+      if (Platform.OS === 'android') {
+        if (Platform.Version < 29) {
+          // Below Android 10 → Need WRITE_EXTERNAL_STORAGE Permission
+          const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+          );
+          if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+            console.log('Storage permission denied');
+            return;
+          }
+          filePath = `${RNFS.DownloadDirectoryPath}/${fileName}`; // Downloads Folder
+        } else {
+          // Android 10+ (Scoped Storage) → Use Document Directory
+          filePath = `${RNFS.DocumentDirectoryPath}/${fileName}`;
+        }
+      } else {
+        filePath = `${RNFS.DocumentDirectoryPath}/${fileName}`; // iOS Default Path
+      }
+
+      // ✅ Convert Blob to Base64 and Save File
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        try {
+          const base64Data = reader.result.split(',')[1];
+          await RNFS.writeFile(filePath, base64Data, 'base64');
+
+          console.log('Invoice downloaded successfully at:', filePath);
+
+          // ✅ Open File Using FileViewer Plugin
+          FileViewer.open(filePath, {
+            showOpenWithDialog: true,
+            displayName: `Invoice-${id}.pdf`,
+            mimeType: 'application/pdf',
+          })
+            .then(() => console.log('PDF opened successfully in FileViewer'))
+            .catch(error => console.error('Error opening PDF:', error));
+        } catch (writeError) {
+          console.error('Error saving file:', writeError);
+        }
+      };
+
+      reader.readAsDataURL(blob);
+    } catch (error) {
+      console.error('Error fetching invoice:', error);
+    }
+  };
+  const receiptDownload = async id => {
+    const url = `${BaseSetting.baseUrl}${BaseSetting.endpoints.receiptDownload}/${id}`;
+    console.log('Fetching Invoice URL:', url);
+
+    const headers = {
+      Accept: 'application/pdf',
+      Authorization: `Bearer ${accessToken}`,
+    };
+
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: headers,
+      });
+      console.log('response', response);
+
+      if (!response.ok) {
+        console.error(
+          'Error fetching receipt:',
+          response.status,
+          response.statusText,
+        );
+        return;
+      }
+
+      // ✅ Convert response to a Blob
+      const blob = await response.blob();
+
+      // ✅ File Name
+      const fileName = `receipt-${id}.pdf`;
+      let filePath = '';
+
+      // ✅ Use the system's default storage path
+      if (Platform.OS === 'android') {
+        if (Platform.Version < 29) {
+          // Below Android 10 → Need WRITE_EXTERNAL_STORAGE Permission
+          const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+          );
+          if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+            console.log('Storage permission denied');
+            return;
+          }
+          filePath = `${RNFS.DownloadDirectoryPath}/${fileName}`; // Downloads Folder
+        } else {
+          // Android 10+ (Scoped Storage) → Use Document Directory
+          filePath = `${RNFS.DocumentDirectoryPath}/${fileName}`;
+        }
+      } else {
+        filePath = `${RNFS.DocumentDirectoryPath}/${fileName}`; // iOS Default Path
+      }
+
+      // ✅ Convert Blob to Base64 and Save File
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        try {
+          const base64Data = reader.result.split(',')[1];
+          await RNFS.writeFile(filePath, base64Data, 'base64');
+
+          console.log('Invoice downloaded successfully at:', filePath);
+
+          // ✅ Open File Using FileViewer Plugin
+          FileViewer.open(filePath, {
+            showOpenWithDialog: true,
+            displayName: `Receipt-${id}.pdf`,
+            mimeType: 'application/pdf',
+          })
+            .then(() => console.log('PDF opened successfully in FileViewer'))
+            .catch(error => console.error('Error opening PDF:', error));
+        } catch (writeError) {
+          console.error('Error saving file:', writeError);
+        }
+      };
+
+      reader.readAsDataURL(blob);
+    } catch (error) {
+      console.error('Error fetching receipt:', error);
+    }
+  };
+
+  const filteredBills = billsList.filter(bill =>
+    activeTab === 'pending'
+      ? bill.status === 'pending' ||
+        bill.status === 'overdue' ||
+        bill.status === 'in_review'
+      : bill.status === 'paid',
+  );
+
+  return (
+    <ScrollView
+      style={[
+        styles.container,
+        {backgroundColor: !filteredBills.length === 0 ? '#f8f9fa' : 'white'},
+      ]}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Bills Dashboard</Text>
+        <Text style={styles.headerSubtitle}>
+          Track and manage your payments for (
+          {shopSelected?.property_name || 'Select the Shop from Dashboard'})
+        </Text>
+      </View>
+
+      <TabSelector activeTab={activeTab} onTabChange={setActiveTab} />
+
+      <Animatable.View
+        animation={'slideInUp'}
+        style={[
+          styles.billsList,
+          {
+            marginBottom:
+              filteredBills.length >= 3
+                ? Dimensions.get('screen').height / 15
+                : filteredBills.length - 1,
+          },
+        ]}>
+        {filteredBills.length === 0 ? (
+          <CPageLoader
+            showTitle
+            style={{height: Dimensions.get('window').height / 2.6}}
+            lisEmptyComponent
+          />
+        ) : (
+          filteredBills.map((bill, index) => (
+            <BillCard
+              key={`bill-${bill.bill_id}`}
+              bill={bill}
+              isLast={index === filteredBills.length - 1}
+              onPayNow={id => {
+                fetchPaymentLink(id);
+              }}
+              onDownloadInvoice={id => {
+                fetchInvoiceLink(id);
+              }}
+              onDownloadReceipt={id => {
+                receiptDownload(id);
+              }}
+            />
+          ))
+        )}
+      </Animatable.View>
+      <SettleBillsModal
+        visible={showModal}
+        onClose={() => {
+          setShowModal(false);
+          // Reset states when modal is closed
+          setIsPreviousBillPending(false);
+          setIsAdditionalChargePending(false);
+        }}
+        onSettleBills={() => {
+          if (isAdditionalChargePending) {
+            navigation.navigate('Charges', {
+              additional_charge_id: 'pending',
+            });
+          } else {
+            navigation.navigate('Bills');
+          }
+        }}
+        isPreviousBillPending={isPreviousBillPending}
+        isAdditionalChargePending={isAdditionalChargePending}
+      />
+    </ScrollView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+
+    paddingTop: Platform.OS === 'ios' ? 60 : 20,
+  },
+  overdueText: {
+    color: 'white',
+  },
+  header: {
+    padding: 20,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f3f5',
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#2d3436',
+    marginBottom: 4,
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: '#6c757d',
+  },
+  tabContainer: {
+    backgroundColor: '#fff',
+    paddingHorizontal: 16,
+    marginBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f3f5',
+  },
+  tabWrapper: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: width * 0.7,
+  },
+  tabButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    position: 'relative',
+  },
+  tabText: {
+    marginLeft: 8,
+    fontSize: 15,
+    color: '#9e9e9e',
+  },
+  tabTextActive: {
+    color: '#632240',
+    fontWeight: '600',
+  },
+  activeTabLine: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 2,
+    backgroundColor: '#632240',
+  },
+  billsList: {
+    padding: 16,
+  },
+  cardContainer: {
+    marginBottom: 16,
+    borderRadius: 16,
+    // overflow: 'hidden',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  card: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 16,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 20,
+  },
+  month: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#2d3436',
+    marginBottom: 4,
+  },
+  statusText: {
+    fontSize: 13,
+    color: '#6c757d',
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  pendingBadge: {
+    backgroundColor: '#fff3e0',
+  },
+  paidBadge: {
+    backgroundColor: '#e8f5e9',
+  },
+  overdueBadge: {backgroundColor: '#FF5555'},
+  statusBadgeText: {
+    marginLeft: 4,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  pendingText: {
+    color: '#ff9800',
+  },
+  paidText: {
+    color: '#4caf50',
+  },
+  billDetails: {
+    backgroundColor: '#f8f9fa',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 20,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  labelWithIcon: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  label: {
+    color: '#6c757d',
+    fontSize: 14,
+    marginLeft: 8,
+  },
+  penaltyLabel: {
+    color: '#ff9800',
+  },
+  roundedLabel: {
+    color: '#632240',
+    fontWeight: '600',
+  },
+  value: {
+    fontWeight: '500',
+    color: '#2d3436',
+    fontSize: 15,
+  },
+  penaltyValue: {
+    color: '#ff9800',
+  },
+  roundedValue: {
+    color: '#632240',
+    fontWeight: '600',
+  },
+  totalContainer: {
+    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#f1f3f5',
+  },
+  totalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  totalLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#2d3436',
+  },
+  totalValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#2d3436',
+  },
+  button: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 20,
+  },
+  payButton: {
+    backgroundColor: '#632240',
+  },
+  downloadButton: {
+    backgroundColor: '#4caf50',
+  },
+  buttonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 16,
+    marginLeft: 8,
+  },
+});
+
+export default BillsDashboard;

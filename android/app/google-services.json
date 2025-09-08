@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "204197144339",
+    "project_id": "phpl-c97dc",
+    "storage_bucket": "phpl-c97dc.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:204197144339:android:ba670c11711376269bdce6",
+        "android_client_info": {
+          "package_name": "com.app.phpl"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBzrzM8JEq1E8jaVPVtSKQ0H3MldRhJ2RM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
