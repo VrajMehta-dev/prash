@@ -11,6 +11,7 @@ import {
   PermissionsAndroid,
   Linking,
   ActivityIndicator,
+  StatusBar,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {LinearGradient} from 'react-native-linear-gradient';
@@ -83,7 +84,6 @@ const BillCard = ({
   onDownloadReceipt,
   isLast,
 }) => {
-
   const {
     month,
     rent,
@@ -110,6 +110,7 @@ const BillCard = ({
   const isPaid = status === 'paid';
   console.log('isPaid', isPaid);
   const statusNow = status;
+  console.log('🚀 ~ file: index.js:113 ~ statusNow:', statusNow);
   const dueDateObj = new Date(due_date);
   const today = new Date();
 
@@ -205,6 +206,7 @@ const BillCard = ({
                 : isPaid
                 ? styles.paidBadge
                 : styles.pendingBadge,
+              {position: 'absolute', right: 2},
             ]}>
             <Icon
               name={isPaid ? 'check-circle' : 'clock'}
@@ -225,12 +227,18 @@ const BillCard = ({
                   : isPaid
                   ? styles.paidText
                   : styles.pendingText,
-              ]}>
+              ]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              adjustsFontSizeToFit
+              minimumFontScale={0.85}>
               {statusNow === 'overdue'
                 ? 'OVERDUE'
                 : isPaid
                 ? 'PAID'
-                : 'PENDING'}
+                : statusNow === 'pending'
+                ? 'PENDING'
+                : 'IN REVIEW'}
             </Text>
           </View>
         </View>
@@ -324,51 +332,102 @@ const BillCard = ({
             </Text>
           </View>
         </View>
+        <View style={styles.actionsRow}>
+          {statusNow !== 'in_review' ? (
+            <View
+              style={{
+                flexDirection: 'column',
+                justifyContent: 'center',
+                flex: 1,
+              }}>
+              <TouchableOpacity
+                onPress={() => {
+                  if (!isPaid) {
+                    onPayNow(bill_id);
+                  } else {
+                    onDownloadReceipt(bill_id);
+                  }
+                }}
+                style={[
+                  styles.button,
+                  isPaid ? styles.downloadButton : styles.payButton,
+                ]}
+                activeOpacity={0.8}>
+                <Icon
+                  name={isPaid ? 'download' : 'credit-card'}
+                  size={20}
+                  color="#fff"
+                />
+                <Text style={styles.buttonText}>
+                  {isPaid ? 'Download Receipt' : 'Pay Now'}
+                </Text>
+              </TouchableOpacity>
 
-        <TouchableOpacity
-          onPress={() => {
-            if (!isPaid) {
-              onPayNow(bill_id);
-            } else {
-              onDownloadReceipt(bill_id);
-            }
-          }}
-          style={[
-            styles.button,
-            isPaid ? styles.downloadButton : styles.payButton,
-          ]}
-          activeOpacity={0.8}>
-          <Icon
-            name={isPaid ? 'download' : 'credit-card'}
-            size={20}
-            color="#fff"
-          />
-          <Text style={styles.buttonText}>
-            {isPaid ? 'Download Receipt' : 'Pay Now'}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          disabled={loader}
-          onPress={() => {
-            onDownloadInvoice(bill_id);
-            setLoader(true);
-            setTimeout(() => {
-              setLoader(false);
-            }, 5000);
-          }}
-          style={[styles.button, {borderColor: '#632240', borderWidth: 1}]}
-          activeOpacity={0.8}>
-          {loader ? (
-            <ActivityIndicator size="small" color="#632240" />
+              <TouchableOpacity
+                disabled={loader}
+                onPress={() => {
+                  onDownloadInvoice(bill_id);
+                  setLoader(true);
+                  setTimeout(() => {
+                    setLoader(false);
+                  }, 5000);
+                }}
+                style={[
+                  styles.button,
+                  {borderColor: '#632240', borderWidth: 1},
+                ]}
+                activeOpacity={0.8}>
+                {loader ? (
+                  <ActivityIndicator size="small" color="#632240" />
+                ) : (
+                  <>
+                    <Icon name={'download'} size={20} color="#632240" />
+                    <Text style={{color: '#632240', marginLeft: 6}}>
+                      Download Invoice
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
           ) : (
             <>
-              <Icon name={'download'} size={20} color="#632240" />
-              <Text style={{color: '#632240', marginLeft: 6}}>
-                Download Invoice
-              </Text>
+              <View style={styles.reviewNotice}>
+                <Icon name="information" size={18} color="#8a6d3b" />
+                <Text style={styles.reviewText}>
+                  Your bill is under review. You won’t be able to make a payment
+                  until the review is completed, but don’t worry — penalties are
+                  frozen until then.
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                disabled={loader}
+                onPress={() => {
+                  onDownloadInvoice(bill_id);
+                  setLoader(true);
+                  setTimeout(() => {
+                    setLoader(false);
+                  }, 5000);
+                }}
+                style={[
+                  styles.button,
+                  {borderColor: '#632240', borderWidth: 1},
+                ]}
+                activeOpacity={0.8}>
+                {loader ? (
+                  <ActivityIndicator size="small" color="#632240" />
+                ) : (
+                  <>
+                    <Icon name={'download'} size={20} color="#632240" />
+                    <Text style={{color: '#632240', marginLeft: 6}}>
+                      Download Invoice
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
             </>
           )}
-        </TouchableOpacity>
+        </View>
       </LinearGradient>
     </Animated.View>
   );
@@ -452,7 +511,6 @@ const BillsDashboard = ({navigation}) => {
       Accept: '*/*',
       Authorization: 'Bearer ' + accessToken,
     };
-    console.log('accessToken', accessToken);
 
     try {
       const response = await fetch(url, {
@@ -462,7 +520,6 @@ const BillsDashboard = ({navigation}) => {
 
       const text = await response.text();
       const data = text ? JSON.parse(text) : {};
-      // console.log('dataiygjusfgjdfuydf', JSON.stringify(data));
 
       if (response.ok) {
         // Handle new nested response structure
@@ -472,7 +529,7 @@ const BillsDashboard = ({navigation}) => {
             ...(data.bills.paid || []),
             ...(data.bills.unpaid || []),
           ];
-         
+
           setBillsList(allBills);
 
           // Reset pending states based on actual data
@@ -514,7 +571,6 @@ const BillsDashboard = ({navigation}) => {
 
       const text = await response.text();
       const data = text ? JSON.parse(text) : {};
-      console.log('lkjhbvbjklkbvbjklkjhghjkjhhj', data);
 
       if (response.ok) {
         setPaymentLink(data?.payment_link || null);
@@ -716,78 +772,89 @@ const BillsDashboard = ({navigation}) => {
   );
 
   return (
-    <ScrollView
-      style={[
-        styles.container,
-        {backgroundColor: !filteredBills.length === 0 ? '#f8f9fa' : 'white'},
-      ]}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Bills Dashboard</Text>
-        <Text style={styles.headerSubtitle}>
-          Track and manage your payments for (
-          {shopSelected?.property_name || 'Select the Shop from Dashboard'})
-        </Text>
-      </View>
-
-      <TabSelector activeTab={activeTab} onTabChange={setActiveTab} />
-
-      <Animatable.View
-        animation={'slideInUp'}
+    <>
+      {isFocused && (
+        <StatusBar
+          barStyle="dark-content"
+          backgroundColor="#fff"
+          showHideTransition="slide"
+        />
+      )}
+      <ScrollView
         style={[
-          styles.billsList,
-          {
-            marginBottom:
-              filteredBills.length >= 3
-                ? Dimensions.get('screen').height / 15
-                : filteredBills.length - 1,
-          },
+          styles.container,
+          {backgroundColor: !filteredBills.length === 0 ? '#f8f9fa' : 'white'},
         ]}>
-        {filteredBills.length === 0 ? (
-          <CPageLoader
-            showTitle
-            style={{height: Dimensions.get('window').height / 2.6}}
-            lisEmptyComponent
-          />
-        ) : (
-          filteredBills.map((bill, index) => (
-            <BillCard
-              key={`bill-${bill.bill_id}`}
-              bill={bill}
-              isLast={index === filteredBills.length - 1}
-              onPayNow={id => {
-                fetchPaymentLink(id);
-              }}
-              onDownloadInvoice={id => {
-                fetchInvoiceLink(id);
-              }}
-              onDownloadReceipt={id => {
-                receiptDownload(id);
-              }}
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Bills Dashboard</Text>
+          <Text style={styles.headerSubtitle}>
+            Track and manage your payments for (
+            {shopSelected?.property_name ||
+              'Select the Property from Dashboard'}
+            )
+          </Text>
+        </View>
+
+        <TabSelector activeTab={activeTab} onTabChange={setActiveTab} />
+
+        <Animatable.View
+          animation={'slideInUp'}
+          style={[
+            styles.billsList,
+            {
+              marginBottom:
+                filteredBills.length >= 3
+                  ? Dimensions.get('screen').height / 15
+                  : filteredBills.length - 1,
+            },
+          ]}>
+          {filteredBills.length === 0 ? (
+            <CPageLoader
+              showTitle
+              style={{height: Dimensions.get('window').height / 2.6}}
+              lisEmptyComponent
             />
-          ))
-        )}
-      </Animatable.View>
-      <SettleBillsModal
-        visible={showModal}
-        onClose={() => {
-          setShowModal(false);
-          // Reset states when modal is closed
-          setIsPreviousBillPending(false);
-          setIsAdditionalChargePending(false);
-        }}
-        onSettleBills={() => {
-          if (isAdditionalChargePending) {
-            navigation.navigate('Charges', {
-              additional_charge_id: 'pending',
-            });
-          } else {
-            navigation.navigate('Bills');
-          }
-        }}
-        isPreviousBillPending={isPreviousBillPending}
-        isAdditionalChargePending={isAdditionalChargePending}
-      />
-    </ScrollView>
+          ) : (
+            filteredBills.map((bill, index) => (
+              <BillCard
+                key={`bill-${bill.bill_id}`}
+                bill={bill}
+                isLast={index === filteredBills.length - 1}
+                onPayNow={id => {
+                  fetchPaymentLink(id);
+                }}
+                onDownloadInvoice={id => {
+                  fetchInvoiceLink(id);
+                }}
+                onDownloadReceipt={id => {
+                  receiptDownload(id);
+                }}
+              />
+            ))
+          )}
+        </Animatable.View>
+        <SettleBillsModal
+          visible={showModal}
+          onClose={() => {
+            setShowModal(false);
+            // Reset states when modal is closed
+            setIsPreviousBillPending(false);
+            setIsAdditionalChargePending(false);
+          }}
+          onSettleBills={() => {
+            if (isAdditionalChargePending) {
+              navigation.navigate('Charges', {
+                additional_charge_id: 'pending',
+              });
+            } else {
+              navigation.navigate('Bills');
+            }
+          }}
+          isPreviousBillPending={isPreviousBillPending}
+          isAdditionalChargePending={isAdditionalChargePending}
+        />
+      </ScrollView>
+    </>
   );
 };
 
@@ -797,6 +864,32 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
 
     paddingTop: Platform.OS === 'ios' ? 60 : 20,
+  },
+  actionsRow: {
+    marginTop: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    rowGap: 10,
+  },
+  reviewNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff3cd',
+    borderColor: '#ffeeba',
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  reviewText: {
+    color: '#8a6d3b',
+    marginLeft: 8,
+    flex: 1,
+    fontWeight: '600',
+    fontSize: 12,
   },
   overdueText: {
     color: 'white',
@@ -884,7 +977,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   statusText: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#6c757d',
   },
   statusBadge: {
@@ -975,6 +1068,7 @@ const styles = StyleSheet.create({
     color: '#2d3436',
   },
   button: {
+    flex: 1,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',

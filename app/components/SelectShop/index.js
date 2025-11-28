@@ -127,7 +127,7 @@ const ShopSelector = ({shops, onSelect, isVisible, onClose}) => {
   const renderContent = () => (
     <>
       <View style={styles.header}>
-        <Text style={styles.title}>Select Your Shop</Text>
+        <Text style={styles.title}>Select Your Property</Text>
         <TouchableOpacity style={styles.closeButton} onPress={onClose}>
           <Icon
             type={Icons.Ionicons}
@@ -223,7 +223,7 @@ const ShopSelector = ({shops, onSelect, isVisible, onClose}) => {
         onPress={() => selectedShop && onSelect(selectedShop)}
         disabled={!selectedShop}>
         <Text style={styles.confirmButtonText}>
-          Continue with Selected Shop
+          Continue with Selected Property
         </Text>
       </TouchableOpacity>
     </>

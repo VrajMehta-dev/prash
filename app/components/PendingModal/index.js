@@ -45,13 +45,14 @@ const SettleBillsModal = ({
       setIsProcessing(false);
       onSettleBills && onSettleBills();
       onClose();
-    }, 1500);
+    }, 850);
   };
 
   return (
     <Modal
       visible={visible}
       transparent={true}
+      statusBarTranslucent
       animationType="none"
       onRequestClose={onClose}>
       <View style={styles.overlay}>

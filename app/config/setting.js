@@ -8,8 +8,9 @@ const devMode = __DEV__;
 // const baseUrl = 'https://staging-api.letsgoplan.com/v1';
 
 // const baseUrl = 'https://phpl.paruluniversity.ac.in/api/';
-// const baseUrl = 'https://prash.paruluniversity.ac.in/api/';
-const baseUrl = 'https://testprash.paruluniversity.ac.in/api/';
+// const baseUrl2 = 'https://prash.paruluniversity.ac.in/api/';
+const baseUrl2 = 'https://testprash.paruluniversity.ac.in/api/';
+const baseUrl = 'https://prash.paruluniversity.ac.in/api/';
 
 // const webUrl = 'https://staging.letsgoplan.com/';
 const webUrl = 'https://letsgoplan.com/';
@@ -17,6 +18,8 @@ const webUrl = 'https://letsgoplan.com/';
 const BaseSetting = {
   baseUrl: baseUrl,
   api: baseUrl,
+  payMode: 'production',
+  api2: baseUrl,
   webUrl: webUrl,
   phoneCode: '+1',
   countryCode: 'US',
@@ -42,7 +45,8 @@ const BaseSetting = {
     getAllShops: 'client/property',
     getPaymentLink: 'client/bills/initiate-payment/',
     getAdditionalCharges: 'client/additional-charges/',
-    getAdditionalChargesPaymentLink: 'client/additional-charges/initiate-payment/',
+    getAdditionalChargesPaymentLink:
+      'client/additional-charges/initiate-payment/',
     notiList: 'client/notifications',
     socialSignUp: 'user/social-signup',
     verifyOtp: 'user/verify-email',

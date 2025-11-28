@@ -8,10 +8,12 @@ import {
   Image,
   TouchableOpacity,
   ActivityIndicator,
+  StatusBar,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import moment from 'moment';
 import {useDispatch, useSelector} from 'react-redux';
+import {useIsFocused} from '@react-navigation/native';
 import {isEmpty, set} from 'lodash';
 import BaseSetting from '@config/setting';
 import {logout} from '@utils/commonFunction';
@@ -26,6 +28,7 @@ const ProfileScreen = ({navigation}) => {
 
   const {setUserData, setAccessToken, setShopSelected} = authActions;
   const dispatch = useDispatch();
+  const isFocused = useIsFocused();
   useEffect(() => {
     fetchData();
   }, []);
@@ -107,7 +110,8 @@ const ProfileScreen = ({navigation}) => {
         });
 
         store.dispatch(setAccessToken(''));
-        store.dispatch(setShopSelected(''));
+        store.dispatch(setShopSelected({}));
+        store.dispatch(setUserData({}));
         navigation.reset({
           routes: [{name: 'Login'}],
         });
@@ -119,25 +123,28 @@ const ProfileScreen = ({navigation}) => {
       } else {
         setLogoutLoader(false);
         store.dispatch(setAccessToken(''));
-        store.dispatch(setShopSelected(''));
+        store.dispatch(setShopSelected({}));
         navigation.reset({
           routes: [{name: 'Login'}],
         });
         Toast.show({
           type: 'error',
           text1: 'Error',
-          text2: data?.msg || 'Something went wrong!',
+          text2: 'You have been logged out successfully',
         });
       }
-
       console.log('Response Data:', data);
     } catch (error) {
       setLogoutLoader(false);
-      console.error('Error fetching data:', error);
+      store.dispatch(setAccessToken(''));
+      store.dispatch(setShopSelected({}));
+      navigation.reset({
+        routes: [{name: 'Login'}],
+      });
       Toast.show({
         type: 'error',
-        text1: 'Network Error',
-        text2: 'Please check your connection.',
+        text1: 'Error',
+        text2: 'You have been logged out successfully',
       });
     }
   };
@@ -173,30 +180,41 @@ const ProfileScreen = ({navigation}) => {
 
   return (
     <View View style={{flex: 1, paddingTop: 38, backgroundColor: '#632240'}}>
+      {isFocused && (
+        <StatusBar backgroundColor="#632240" barStyle="light-content" />
+      )}
       <ScrollView showsVerticalScrollIndicator={false} style={styles.container}>
         {/* Header Section */}
         <View style={styles.header}>
           <View style={styles.avatarContainer}>
             <Text style={styles.avatarText}>
-              {userData?.first_name?.charAt(0)}
-              {userData?.last_name?.charAt(0)}
+              {userData?.first_name?.charAt(0) || ''}
+              {userData?.last_name?.charAt(0) || ''}
             </Text>
           </View>
           <Text style={styles.userName}>
-            {userData?.first_name} {userData?.last_name}
+            {userData?.first_name || ''} {userData?.last_name || ''}
           </Text>
-          <Text style={styles.userEmail}>{userData?.email}</Text>
+          <Text style={styles.userEmail}>{userData?.email || ''}</Text>
         </View>
 
         {/* Basic Info Section */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Basic Information</Text>
-          <ProfileSection icon="phone" title="Phone" value={userData?.phone} />
-          <ProfileSection icon="email" title="Email" value={userData?.email} />
+          <ProfileSection
+            icon="phone"
+            title="Phone"
+            value={userData?.phone || ''}
+          />
+          <ProfileSection
+            icon="email"
+            title="Email"
+            value={userData?.email || ''}
+          />
           <ProfileSection
             icon="calendar"
             title="Joined"
-            value={moment(userData?.created_at).format('MMMM DD, YYYY')}
+            value={moment(userData?.created_at).format('MMMM DD, YYYY') || ''}
           />
         </View>
 

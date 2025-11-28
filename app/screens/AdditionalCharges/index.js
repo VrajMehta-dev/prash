@@ -10,6 +10,7 @@ import {
   Platform,
   PermissionsAndroid,
   ActivityIndicator,
+  StatusBar,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {LinearGradient} from 'react-native-linear-gradient';
@@ -317,6 +318,7 @@ const AdditionalCharges = ({navigation, route}) => {
   const [activeTab, setActiveTab] = useState('pending');
   const [chargesList, setChargesList] = useState([]);
   const [selectedCharge, setSelectedCharge] = useState(null);
+  console.log("🚀 ~ AdditionalCharges ~ selectedCharge:", selectedCharge)
   const [paymentLink, setPaymentLink] = useState(null);
   const [shouldNavigate, setShouldNavigate] = useState(false);
   const [animatePaymentButton, setAnimatePaymentButton] = useState(false);
@@ -606,6 +608,14 @@ const AdditionalCharges = ({navigation, route}) => {
   };
 
   return (
+    <>
+      {isFocused && (
+        <StatusBar
+          barStyle="dark-content"
+          backgroundColor="#fff"
+          showHideTransition="slide"
+        />
+      )}
     <ScrollView
       style={[
         styles.container,
@@ -615,7 +625,7 @@ const AdditionalCharges = ({navigation, route}) => {
         <Text style={styles.headerTitle}>Additional Charges</Text>
         <Text style={styles.headerSubtitle}>
           Track and manage your additional charges for (
-          {shopSelected?.property_name || 'Select the Shop from Dashboard'})
+          {shopSelected?.property_name || 'Select the Property from Dashboard'})
         </Text>
       </View>
 
@@ -846,6 +856,7 @@ const AdditionalCharges = ({navigation, route}) => {
         )}
       </RBSheet>
     </ScrollView>
+    </>
   );
 };
 

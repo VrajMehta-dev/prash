@@ -11,13 +11,14 @@ import {
   ActivityIndicator,
   ScrollView,
   Keyboard,
+  StatusBar,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import styles from './styles';
 import BaseSetting from '@config/setting';
 import {getApiDataProgress} from '@utils/apiHelper';
 import Toast from 'react-native-toast-message';
-import {useTheme} from '@react-navigation/native';
+import {useTheme, useIsFocused} from '@react-navigation/native';
 import {translate} from '@lang/Translate';
 
 const {width} = Dimensions.get('window');
@@ -25,6 +26,7 @@ const {width} = Dimensions.get('window');
 const ResetPasswordScreen = ({navigation, route}) => {
   const {colors} = useTheme();
   const BaseColors = colors;
+  const isFocused = useIsFocused();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -153,9 +155,16 @@ const ResetPasswordScreen = ({navigation, route}) => {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : null}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 40 : 0}>
+      {isFocused && (
+        <StatusBar
+          barStyle="dark-content"
+          backgroundColor="#fff"
+          showHideTransition="slide"
+        />
+      )}
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -172,7 +181,12 @@ const ResetPasswordScreen = ({navigation, route}) => {
 
           <View style={styles.form}>
             <View style={styles.inputContainer}>
-              <Icon name="lock" size={20} color="#666" style={styles.inputIcon} />
+              <Icon
+                name="lock"
+                size={20}
+                color="#666"
+                style={styles.inputIcon}
+              />
               <TextInput
                 style={styles.input}
                 placeholder="New Password"
@@ -201,7 +215,8 @@ const ResetPasswordScreen = ({navigation, route}) => {
                       {
                         backgroundColor: passwordStrength.color,
                         width: `${
-                          (Object.values(strengthChecks).filter(Boolean).length /
+                          (Object.values(strengthChecks).filter(Boolean)
+                            .length /
                             5) *
                           100
                         }%`,
@@ -210,7 +225,10 @@ const ResetPasswordScreen = ({navigation, route}) => {
                   />
                 </View>
                 <Text
-                  style={[styles.strengthText, {color: passwordStrength.color}]}>
+                  style={[
+                    styles.strengthText,
+                    {color: passwordStrength.color},
+                  ]}>
                   Password Strength: {passwordStrength.label}
                 </Text>
               </View>
@@ -218,7 +236,8 @@ const ResetPasswordScreen = ({navigation, route}) => {
 
             <View style={styles.requirements}>
               <Text style={styles.requirementsTitle}>
-                <Icon name="info" size={16} color="#666" /> Password Requirements
+                <Icon name="info" size={16} color="#666" /> Password
+                Requirements
               </Text>
               {Object.entries(strengthChecks).map(([key, isValid]) => (
                 <View key={key} style={styles.requirementRow}>
@@ -239,7 +258,12 @@ const ResetPasswordScreen = ({navigation, route}) => {
             </View>
 
             <View style={styles.inputContainer}>
-              <Icon name="lock" size={20} color="#666" style={styles.inputIcon} />
+              <Icon
+                name="lock"
+                size={20}
+                color="#666"
+                style={styles.inputIcon}
+              />
               <TextInput
                 style={styles.input}
                 placeholder="Confirm Password"

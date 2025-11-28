@@ -54,7 +54,6 @@ const CustomDrawer = ({navigation}) => {
     useSelector(state => state.auth);
 
   const Tab = createBottomTabNavigator();
-  console.log('userData', userData);
 
   // Reference
   const deleteAccountModalRef = useRef();
@@ -80,14 +79,7 @@ const CustomDrawer = ({navigation}) => {
       id: 13,
       title: 'GoTokens',
     },
-    {
-      id: 1,
-      title:
-        userData?.is_vendor &&
-        (userData?.is_vendor_status == 1 || userData?.is_vendor_status == 2)
-          ? 'MyServices'
-          : 'BecomeVendor',
-    },
+
     {
       id: 2,
       title: 'SponsorTrip',

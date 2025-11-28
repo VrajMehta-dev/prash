@@ -1,4 +1,4 @@
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import {
   View,
   Text,
@@ -7,12 +7,15 @@ import {
   StyleSheet,
   Animated,
   Dimensions,
+  StatusBar,
   ScrollView,
   SafeAreaView,
+  Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import {translate} from '@lang/Translate';
+import {useIsFocused} from '@react-navigation/native';
 
 const {width} = Dimensions.get('window');
 
@@ -24,6 +27,8 @@ const ForgotPassword = ({navigation, route}) => {
 
   const shakeAnimation = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(1)).current;
+  // Must be declared before any conditional return
+  const isForgot = useIsFocused();
 
   const validateEmail = email => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -78,10 +83,17 @@ const ForgotPassword = ({navigation, route}) => {
     }, 1500);
   };
 
+  // Navigate after success using an effect (avoid side-effects in render)
+  useEffect(() => {
+    if (isSuccess) {
+      const timer = setTimeout(() => {
+        navigation.replace('OTPVerification', {email: email, isForgot: true});
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [isSuccess, navigation, email]);
+
   if (isSuccess) {
-    setTimeout(() => {
-      navigation.replace('OTPVerification', {email: email, isForgot: true});
-    }, 1000);
     return (
       <Animated.View
         style={[
@@ -110,7 +122,14 @@ const ForgotPassword = ({navigation, route}) => {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
+      {isForgot && (
+        <StatusBar
+          backgroundColor="transparent"
+          barStyle="light-content"
+          translucent
+        />
+      )}
       <ScrollView contentContainerStyle={styles.scrollView}>
         <View style={styles.container}>
           <LinearGradient
@@ -192,7 +211,7 @@ const ForgotPassword = ({navigation, route}) => {
 
             <TouchableOpacity
               style={styles.backToLoginButton}
-              onPress={() => navigation.goBack()}>
+              onPress={() => navigation?.reset({routes: [{name: 'Login'}]})}>
               <Icon name="arrow-back" size={20} color="#666" />
               <Text style={styles.backToLoginText}>
                 {translate('Back to Login')}
@@ -201,7 +220,7 @@ const ForgotPassword = ({navigation, route}) => {
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 

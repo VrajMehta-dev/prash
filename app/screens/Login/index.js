@@ -1,5 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useState, useEffect, useRef, useMemo} from 'react';
+import React, {useState, useEffect, useRef, useMemo, useCallback} from 'react';
 import {
   View,
   Text,
@@ -26,6 +26,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import authActions from '@redux/reducers/auth/actions';
 import {store} from '@redux/store/configureStore';
 import DeviceInfo from 'react-native-device-info';
+import {useFocusEffect} from '@react-navigation/native';
 
 const {width, height} = Dimensions.get('window');
 
@@ -38,15 +39,19 @@ const Login = ({navigation}) => {
   const [isFocused, setIsFocused] = useState({email: false, password: false});
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [shadowActive, setShadowActive] = useState(false);
-  const {setUserData, setAccessToken} = authActions;
+  const {setUserData, setAccessToken, setShopSelected} = authActions;
   const scrollViewRef = useRef(null);
 
+  const {userData, shopSelected, accessToken} = useSelector(
+    state => state.auth,
+  );
+  console.log('🚀 ~ Login ~ accessToken:', accessToken);
+  console.log('🚀 ~ Login ~ shopSelected:', shopSelected);
   // Professional animation values
   const fadeIn = useMemo(() => new Animated.Value(0), []);
   const slideUp = useMemo(() => new Animated.Value(30), []);
   const formFade = useMemo(() => new Animated.Value(0), []);
   const elevationAnim = useMemo(() => new Animated.Value(0), []);
-
   useEffect(() => {
     // Elegant fade and slide animations
     Animated.parallel([
@@ -94,7 +99,8 @@ const Login = ({navigation}) => {
       'keyboardDidShow',
       () => {
         setKeyboardVisible(true);
-        scrollViewRef.current?.scrollToEnd({animated: true});
+        // Avoid force-scrolling to end on Android which can leave a bottom gap after hide
+        // scrollViewRef.current?.scrollToEnd({animated: true});
       },
     );
     const keyboardDidHideListener = Keyboard.addListener(
@@ -124,7 +130,18 @@ const Login = ({navigation}) => {
   const {fcmToken} = useSelector(state => state.notification);
 
   const [deviceInfo, setDeviceInfo] = React.useState({});
+  useFocusEffect(
+    useCallback(() => {
+      console.log('Screen is focused');
+      dispatch(setShopSelected({}));
 
+      // Fetch or refresh data here
+      return () => {
+        console.log('Screen is unfocused');
+        // Cleanup if needed
+      };
+    }, []),
+  );
   React.useEffect(() => {
     const getDeviceInfo = async () => {
       const device_id = await DeviceInfo.getDeviceId();
@@ -220,7 +237,6 @@ const Login = ({navigation}) => {
       setLoader(false);
     }
   };
-  
 
   const handleLogin = () => {
     const newErrors = {};
@@ -255,7 +271,6 @@ const Login = ({navigation}) => {
       scrollViewRef.current?.scrollToEnd({animated: true});
     }, 100);
   };
-  
 
   // Get the dynamic styles for card shadow
   const getCardShadowStyle = () => {
@@ -298,7 +313,7 @@ const Login = ({navigation}) => {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={styles.container}>
       <StatusBar barStyle="light-content" />
       <View style={styles.gradient} />

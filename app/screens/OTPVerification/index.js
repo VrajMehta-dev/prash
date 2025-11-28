@@ -3,6 +3,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  StatusBar,
   Text,
   TouchableOpacity,
   View,
@@ -256,7 +257,7 @@ const OTPVerification = ({navigation, route}) => {
 
   return (
     <View style={styles.root}>
-      <CStatusBar />
+      <StatusBar backgroundColor="transparent" barStyle="dark-content" />
       <KeyboardAvoidingView behavior={IOS ? 'padding' : null} style={{flex: 1}}>
         <AnimatedView>
           <ScrollView

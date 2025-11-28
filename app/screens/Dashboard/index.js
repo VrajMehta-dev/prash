@@ -9,6 +9,7 @@ import {
   Platform,
   Dimensions,
   Alert,
+  StatusBar,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {BarChart} from 'react-native-gifted-charts';
@@ -24,17 +25,15 @@ import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 const DashboardScreen = ({navigation}) => {
   const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
-  const {setShopSelected} = authActions;
+  const {setShopSelected, setAccessToken} = authActions;
 
   const {userData, shopSelected} = useSelector(state => state.auth);
-  console.log('userData', userData);
-  console.log('shopSelected', shopSelected);
   const {accessToken} = useSelector(state => state.auth);
-  console.log('accessToken', accessToken);
 
   const [shopList, setShopList] = useState([]);
   const [dashboardList, setDashboardList] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  const isFocused = useIsFocused();
 
   useFocusEffect(
     React.useCallback(() => {
@@ -43,11 +42,20 @@ const DashboardScreen = ({navigation}) => {
       fetchDashboardData();
     }, [shopSelected]),
   );
+
+  // Decide default shop selection and bottom sheet visibility based on fetched shops
   useEffect(() => {
-    if (isEmpty(shopSelected)) {
-      setIsBottomSheetVisible(true);
+    if (isEmpty(shopSelected) && Array.isArray(shopList) && userData) {
+      if (shopList?.length === 1) {
+        // Auto-select the only shop and hide the selector
+        store.dispatch(setShopSelected(shopList[0]));
+        setIsBottomSheetVisible(false);
+      } else if (shopList?.length > 1) {
+        // Prompt user to pick if there are multiple options
+        setIsBottomSheetVisible(true);
+      }
     }
-  }, []);
+  }, [shopList, shopSelected]);
 
   const fetchData = async () => {
     const url = BaseSetting.baseUrl + BaseSetting.endpoints.getAllShops;
@@ -78,6 +86,13 @@ const DashboardScreen = ({navigation}) => {
         setShopList(data);
       } else {
         console.log('Error:');
+        if (data?.msg == 'Invalid or expired token' || isEmpty(accessToken)) {
+          store.dispatch(setAccessToken(''));
+          store.dispatch(setShopSelected({}));
+          navigation.reset({
+            routes: [{name: 'Login'}],
+          });
+        }
       }
 
       console.log('Response Data:', data);
@@ -162,6 +177,10 @@ const DashboardScreen = ({navigation}) => {
   };
 
   const fetchDashboardData = async () => {
+    // Do not fetch dashboard data without a selected shop
+    if (!shopSelected?.pr_id) {
+      return;
+    }
     const url =
       BaseSetting.baseUrl +
       `${BaseSetting.endpoints.dashboardList}/${shopSelected?.pr_id}`;
@@ -219,6 +238,13 @@ const DashboardScreen = ({navigation}) => {
 
   return (
     <>
+      {isFocused && (
+        <StatusBar
+          showHideTransition="slide"
+          barStyle="dark-content"
+          backgroundColor="#fff"
+        />
+      )}
       <ScrollView style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
@@ -233,7 +259,7 @@ const DashboardScreen = ({navigation}) => {
               }}
               style={styles.shopSelector}>
               <Text style={styles.shopName}>
-                {shopSelected?.property_name || 'Select a Shop'}
+                {shopSelected?.property_name || 'Select a Property'}
               </Text>
               <Icon name="chevron-down" size={24} color="#666" />
             </TouchableOpacity>
@@ -390,7 +416,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f6fa',
-    paddingTop: Platform.OS === 'ios' ? 60 : 20,
+    paddingTop: Platform.OS === 'ios' ? 60 : 34,
   },
   header: {
     flexDirection: 'row',

@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {useSelector} from 'react-redux';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useIsFocused} from '@react-navigation/native';
 
 const NotificationScreen = () => {
   const [notifications, setNotifications] = useState([]);
@@ -21,6 +21,7 @@ const NotificationScreen = () => {
   const {accessToken} = useSelector(state => state.auth);
   const navigation = useNavigation();
   const fadeAnim = new Animated.Value(1);
+  const isFocused = useIsFocused();
 
   useEffect(() => {
     fetchNotifications();
@@ -215,7 +216,13 @@ const NotificationScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+      {isFocused && (
+        <StatusBar
+          barStyle="dark-content"
+          backgroundColor="#fff"
+          showHideTransition="slide"
+        />
+      )}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
