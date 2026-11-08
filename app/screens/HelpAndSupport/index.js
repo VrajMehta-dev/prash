@@ -2,6 +2,7 @@ import React from 'react';
 import {View, Text, StyleSheet, ScrollView, Linking, Platform, StatusBar} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Toast from 'react-native-toast-message';
 import TouchableOpacity from '@components/PressableScale';
 import {Brand} from '@config/brand';
 import {TAB_BAR_SPACE} from '@navigation/BottomTab';
@@ -15,6 +16,12 @@ const CONTACT = {
   phoneLabel: '+91 6202 781 773',
   email: 'foodcourt.pu@paruluniversity.ac.in',
 };
+
+// tel: opens the dialer, mailto: opens the mail app; say so if the phone has none.
+const open = (url, what) =>
+  Linking.openURL(url).catch(() =>
+    Toast.show({type: 'error', text1: `No ${what} app found`, text2: 'Please use the details shown on this page.'}),
+  );
 
 const Card = ({icon, title, value, sub, action, onPress}) => (
   <TouchableOpacity
@@ -68,14 +75,14 @@ export default function HelpAndSupport({navigation}) {
             value={CONTACT.phoneLabel}
             sub={`${CONTACT.name}, ${CONTACT.role}`}
             action="Call"
-            onPress={() => Linking.openURL(`tel:${CONTACT.phone}`)}
+            onPress={() => open(`tel:${CONTACT.phone}`, 'phone')}
           />
           <Card
             icon="email-outline"
             title="Email us"
             value={CONTACT.email}
                         action="Email"
-            onPress={() => Linking.openURL(`mailto:${CONTACT.email}`)}
+            onPress={() => open(`mailto:${CONTACT.email}?subject=PRASH%20support`, 'email')}
           />
           <Card
             icon="information-outline"
