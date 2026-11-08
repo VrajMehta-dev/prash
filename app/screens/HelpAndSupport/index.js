@@ -66,7 +66,7 @@ export default function HelpAndSupport({navigation}) {
             <View style={{flex: 1}}>
               <Text style={styles.cardTitle}>Support hours</Text>
               <Text style={styles.cardValue}>9:30 AM to 4:30 PM</Text>
-              <Text style={styles.cardSub}>Monday to Saturday, including University holidays</Text>
+              <Text style={styles.cardSub}>Monday to Saturday. No support on University holidays.</Text>
             </View>
           </View>
           <Card
