@@ -178,7 +178,8 @@ const DashboardScreen = ({navigation}) => {
 
   const barData = monthlyData.labels.map((month, index) => ({
     value: monthlyData.datasets[0].data[index],
-    label: month,
+    label: month.charAt(0), // one letter per bar so 12 labels never collide
+    month,
     frontColor: '#632240',
   }));
   console.log('barData', barData);
@@ -508,7 +509,7 @@ const DashboardScreen = ({navigation}) => {
                 xAxisColor="#E6E6EC"
                 rulesColor="#EFEFF4"
                 yAxisTextStyle={{color: '#9A9AA5', fontSize: 10}}
-                xAxisLabelTextStyle={{color: '#7A7A85', fontSize: 9}}
+                xAxisLabelTextStyle={{color: '#7A7A85', fontSize: 11, textAlign: 'center'}}
                 formatYLabel={v => {
                   const n = Number(v);
                   return n >= 1000 ? `${Math.round(n / 100) / 10}k` : `${Math.round(n)}`;
@@ -519,7 +520,7 @@ const DashboardScreen = ({navigation}) => {
                   tap();
                   if (data?.value > 0) {
                     Toast.show({
-                      text2: data?.label + ' : ' + money(data?.value),
+                      text2: data?.month + ' : ' + money(data?.value),
                       type: 'info',
                     });
                   }
