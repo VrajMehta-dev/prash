@@ -43,12 +43,16 @@ import withTabTransition from '../withTabTransition';
 import Charges from '@screens/Charges';
 import PayHub from '@screens/PayHub';
 import Containers from '@screens/Containers';
+import SecurityDeposit from '@screens/SecurityDeposit';
+import PropertyDocuments from '@screens/PropertyDocuments';
 
 const DashboardTab = withTabTransition(Dashboard);
 const BillsTab = withTabTransition(BillsDashboard);
 const ChargesTab = withTabTransition(Charges);
 const PayTab = withTabTransition(PayHub);
 const ContainersTab = withTabTransition(Containers);
+const DepositTab = withTabTransition(SecurityDeposit);
+const DocumentsTab = withTabTransition(PropertyDocuments);
 const ProfileTab = withTabTransition(Profile);
 
 const CustomDrawer = ({navigation}) => {
@@ -453,6 +457,8 @@ const CustomDrawer = ({navigation}) => {
             options={navOptions}
             component={ContainersTab}
           />
+          <Tab.Screen name="SecurityDeposit" options={navOptions} component={DepositTab} />
+          <Tab.Screen name="PropertyDocuments" options={navOptions} component={DocumentsTab} />
           <Tab.Screen name="Profile" component={ProfileTab} options={navOptions} />
         </Tab.Navigator>
       </Animated.View>

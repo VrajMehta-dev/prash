@@ -51,7 +51,7 @@ const PILL = [
   {key: 'More', label: 'More', icon: {type: Icons.Ionicons, name: 'grid-outline', on: 'grid'}},
 ];
 const HOME = {type: Icons.Ionicons, name: 'home-outline', on: 'home'};
-const MORE_ROUTES = ['Containers', 'Profile'];
+const MORE_ROUTES = ['Containers', 'SecurityDeposit', 'PropertyDocuments', 'Profile'];
 const ACTIVE = Brand.primary;
 const INACTIVE = '#9A9AA0';
 
@@ -121,8 +121,7 @@ export default function BottomTabBar({state, navigation}) {
         onClose={() => setMoreOpen(false)}
         onGo={name => {
           setMoreOpen(false);
-          if (name === 'Containers' || name === 'Profile') go(name);
-          else navigationRef.current?.navigate(name);
+          go(name);
         }}
       />
     </View>

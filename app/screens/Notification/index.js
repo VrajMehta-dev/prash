@@ -16,7 +16,7 @@ import ionGlyphs from 'react-native-vector-icons/glyphmaps/Ionicons.json';
 import {useSelector} from 'react-redux';
 import {goToTab} from '../../navigation/NavigationService';
 
-const TAB_ROUTES = ['Bills', 'Charges', 'Pay', 'Containers', 'Profile', 'Dashboard'];
+const TAB_ROUTES = ['Bills', 'Charges', 'Pay', 'Containers', 'SecurityDeposit', 'PropertyDocuments', 'Profile', 'Dashboard'];
 import {useNavigation, useIsFocused} from '@react-navigation/native';
 
 // Never render a blank / "?" glyph: an icon name must exist in the icon font, otherwise use the bell.
@@ -177,7 +177,7 @@ const NotificationScreen = () => {
     if (screen) {
       TAB_ROUTES.includes(screen) ? goToTab(screen) : navigation.navigate(screen);
     } else if (k.includes('security_deposit')) {
-      navigation.navigate('SecurityDeposit');
+      goToTab('SecurityDeposit');
     } else if (k.includes('container')) {
       goToTab('Containers');
     } else if (k.includes('additional') || k === 'charge_updated') {

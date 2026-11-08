@@ -47,8 +47,6 @@ import ChatMessage from '@screens/ChatMessage';
 import CreateTrip from '@screens/CreateTrip';
 import RemotePushController from '@components/NotificationConfig/RemotePushController';
 import NotificationScreen from '@screens/Notification';
-import SecurityDeposit from '@screens/SecurityDeposit';
-import PropertyDocuments from '@screens/PropertyDocuments';
 
 function App() {
   const Stack = createStackNavigator();
@@ -192,16 +190,6 @@ function App() {
               cardStyleInterpolator:
                 CardStyleInterpolators.forRevealFromBottomAndroid,
             }}
-          />
-          <Stack.Screen
-            name="SecurityDeposit"
-            component={SecurityDeposit}
-            options={{...navOptions, cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS}}
-          />
-          <Stack.Screen
-            name="PropertyDocuments"
-            component={PropertyDocuments}
-            options={{...navOptions, cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS}}
           />
           <Stack.Screen
             name="NotificationScreen"

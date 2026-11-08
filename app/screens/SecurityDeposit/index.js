@@ -15,6 +15,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useSelector} from 'react-redux';
 import moment from 'moment';
 import {Brand} from '@config/brand';
+import {TAB_BAR_SPACE} from '@navigation/BottomTab';
 import {useSecurityDeposit} from '@utils/useSecurityDeposit';
 import {startPayment} from '@utils/startPayment';
 
@@ -70,7 +71,7 @@ export default function SecurityDeposit({navigation}) {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={refresh} colors={[Brand.primary]} />
         }
-        contentContainerStyle={{paddingBottom: 40}}>
+        contentContainerStyle={{paddingBottom: TAB_BAR_SPACE}}>
         <LinearGradient colors={[Brand.gradientTop, Brand.gradientBottom]} style={styles.hero}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.back}>
             <Icon name="arrow-left" size={22} color="#fff" />

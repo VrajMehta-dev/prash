@@ -18,6 +18,7 @@ import {useSelector} from 'react-redux';
 import {useFocusEffect} from '@react-navigation/native';
 import moment from 'moment';
 import {Brand} from '@config/brand';
+import {TAB_BAR_SPACE} from '@navigation/BottomTab';
 import {apiGet} from '@utils/authedApi';
 
 const TOP = Platform.OS === 'ios' ? 56 : (StatusBar.currentHeight || 24) + 10;
@@ -141,7 +142,7 @@ export default function PropertyDocuments({navigation}) {
             }}
           />
         }
-        contentContainerStyle={{paddingBottom: 40}}>
+        contentContainerStyle={{paddingBottom: TAB_BAR_SPACE}}>
         <LinearGradient colors={[Brand.gradientTop, Brand.gradientBottom]} style={styles.hero}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.back}>
             <Icon name="arrow-left" size={22} color="#fff" />
