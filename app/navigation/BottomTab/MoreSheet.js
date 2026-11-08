@@ -1,5 +1,6 @@
-import React from 'react';
-import {Modal, View, Text, Pressable, StyleSheet, Platform} from 'react-native';
+import React, {useEffect, useRef} from 'react';
+import {View, Text, StyleSheet, Platform} from 'react-native';
+import RBSheet from 'react-native-raw-bottom-sheet';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import TouchableOpacity from '@components/PressableScale';
 import {Brand} from '@config/brand';
@@ -12,33 +13,43 @@ const ITEMS = [
 ];
 
 export default function MoreSheet({visible, onClose, onGo}) {
+  const ref = useRef();
+  useEffect(() => {
+    if (visible) ref.current?.open();
+    else ref.current?.close();
+  }, [visible]);
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
-      <Pressable style={styles.backdrop} onPress={onClose} />
-      <View style={styles.sheet}>
-        <View style={styles.grab} />
-        <Text style={styles.title}>More</Text>
-        {ITEMS.map(it => (
-          <TouchableOpacity key={it.name} activeOpacity={0.85} onPress={() => (tap(), onGo(it.name))} style={styles.row}>
-            <View style={styles.icon}>
-              <Icon name={it.icon} size={22} color={Brand.primary} />
-            </View>
-            <View style={{flex: 1}}>
-              <Text style={styles.rowTitle}>{it.title}</Text>
-              <Text style={styles.rowSub}>{it.sub}</Text>
-            </View>
-            <Icon name="chevron-right" size={22} color="#B5B5BD" />
-          </TouchableOpacity>
-        ))}
-      </View>
-    </Modal>
+    <RBSheet
+      ref={ref}
+      draggable
+      dragOnContent
+      onClose={onClose}
+      height={ITEMS.length * 68 + 90}
+      customStyles={{
+        container: styles.sheet,
+        wrapper: {backgroundColor: 'rgba(20,10,30,0.4)'},
+        draggableIcon: styles.grab,
+      }}>
+      <Text style={styles.title}>More</Text>
+      {ITEMS.map(it => (
+        <TouchableOpacity key={it.name} activeOpacity={0.85} onPress={() => (tap(), onGo(it.name))} style={styles.row}>
+          <View style={styles.icon}>
+            <Icon name={it.icon} size={22} color={Brand.primary} />
+          </View>
+          <View style={{flex: 1}}>
+            <Text style={styles.rowTitle}>{it.title}</Text>
+            <Text style={styles.rowSub}>{it.sub}</Text>
+          </View>
+          <Icon name="chevron-right" size={22} color="#B5B5BD" />
+        </TouchableOpacity>
+      ))}
+    </RBSheet>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: {flex: 1, backgroundColor: 'rgba(20,10,30,0.4)'},
-  sheet: {backgroundColor: '#fff', borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 18, paddingTop: 10, paddingBottom: Platform.OS === 'ios' ? 36 : 24},
-  grab: {alignSelf: 'center', width: 40, height: 4, borderRadius: 2, backgroundColor: '#DDD', marginBottom: 12},
+  sheet: {backgroundColor: '#fff', borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 18, paddingBottom: Platform.OS === 'ios' ? 36 : 24},
+  grab: {width: 40, height: 4, borderRadius: 2, backgroundColor: '#DDD'},
   title: {fontSize: 18, fontWeight: 'bold', color: '#17171C', marginBottom: 6},
   row: {flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12},
   icon: {width: 44, height: 44, borderRadius: 14, backgroundColor: '#F6EEF2', alignItems: 'center', justifyContent: 'center'},
