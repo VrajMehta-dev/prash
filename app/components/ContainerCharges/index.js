@@ -9,8 +9,6 @@ import {Brand} from '@config/brand';
 import {apiGet} from '@utils/authedApi';
 import {startPayment} from '@utils/startPayment';
 import {usePaymentQueue} from '@utils/usePaymentQueue';
-import {useSecurityDeposit} from '@utils/useSecurityDeposit';
-import DepositBanner from '@components/DepositBanner';
 import {TabSelector} from '@components/BillBoard';
 import {downloadPdf} from '@utils/downloadPdf';
 import {TAB_BAR_SPACE} from '@navigation/BottomTab';
@@ -125,7 +123,6 @@ export default function ContainerCharges({navigation}) {
 
   const [activeTab, setActiveTab] = useState('pending');
   const shop = useSelector(s => s.auth.shopSelected);
-  const {data: deposit} = useSecurityDeposit();
   const shown = (list || [])
     .filter(c => (activeTab === 'pending' ? c.status !== 'paid' : c.status === 'paid'))
     .sort((a, b) => (activeTab === 'pending' ? a.container_charge_id - b.container_charge_id : b.container_charge_id - a.container_charge_id));
@@ -142,11 +139,6 @@ export default function ContainerCharges({navigation}) {
         />
       }
       contentContainerStyle={{paddingBottom: TAB_BAR_SPACE}}>
-      <DepositBanner
-        deposit={deposit}
-        onPress={() => navigation.navigate('SecurityDeposit')}
-        style={{marginHorizontal: 0, marginTop: 0, marginBottom: 12}}
-      />
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Container Charges</Text>
         <Text style={styles.headerSubtitle}>

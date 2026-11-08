@@ -1,6 +1,4 @@
 import React, {useEffect, useState, useCallback} from 'react';
-import {useSecurityDeposit} from '@utils/useSecurityDeposit';
-import DepositBanner from '@components/DepositBanner';
 import {tap} from '@utils/haptics';
 import {TAB_BAR_SPACE} from '@navigation/BottomTab';
 import {
@@ -487,7 +485,6 @@ const BillsDashboard = ({navigation}) => {
     useState(false);
   const [isPreviousBillPending, setIsPreviousBillPending] = useState(false);
 
-  const {data: deposit} = useSecurityDeposit();
   const isFocused = useIsFocused();
   useEffect(() => {
     fetchData();
@@ -681,11 +678,6 @@ const BillsDashboard = ({navigation}) => {
           styles.container,
           {backgroundColor: !filteredBills.length === 0 ? '#f8f9fa' : 'white'},
         ]}>
-        <DepositBanner
-          deposit={deposit}
-          onPress={() => navigation.navigate('SecurityDeposit')}
-          style={{marginHorizontal: 0, marginTop: 0, marginBottom: 12}}
-        />
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Monthly Rent</Text>
           <Text style={styles.headerSubtitle}>

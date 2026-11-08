@@ -1,7 +1,6 @@
 /* eslint-disable react-native/no-inline-styles */
 import {apiGet} from '@utils/authedApi';
 import {useSecurityDeposit} from '@utils/useSecurityDeposit';
-import DepositBanner from '@components/DepositBanner';
 import {logout} from '@utils/commonFunction';
 import {TAB_BAR_SPACE} from '@navigation/BottomTab';
 import React, {useEffect, useRef, useState} from 'react';
@@ -353,11 +352,6 @@ const DashboardScreen = ({navigation}) => {
         </LinearGradient>
 
         <View style={styles.body}>
-          <DepositBanner
-            deposit={deposit}
-            onPress={() => go('SecurityDeposit')}
-            style={{marginHorizontal: 0, marginTop: 0, marginBottom: 12}}
-          />
           {/* Total due: loading / no outlet / error / all clear / amount due */}
           {loading ? (
             <View style={styles.dueCard}>
@@ -434,15 +428,15 @@ const DashboardScreen = ({navigation}) => {
             </Animatable.View>
           )}
 
-          {!!dashboardList?.note && (
+          {!!dashboardList?.note && !deposit?.locked && (
             <Animatable.View animation="fadeInUp" delay={80} duration={450} style={styles.note}>
               <Icon name="alert-circle-outline" size={20} color="#9A5B00" />
               <Text style={styles.noteText}>{dashboardList.note}</Text>
             </Animatable.View>
           )}
 
-          {/* Quick actions */}
-          <Animatable.View animation="fadeInUp" delay={120} duration={450} style={styles.actions}>
+          {/* Quick actions (hidden while the outlet is locked behind its deposit) */}
+          {!deposit?.locked && <Animatable.View animation="fadeInUp" delay={120} duration={450} style={styles.actions}>
             {actions.map(a => (
               <TouchableOpacity
                 key={a.label}
@@ -460,10 +454,10 @@ const DashboardScreen = ({navigation}) => {
                 <Text style={styles.actionLabel}>{a.label}</Text>
               </TouchableOpacity>
             ))}
-          </Animatable.View>
+          </Animatable.View>}
 
           {/* Dues, in the order they must be paid */}
-          {dues.length > 0 && (
+          {dues.length > 0 && !deposit?.locked && (
             <Animatable.View animation="fadeInUp" delay={180} duration={450}>
               <Text style={styles.sectionTitle}>Pay in this order</Text>
               {dues.map(d => (
@@ -477,7 +471,7 @@ const DashboardScreen = ({navigation}) => {
           )}
 
           {/* Payments this year */}
-          {!noOutlet && !showError && !loading && (
+          {!noOutlet && !showError && !loading && !deposit?.locked && (
           <Animatable.View animation="fadeInUp" delay={260} duration={450} style={styles.card}>
             <View style={styles.cardHead}>
               <Text style={styles.cardTitle}>Billed this year</Text>
