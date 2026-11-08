@@ -1009,4 +1009,5 @@ const styles = StyleSheet.create({
   detailsToggleText: {fontSize: 13, color: '#632240', fontWeight: '600'},
 });
 
+export {TabSelector};
 export default BillsDashboard;

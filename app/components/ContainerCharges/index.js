@@ -9,6 +9,9 @@ import {Brand} from '@config/brand';
 import {apiGet} from '@utils/authedApi';
 import {startPayment} from '@utils/startPayment';
 import {usePaymentQueue} from '@utils/usePaymentQueue';
+import {useSecurityDeposit} from '@utils/useSecurityDeposit';
+import DepositBanner from '@components/DepositBanner';
+import {TabSelector} from '@components/BillBoard';
 import {downloadPdf} from '@utils/downloadPdf';
 import {TAB_BAR_SPACE} from '@navigation/BottomTab';
 
@@ -120,12 +123,16 @@ export default function ContainerCharges({navigation}) {
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
-  const due = (list || []).filter(c => c.status !== 'paid').sort((a, b) => a.container_charge_id - b.container_charge_id);
-  const paid = (list || []).filter(c => c.status === 'paid');
+  const [activeTab, setActiveTab] = useState('pending');
+  const shop = useSelector(s => s.auth.shopSelected);
+  const {data: deposit} = useSecurityDeposit();
+  const shown = (list || [])
+    .filter(c => (activeTab === 'pending' ? c.status !== 'paid' : c.status === 'paid'))
+    .sort((a, b) => (activeTab === 'pending' ? a.container_charge_id - b.container_charge_id : b.container_charge_id - a.container_charge_id));
 
   return (
     <ScrollView
-      style={{flex: 1, backgroundColor: '#F4F5FA'}}
+      style={{flex: 1, backgroundColor: '#fff'}}
       showsVerticalScrollIndicator={false}
       refreshControl={
         <RefreshControl
@@ -134,29 +141,48 @@ export default function ContainerCharges({navigation}) {
           onRefresh={async () => { setRefreshing(true); await load(); setRefreshing(false); }}
         />
       }
-      contentContainerStyle={{padding: 16, paddingBottom: TAB_BAR_SPACE}}>
-      {list === null ? (
-        <View style={styles.skel}><View style={styles.skelBar} /><View style={[styles.skelBar, {width: '60%'}]} /></View>
-      ) : list.length === 0 ? (
-        <View style={styles.empty}>
-          <Icon name="package-variant" size={44} color="#C9C9D2" />
-          <Text style={styles.emptyTitle}>No container charges</Text>
-          <Text style={styles.emptyText}>Charges for containers issued to your outlet will appear here.</Text>
-        </View>
-      ) : (
-        <>
-          {due.length > 0 && <Text style={styles.section}>Due</Text>}
-          {due.map(c => <ChargeCard key={c.container_charge_id} charge={c} navigation={navigation} blockedBy={queue.blockedOf('container_charge', c.container_charge_id)} />)}
-          {paid.length > 0 && <Text style={styles.section}>Paid</Text>}
-          {paid.map(c => <ChargeCard key={c.container_charge_id} charge={c} navigation={navigation} />)}
-        </>
-      )}
+      contentContainerStyle={{paddingBottom: TAB_BAR_SPACE}}>
+      <DepositBanner
+        deposit={deposit}
+        onPress={() => navigation.navigate('SecurityDeposit')}
+        style={{marginHorizontal: 0, marginTop: 0, marginBottom: 12}}
+      />
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Container Charges</Text>
+        <Text style={styles.headerSubtitle}>
+          Track and manage your container charges for ({shop?.property_name || 'Select the Property from Dashboard'})
+        </Text>
+      </View>
+      <TabSelector activeTab={activeTab} onTabChange={setActiveTab} />
+      <View style={{paddingHorizontal: 16}}>
+        {list === null ? (
+          <View style={styles.skel}><View style={styles.skelBar} /><View style={[styles.skelBar, {width: '60%'}]} /></View>
+        ) : shown.length === 0 ? (
+          <View style={styles.empty}>
+            <Icon name="package-variant" size={44} color="#C9C9D2" />
+            <Text style={styles.emptyTitle}>{activeTab === 'pending' ? 'No pending charges' : 'No paid charges yet'}</Text>
+            <Text style={styles.emptyText}>Charges for containers issued to your outlet will appear here.</Text>
+          </View>
+        ) : (
+          shown.map(c => (
+            <ChargeCard
+              key={c.container_charge_id}
+              charge={c}
+              navigation={navigation}
+              blockedBy={c.status !== 'paid' ? queue.blockedOf('container_charge', c.container_charge_id) : undefined}
+            />
+          ))
+        )}
+      </View>
     </ScrollView>
   );
 }
 
 const SHADOW = {shadowColor: '#1B1230', shadowOffset: {width: 0, height: 4}, shadowOpacity: 0.07, shadowRadius: 12, elevation: 2};
 const styles = StyleSheet.create({
+  header: {padding: 20, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#f1f3f5'},
+  headerTitle: {fontSize: 24, fontWeight: '700', color: '#2d3436', marginBottom: 4},
+  headerSubtitle: {fontSize: 14, color: '#6c757d'},
   section: {color: '#17171C', fontSize: 16, fontWeight: 'bold', marginTop: 8, marginBottom: 10},
   card: {backgroundColor: '#fff', borderRadius: 20, padding: 14, marginBottom: 12, ...SHADOW},
   top: {flexDirection: 'row', gap: 12, alignItems: 'flex-start'},
