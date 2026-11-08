@@ -17,6 +17,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import {useSelector} from 'react-redux';
+import BrandWordmark from '@components/BrandWordmark';
 import {Brand} from '@config/brand';
 import BrandBackdrop from '@components/BrandBackdrop';
 import {tap} from '@utils/haptics';
@@ -91,7 +92,7 @@ const SplashScreen = ({navigation}) => {
       burstDelay={BURST_AT}>
       <StatusBar barStyle="light-content" backgroundColor={Brand.gradientTop} />
       <Animated.View style={wordmarkStyle}>
-        <Text style={styles.wordmark}>{Brand.name}</Text>
+        <BrandWordmark textStyle={styles.wordmark} markSize={64} greetingStyle={styles.greeting} />
       </Animated.View>
     </BrandBackdrop>
   );
@@ -102,6 +103,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  greeting: {color: '#FFD27A', fontSize: 14, fontWeight: '700', marginTop: 6},
   wordmark: {
     color: '#fff',
     fontFamily: Brand.wordmarkFont,

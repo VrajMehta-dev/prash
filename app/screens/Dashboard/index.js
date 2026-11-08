@@ -30,6 +30,8 @@ import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import LinearGradient from 'react-native-linear-gradient';
 import DueRow from '@components/DueRow';
+import FestivalMark, {MOTIFS} from '@components/FestivalMark';
+import {useFestival} from '@utils/useFestival';
 import {useHeaderTop} from '@components/ScreenHeader';
 import {usePaymentQueue, dueRowProps} from '@utils/usePaymentQueue';
 import {startPayment} from '@utils/startPayment';
@@ -52,6 +54,7 @@ const DashboardScreen = ({navigation}) => {
   const {data: deposit} = useSecurityDeposit();
   const queue = usePaymentQueue();
   const heroTop = useHeaderTop();
+  const festival = useFestival();
   const isFocused = useIsFocused();
 
   useFocusEffect(
@@ -320,6 +323,12 @@ const DashboardScreen = ({navigation}) => {
           <View style={styles.heroRow}>
             <View style={{flex: 1}}>
               <Text style={styles.greeting}>{greeting},</Text>
+              {!!festival && MOTIFS[festival.key] && (
+                <View style={styles.festivalRow}>
+                  <FestivalMark name={festival.key} size={22} />
+                  <Text style={styles.festivalText}>{festival.greeting}</Text>
+                </View>
+              )}
               <Text style={styles.name} numberOfLines={1}>
                 {userData?.first_name || 'there'}
               </Text>
@@ -583,6 +592,8 @@ const styles = StyleSheet.create({
   },
   heroRow: {flexDirection: 'row', alignItems: 'flex-start'},
   greeting: {color: 'rgba(255,255,255,0.75)', fontSize: 14},
+  festivalRow: {flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2},
+  festivalText: {color: '#FFD27A', fontSize: 13, fontWeight: '700'},
   name: {color: '#fff', fontSize: 26, fontWeight: 'bold', marginTop: 2},
   outletChip: {
     flexDirection: 'row',

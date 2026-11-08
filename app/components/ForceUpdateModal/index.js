@@ -11,6 +11,7 @@ import {
 import TouchableOpacity from '@components/PressableScale';
 import DeviceInfo from 'react-native-device-info';
 import BaseSetting from '@config/setting';
+import BrandWordmark from '@components/BrandWordmark';
 import {Brand} from '@config/brand';
 import BrandBackdrop from '@components/BrandBackdrop';
 import {tap} from '@utils/haptics';
@@ -97,7 +98,7 @@ const ForceUpdateModal = () => {
     >
       <StatusBar barStyle="light-content" backgroundColor={Brand.gradientTop} />
       <BrandBackdrop style={styles.screen}>
-        <Text style={styles.wordmark}>{Brand.name}</Text>
+        <BrandWordmark textStyle={styles.wordmark} markSize={44} />
         <View style={styles.body}>
           <Text style={styles.title}>Update required</Text>
           <Text style={styles.message}>

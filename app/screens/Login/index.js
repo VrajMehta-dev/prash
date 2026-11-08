@@ -1,4 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
+import BrandWordmark from '@components/BrandWordmark';
 import {Brand} from '@config/brand';
 import LinearGradient from 'react-native-linear-gradient';
 import React, {useState, useEffect, useRef, useMemo, useCallback} from 'react';
@@ -344,9 +345,11 @@ const Login = ({navigation}) => {
                 marginBottom: keyboardVisible ? 18 : 30,
               },
             ]}>
-            <Text style={[styles.title, keyboardVisible && {fontSize: 30, marginBottom: 4}]}>
-              {Brand.name}
-            </Text>
+            <BrandWordmark
+              textStyle={[styles.title, keyboardVisible && {fontSize: 30, marginBottom: 4}]}
+              markSize={keyboardVisible ? 30 : 52}
+              greetingStyle={styles.festivalGreeting}
+            />
             <Text style={[styles.subtitle, keyboardVisible && {fontSize: 13}]}>
               {Brand.tagline}
             </Text>
@@ -520,6 +523,7 @@ const styles = StyleSheet.create({
     letterSpacing: Brand.wordmarkSpacing,
     color: '#fff',
   },
+  festivalGreeting: {color: '#FFD27A', fontSize: 14, fontWeight: '700', marginBottom: 8},
   subtitle: {
     fontSize: 15,
     color: '#fff',

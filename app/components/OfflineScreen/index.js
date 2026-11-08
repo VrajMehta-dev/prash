@@ -11,6 +11,7 @@ import TouchableOpacity from '@components/PressableScale';
 import NetInfo, {useNetInfo} from '@react-native-community/netinfo';
 import Icon, {Icons} from '@config/Icons';
 import BaseSetting from '@config/setting';
+import BrandWordmark from '@components/BrandWordmark';
 import {Brand} from '@config/brand';
 import BrandBackdrop from '@components/BrandBackdrop';
 import {tap} from '@utils/haptics';
@@ -58,7 +59,7 @@ const OfflineScreen = () => {
       animationType="fade">
       <StatusBar barStyle="light-content" backgroundColor={Brand.gradientTop} />
       <BrandBackdrop style={styles.screen}>
-        <Text style={styles.wordmark}>{Brand.name}</Text>
+        <BrandWordmark textStyle={styles.wordmark} markSize={44} />
         <View style={styles.body}>
           <Icon
             type={Icons.Ionicons}
