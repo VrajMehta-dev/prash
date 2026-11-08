@@ -86,8 +86,9 @@ export default function BottomTabBar({state, navigation}) {
           accessibilityRole="button"
           accessibilityLabel="Home"
           activeOpacity={0.8}
-          style={[styles.round, current === 'Dashboard' && {backgroundColor: TINT}]}
+          style={styles.round}
           onPress={() => go('Dashboard')}>
+          {current === 'Dashboard' && <View pointerEvents="none" style={styles.homeTint} />}
           <TabIcon icon={HOME} focused={current === 'Dashboard'} color={current === 'Dashboard' ? ACTIVE : INACTIVE} />
           <Text style={[styles.label, {color: current === 'Dashboard' ? ACTIVE : INACTIVE, fontWeight: current === 'Dashboard' ? '700' : '500'}]}>Home</Text>
         </TouchableOpacity>
@@ -166,6 +167,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     ...SHADOW,
   },
+  homeTint: {...StyleSheet.absoluteFillObject, borderRadius: 40, backgroundColor: TINT},
   selector: {position: 'absolute', top: BAR_PAD, bottom: BAR_PAD, left: BAR_PAD, borderRadius: 36, backgroundColor: TINT},
   tab: {flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3, paddingVertical: 8},
   label: {fontSize: 11},
