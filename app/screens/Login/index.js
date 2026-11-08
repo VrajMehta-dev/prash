@@ -1,5 +1,6 @@
 /* eslint-disable react-native/no-inline-styles */
 import {Brand} from '@config/brand';
+import LinearGradient from 'react-native-linear-gradient';
 import React, {useState, useEffect, useRef, useMemo, useCallback} from 'react';
 import {
   View,
@@ -317,7 +318,10 @@ const Login = ({navigation}) => {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={styles.container}>
       <StatusBar barStyle="light-content" />
-      <View style={styles.gradient} />
+      <LinearGradient
+        colors={[Brand.gradientTop, Brand.gradientBottom]}
+        style={styles.gradient}
+      />
       <ScrollView
         ref={scrollViewRef}
         contentContainerStyle={styles.scrollContainer}
@@ -502,14 +506,14 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 40,
     fontFamily: Brand.wordmarkFont,
-    letterSpacing: 4,
+    letterSpacing: Brand.wordmarkSpacing,
     color: '#fff',
     marginBottom: 8,
   },
   compactTitle: {
     fontSize: 24,
     fontFamily: Brand.wordmarkFont,
-    letterSpacing: 3,
+    letterSpacing: Brand.wordmarkSpacing,
     color: '#fff',
   },
   subtitle: {

@@ -12,6 +12,7 @@ import {
 import DeviceInfo from 'react-native-device-info';
 import BaseSetting from '@config/setting';
 import {Brand} from '@config/brand';
+import BrandBackdrop from '@components/BrandBackdrop';
 import {tap} from '@utils/haptics';
 
 const ForceUpdateModal = () => {
@@ -94,8 +95,8 @@ const ForceUpdateModal = () => {
       animationType="fade"
       // No onRequestClose: the Android back button must not dismiss a forced update
     >
-      <StatusBar barStyle="light-content" backgroundColor={Brand.primary} />
-      <View style={styles.screen}>
+      <StatusBar barStyle="light-content" backgroundColor={Brand.gradientTop} />
+      <BrandBackdrop style={styles.screen}>
         <Text style={styles.wordmark}>{Brand.name}</Text>
         <View style={styles.body}>
           <Text style={styles.title}>Update required</Text>
@@ -113,7 +114,7 @@ const ForceUpdateModal = () => {
           }}>
           <Text style={styles.updateButtonText}>Update now</Text>
         </TouchableOpacity>
-      </View>
+      </BrandBackdrop>
     </Modal>
   );
 };
@@ -121,7 +122,6 @@ const ForceUpdateModal = () => {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: Brand.primary,
     paddingHorizontal: 28,
     paddingTop: 80,
     paddingBottom: 48,
@@ -130,8 +130,8 @@ const styles = StyleSheet.create({
   wordmark: {
     color: '#fff',
     fontFamily: Brand.wordmarkFont,
-    fontSize: 28,
-    letterSpacing: 4,
+    fontSize: 32,
+    letterSpacing: Brand.wordmarkSpacing,
     textAlign: 'center',
   },
   body: {

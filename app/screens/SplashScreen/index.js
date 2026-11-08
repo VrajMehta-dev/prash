@@ -5,21 +5,19 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
-  withDelay,
   Easing,
 } from 'react-native-reanimated';
 import {useSelector} from 'react-redux';
 import {Brand} from '@config/brand';
+import BrandBackdrop from '@components/BrandBackdrop';
 
 const SplashScreen = ({navigation}) => {
   const {accessToken} = useSelector(state => state.auth);
   const logo = useSharedValue(0);
-  const tag = useSharedValue(0);
 
   useEffect(() => {
     checkNotificationPermission();
     logo.value = withTiming(1, {duration: 700, easing: Easing.out(Easing.cubic)});
-    tag.value = withDelay(500, withTiming(1, {duration: 600}));
   }, []);
 
   async function checkNotificationPermission() {
@@ -50,42 +48,27 @@ const SplashScreen = ({navigation}) => {
     opacity: logo.value,
     transform: [{scale: 0.92 + 0.08 * logo.value}],
   }));
-  const tagStyle = useAnimatedStyle(() => ({
-    opacity: tag.value,
-    transform: [{translateY: 8 * (1 - tag.value)}],
-  }));
 
   return (
-    <Animated.View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={Brand.primary} />
+    <BrandBackdrop style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor={Brand.gradientTop} />
       <Animated.View style={logoStyle}>
         <Text style={styles.wordmark}>{Brand.name}</Text>
       </Animated.View>
-      <Animated.View style={tagStyle}>
-        <Text style={styles.tagline}>{Brand.tagline}</Text>
-      </Animated.View>
-    </Animated.View>
+    </BrandBackdrop>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Brand.primary,
   },
   wordmark: {
     color: '#fff',
     fontFamily: Brand.wordmarkFont,
-    fontSize: 46,
-    letterSpacing: 4,
-  },
-  tagline: {
-    marginTop: 14,
-    color: 'rgba(255,255,255,0.78)',
-    fontSize: 15,
-    letterSpacing: 0.5,
+    fontSize: 52,
+    letterSpacing: Brand.wordmarkSpacing,
   },
 });
 

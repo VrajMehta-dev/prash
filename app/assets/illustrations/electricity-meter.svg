@@ -1,0 +1,9 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="51.7" height="70.4766" viewBox="0 0 51.7 70.4766" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Electricity-meter">
+<path id="Vector" d="M10.85 0.85H40.85C47.5167 0.85 50.85 4.18333 50.85 10.85V47.85C50.85 52.5167 48.5167 54.85 43.85 54.85H7.85C3.18333 54.85 0.85 52.5167 0.85 47.85V10.85C0.85 4.18333 4.18333 0.85 10.85 0.85Z" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" stroke="#BB718D"/>
+<path id="Vector_2" d="M40.85 20.85C40.85 29.1343 34.1343 35.85 25.85 35.85C17.5657 35.85 10.85 29.1343 10.85 20.85C10.85 12.5657 17.5657 5.85 25.85 5.85C34.1343 5.85 40.85 12.5657 40.85 20.85Z" stroke-width="1.7" stroke="#BB718D"/>
+<path id="Vector_3" d="M27.85 10.85L19.85 21.85H25.85L22.85 30.85L31.85 18.85H25.85L27.85 10.85Z" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" stroke="#BB718D"/>
+<path id="Vector_4" d="M21.85 39.85H14.85V47.85H21.85M21.85 39.85H29.85M21.85 39.85V47.85M29.85 39.85H36.85V47.85H29.85M29.85 39.85V47.85M29.85 47.85H21.85" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke="#BB718D"/>
+<path id="Vector_5" d="M20.85 54.85V59.85H25.85M25.85 59.85H30.85V54.85M25.85 59.85V63.85C25.85 70.85 37.85 71.85 37.85 64.85" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" stroke="#BB718D"/>
+</g>
+</svg>

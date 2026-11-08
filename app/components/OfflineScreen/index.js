@@ -12,6 +12,7 @@ import NetInfo, {useNetInfo} from '@react-native-community/netinfo';
 import Icon, {Icons} from '@config/Icons';
 import BaseSetting from '@config/setting';
 import {Brand} from '@config/brand';
+import BrandBackdrop from '@components/BrandBackdrop';
 import {tap} from '@utils/haptics';
 
 // "Reachable" means our own backend answers (any non-5xx), not just that Wi-Fi is on,
@@ -55,8 +56,8 @@ const OfflineScreen = () => {
       transparent={false}
       statusBarTranslucent
       animationType="fade">
-      <StatusBar barStyle="light-content" backgroundColor={Brand.primary} />
-      <View style={styles.screen}>
+      <StatusBar barStyle="light-content" backgroundColor={Brand.gradientTop} />
+      <BrandBackdrop style={styles.screen}>
         <Text style={styles.wordmark}>{Brand.name}</Text>
         <View style={styles.body}>
           <Icon
@@ -84,7 +85,7 @@ const OfflineScreen = () => {
             <Text style={styles.buttonText}>Try again</Text>
           )}
         </TouchableOpacity>
-      </View>
+      </BrandBackdrop>
     </Modal>
   );
 };
@@ -92,7 +93,6 @@ const OfflineScreen = () => {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: Brand.primary,
     paddingHorizontal: 28,
     paddingTop: 80,
     paddingBottom: 48,
@@ -101,8 +101,8 @@ const styles = StyleSheet.create({
   wordmark: {
     color: '#fff',
     fontFamily: Brand.wordmarkFont,
-    fontSize: 28,
-    letterSpacing: 4,
+    fontSize: 32,
+    letterSpacing: Brand.wordmarkSpacing,
     textAlign: 'center',
   },
   body: {alignItems: 'center'},

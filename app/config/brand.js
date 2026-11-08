@@ -1,8 +1,12 @@
-// PRASH brand identity: one place for name, tagline, colour and wordmark font.
+// PRASH brand identity (from the Figma "PRASH mobile logo" frame).
 export const Brand = {
   name: 'PRASH',
   tagline: 'Rent & dues, made simple.',
   primary: '#632240',
-  // Unbounded ExtraBold: wide, geometric display face used only for the wordmark.
-  wordmarkFont: 'Unbounded_800ExtraBold',
+  // Brand screens (splash, force-update, offline) use this vertical gradient.
+  gradientTop: '#721c3f',
+  gradientBottom: '#8e204e',
+  // Inter Bold, 52px, 3px tracking in the design; bundled in android/app/src/main/assets/fonts.
+  wordmarkFont: 'Inter-Bold',
+  wordmarkSpacing: 3,
 };

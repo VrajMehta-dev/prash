@@ -1,0 +1,9 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="78.6" height="79.6" viewBox="0 0 78.6 79.6" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="calendar" opacity="0.38">
+<path id="Vector" d="M70.8 6.8H7.8C3.93401 6.8 0.8 9.93401 0.8 13.8V71.8C0.8 75.666 3.93401 78.8 7.8 78.8H70.8C74.666 78.8 77.8 75.666 77.8 71.8V13.8C77.8 9.93401 74.666 6.8 70.8 6.8Z" fill="#DDA5B4" fill-opacity="0.08" stroke-width="1.6" stroke="#E7B6C3"/>
+<path id="Vector_2" d="M7.8 6.8H70.8C75.4667 6.8 77.8 9.13333 77.8 13.8V26.8H0.8V13.8C0.8 9.13333 3.13333 6.8 7.8 6.8Z" fill="#DDA5B4" fill-opacity="0.15"/>
+<path id="Vector_3" d="M0.8 26.8H77.8M17.8 0.8V13.8M60.8 0.8V13.8" stroke-width="1.6" stroke-linecap="round" stroke="#E7B6C3"/>
+<path id="Vector_4" d="M14.8 38.8H19.8M28.8 38.8H33.8M42.8 38.8H47.8M56.8 38.8H61.8M14.8 51.8H19.8M28.8 51.8H33.8M14.8 64.8H19.8M28.8 64.8H33.8" stroke-width="1.6" stroke-linecap="round" stroke="#E7B6C3"/>
+<path id="Vector_5" d="M46.8 57.8L51.8 62.8L61.8 50.8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" stroke="#E7B6C3"/>
+</g>
+</svg>
