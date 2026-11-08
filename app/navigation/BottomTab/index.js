@@ -5,7 +5,6 @@ import Icon, {Icons} from '@config/Icons';
 import {translate} from '@lang/Translate';
 import {tap} from '@utils/haptics';
 import {Brand} from '@config/brand';
-import {useUnreadCount} from '@utils/useUnreadCount';
 import {navigationRef} from '../NavigationService';
 import MoreSheet from './MoreSheet';
 import Animated, {
@@ -42,7 +41,7 @@ const TabIcon = ({icon, focused, color}) => {
   );
 };
 
-// Layout: [round Home] [pill: Rent | Extras | Pay | More] [round Notifications].
+// Layout: [round Home] [pill: Rent | Extras | Pay | More]. Notifications live in the screen headers.
 // Tab routes (CustomDrawer): Dashboard, Bills, Charges, Pay, Containers, Profile.
 // Containers + Profile live under "More", so More is highlighted while either is open.
 const PILL = [
@@ -52,14 +51,12 @@ const PILL = [
   {key: 'More', label: 'More', icon: {type: Icons.Ionicons, name: 'grid-outline', on: 'grid'}},
 ];
 const HOME = {type: Icons.Ionicons, name: 'home-outline', on: 'home'};
-const BELL = {type: Icons.Ionicons, name: 'notifications-outline', on: 'notifications'};
 const MORE_ROUTES = ['Containers', 'Profile'];
 const ACTIVE = Brand.primary;
 const INACTIVE = '#9A9AA0';
 
 export default function BottomTabBar({state, navigation}) {
   const [moreOpen, setMoreOpen] = useState(false);
-  const unread = useUnreadCount();
   const current = state.routes[state.index]?.name;
 
   const go = name => {
@@ -100,22 +97,6 @@ export default function BottomTabBar({state, navigation}) {
           })}
         </View>
 
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessibilityLabel="Notifications"
-          activeOpacity={0.8}
-          style={styles.round}
-          onPress={() => {
-            tap();
-            navigationRef.current?.navigate('NotificationScreen');
-          }}>
-          <TabIcon icon={BELL} focused={false} color={ACTIVE} />
-          {unread > 0 && (
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{unread > 9 ? '9+' : unread}</Text>
-            </View>
-          )}
-        </TouchableOpacity>
       </View>
       <MoreSheet
         visible={moreOpen}
@@ -168,21 +149,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     ...SHADOW,
   },
-  badge: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    minWidth: 18,
-    height: 18,
-    paddingHorizontal: 4,
-    borderRadius: 9,
-    backgroundColor: ACTIVE,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: '#F4F4F6',
-  },
-  badgeText: {color: '#fff', fontSize: 10, fontWeight: 'bold'},
   tab: {flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3, paddingVertical: 4},
   label: {fontSize: 11},
 });
