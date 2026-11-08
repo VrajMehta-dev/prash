@@ -4,6 +4,7 @@ import TouchableOpacity from '@components/PressableScale';
 import Icon, {Icons} from '@config/Icons';
 import {translate} from '@lang/Translate';
 import {tap} from '@utils/haptics';
+import {Brand} from '@config/brand';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -46,7 +47,7 @@ const ICONS = {
   Charges: {type: Icons.Ionicons, name: 'layers-outline', on: 'layers'},
   Profile: {type: Icons.Ionicons, name: 'person-outline', on: 'person'},
 };
-const ACTIVE = '#1B1B1F';
+const ACTIVE = '#FFFFFF'; // on the filled brand pill
 const INACTIVE = '#9A9AA0';
 const LABELS = {Dashboard: 'Home'}; // shorter than "Dashboard" so it never wraps
 
@@ -63,7 +64,7 @@ export default function BottomTabBar({state, descriptors, navigation}) {
         accessibilityRole="button"
         accessibilityState={focused ? {selected: true} : {}}
         activeOpacity={0.7}
-        style={styles.tab}
+        style={[styles.tab, focused && styles.tabActive]}
         onPress={() => {
           tap();
           if (!focused) navigation.navigate(route.name);
@@ -107,6 +108,7 @@ const styles = StyleSheet.create({
     shadowRadius: 18,
     elevation: 10,
   },
-  tab: {flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3},
+  tab: {flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3, paddingVertical: 8, marginHorizontal: 2, borderRadius: 28},
+  tabActive: {backgroundColor: Brand.primary},
   label: {fontSize: 11},
 });

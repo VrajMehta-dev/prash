@@ -38,6 +38,7 @@ const Settings = () => {
   const initiatePayment = async () => {
     try {
       const response = await initializeEasebuzzCheckout(accessKey, payMode);
+      console.log('EBZ_RESULT', typeof response, String(response));
 
       if (response?.status == 'success') {
         Toast.show({

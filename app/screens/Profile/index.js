@@ -1,4 +1,5 @@
 /* eslint-disable react/no-unstable-nested-components */
+import DeviceInfo from 'react-native-device-info';
 import {TAB_BAR_SPACE} from '@navigation/BottomTab';
 import React, {useEffect, useState} from 'react';
 import {
@@ -211,6 +212,15 @@ const ProfileScreen = ({navigation}) => {
             )}
           </TouchableOpacity>
         </View>
+              <View style={styles.footer}>
+          <View style={styles.footerRule} />
+          <Text style={styles.footerVersion}>
+            Version {DeviceInfo.getVersion()} ({DeviceInfo.getBuildNumber()})
+          </Text>
+          <Text style={styles.footerLine}>
+            Built and managed by Aystera Software Solutions LLP
+          </Text>
+        </View>
       </ScrollView>
     </View>
   );
@@ -339,6 +349,10 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
+  footer: {alignItems: 'center', paddingTop: 22, paddingBottom: 12, paddingHorizontal: 24},
+  footerRule: {width: 36, height: StyleSheet.hairlineWidth * 2, backgroundColor: '#D5D5DC', marginBottom: 12},
+  footerVersion: {fontSize: 12, color: '#9A9AA5', fontWeight: '600'},
+  footerLine: {fontSize: 11, color: '#B5B5BD', marginTop: 3, textAlign: 'center'},
 });
 
 export default ProfileScreen;
