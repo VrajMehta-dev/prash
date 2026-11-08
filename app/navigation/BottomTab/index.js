@@ -55,9 +55,24 @@ const MORE_ROUTES = ['Containers', 'Profile'];
 const ACTIVE = Brand.primary;
 const INACTIVE = '#9A9AA0';
 
+const TINT = Brand.primary + '1F'; // selector fill behind the active item
+const BAR_PAD = 4;
+
 export default function BottomTabBar({state, navigation}) {
   const [moreOpen, setMoreOpen] = useState(false);
+  const [barW, setBarW] = useState(0);
   const current = state.routes[state.index]?.name;
+  const activeIdx = PILL.findIndex(t => (t.key === 'More' ? MORE_ROUTES.includes(current) || moreOpen : current === t.key));
+  const itemW = (barW - BAR_PAD * 2) / PILL.length;
+  const slide = useSharedValue(0);
+  const show = useSharedValue(0);
+  useEffect(() => {
+    if (activeIdx >= 0 && itemW > 0) {
+      slide.value = withSpring(activeIdx * itemW, {damping: 16, stiffness: 220});
+    }
+    show.value = withTiming(activeIdx >= 0 ? 1 : 0, {duration: 150});
+  }, [activeIdx, itemW]);
+  const selector = useAnimatedStyle(() => ({opacity: show.value, transform: [{translateX: slide.value}]}));
 
   const go = name => {
     tap();
@@ -71,13 +86,14 @@ export default function BottomTabBar({state, navigation}) {
           accessibilityRole="button"
           accessibilityLabel="Home"
           activeOpacity={0.8}
-          style={[styles.round, current === 'Dashboard' && {backgroundColor: ACTIVE}]}
+          style={[styles.round, current === 'Dashboard' && {backgroundColor: TINT}]}
           onPress={() => go('Dashboard')}>
-          <TabIcon icon={HOME} focused={current === 'Dashboard'} color={current === 'Dashboard' ? '#fff' : INACTIVE} />
-          <Text style={[styles.label, {color: current === 'Dashboard' ? '#fff' : INACTIVE, fontWeight: current === 'Dashboard' ? '700' : '500'}]}>Home</Text>
+          <TabIcon icon={HOME} focused={current === 'Dashboard'} color={current === 'Dashboard' ? ACTIVE : INACTIVE} />
+          <Text style={[styles.label, {color: current === 'Dashboard' ? ACTIVE : INACTIVE, fontWeight: current === 'Dashboard' ? '700' : '500'}]}>Home</Text>
         </TouchableOpacity>
 
-        <View style={styles.bar}>
+        <View style={styles.bar} onLayout={e => setBarW(e.nativeEvent.layout.width)}>
+          {itemW > 0 && <Animated.View pointerEvents="none" style={[styles.selector, {width: itemW}, selector]} />}
           {PILL.map(t => {
             const focused = t.key === 'More' ? MORE_ROUTES.includes(current) || moreOpen : current === t.key;
             const color = focused ? ACTIVE : INACTIVE;
@@ -133,8 +149,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#F4F4F6',
     borderRadius: 40,
-    paddingVertical: 8,
-    paddingHorizontal: 4,
+    paddingVertical: 4,
+    paddingHorizontal: BAR_PAD,
     borderWidth: 1,
     borderColor: '#fff',
     ...SHADOW,
@@ -150,6 +166,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     ...SHADOW,
   },
-  tab: {flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3, paddingVertical: 4},
+  selector: {position: 'absolute', top: BAR_PAD, bottom: BAR_PAD, left: BAR_PAD, borderRadius: 36, backgroundColor: TINT},
+  tab: {flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3, paddingVertical: 8},
   label: {fontSize: 11},
 });
