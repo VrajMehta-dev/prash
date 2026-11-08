@@ -14,6 +14,7 @@ import TouchableOpacity from '@components/PressableScale';
 import Icon from 'react-native-vector-icons/Ionicons';
 import ionGlyphs from 'react-native-vector-icons/glyphmaps/Ionicons.json';
 import {useSelector} from 'react-redux';
+import ScreenHeader from '@components/ScreenHeader';
 import {goToTab} from '../../navigation/NavigationService';
 
 const TAB_ROUTES = ['Bills', 'Charges', 'Pay', 'Containers', 'SecurityDeposit', 'PropertyDocuments', 'Profile', 'Dashboard'];
@@ -254,33 +255,23 @@ const NotificationScreen = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      {isFocused && (
-        <StatusBar
-          barStyle="dark-content"
-          backgroundColor="#fff"
-          showHideTransition="slide"
-        />
-      )}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}>
-          <Icon name="arrow-back" size={24} color="#333" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Notifications</Text>
-        {hasUnreadNotifications ? (
-          <TouchableOpacity
-            onPress={markAllAsRead}
-            style={styles.backButton}
-            accessibilityLabel="Mark all as read"
-            hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
-            <Icon name="checkmark-done" size={24} color="#632240" />
-          </TouchableOpacity>
-        ) : (
-          <View style={styles.headerSpacer} />
-        )}
-      </View>
+    <View style={styles.container}>
+      <ScreenHeader
+        title="Notifications"
+        onBack={() => navigation.goBack()}
+        subtitle={hasUnreadNotifications ? `${notifications.filter(n => n.read === false).length} unread` : 'All caught up'}
+        right={
+          hasUnreadNotifications ? (
+            <TouchableOpacity
+              onPress={markAllAsRead}
+              style={styles.markAll}
+              accessibilityLabel="Mark all as read"
+              hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+              <Icon name="checkmark-done" size={22} color="#fff" />
+            </TouchableOpacity>
+          ) : null
+        }
+      />
 
       <FlatList
         data={notifications}
@@ -299,7 +290,7 @@ const NotificationScreen = () => {
         }
         ListEmptyComponent={renderEmptyComponent}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -327,6 +318,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
   },
+  markAll: {width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.16)', alignItems: 'center', justifyContent: 'center'},
   markAllRead: {
     fontSize: 14,
     color: '#632240',
