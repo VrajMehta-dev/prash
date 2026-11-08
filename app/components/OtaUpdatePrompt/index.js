@@ -45,8 +45,10 @@ export default function OtaUpdatePrompt() {
       if (!found || dismissed.current.has(found.id)) {
         return;
       }
-      if (found.status !== 'UPDATE') {
-        // A rollback to a known-good version: stage it quietly, it applies on the next launch.
+      // Only a genuinely new bundle (INSTALL) is worth interrupting the user for. A rollback, a switch
+      // to the built-in bundle, or ADOPT_RELEASE (the bundle is already installed; the server's release
+      // catalog just changed) are bookkeeping: commit them quietly, nothing to download.
+      if (found.status !== 'UPDATE' || found.transitionKind !== 'INSTALL') {
         await found.updateBundle();
         return;
       }
