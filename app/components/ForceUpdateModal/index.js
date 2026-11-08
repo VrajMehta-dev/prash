@@ -15,8 +15,6 @@ const ForceUpdateModal = () => {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const [updateUrl, setUpdateUrl] = useState(null);
-
   useEffect(() => {
     checkAppVersion();
   }, []);
@@ -32,7 +30,6 @@ const ForceUpdateModal = () => {
       const cfg = (await res.json())[Platform.OS];
       const currentVersion = DeviceInfo.getVersion();
       const minRequiredVersion = cfg.min;
-      setUpdateUrl(cfg.url);
 
       // Compare versions
       if (isVersionLowerThan(currentVersion, minRequiredVersion)) {
@@ -67,7 +64,7 @@ const ForceUpdateModal = () => {
     const packageName = DeviceInfo.getBundleId();
     console.log('packageName', packageName);
 
-    const storeUrl = updateUrl || Platform.select({
+    const storeUrl = Platform.select({
       ios: `https://apps.apple.com/app/id${6743940477}`,
       android: `https://play.google.com/store/apps/details?id=${packageName}`,
     });
