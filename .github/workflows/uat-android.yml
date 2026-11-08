@@ -1,0 +1,83 @@
+name: UAT Android build
+
+# Push to `uat` -> build the UAT APK and publish it to
+# https://test-prash.aystera.com/mobile/PRASH-UAT.apk (AWS UAT box).
+# UAT only: this workflow lives on the `uat` branch. Prod is a store release.
+#
+# Secrets (repo settings -> Secrets and variables -> Actions):
+#   UAT_VM_HOST       13.235.67.156
+#   UAT_VM_USER       ubuntu
+#   UAT_VM_SSH_KEY    contents of Credentials/AWS/prash-aws.pem
+#   UAT_KEYSTORE_B64  base64 of the keystore used to sign UAT builds (keeps the signing key
+#                     stable so each build installs over the last one): base64 -i ~/.android/debug.keystore
+
+on:
+  push:
+    branches: [uat]
+  workflow_dispatch:
+
+concurrency:
+  group: uat-android
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Guard - must be the UAT config
+        run: grep -q 'IS_UAT = true' app/config/env.js
+
+      - uses: pnpm/action-setup@v4   # version comes from package.json "packageManager"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Restore UAT signing key
+        env:
+          KEYSTORE_B64: ${{ secrets.UAT_KEYSTORE_B64 }}
+        run: |
+          mkdir -p ~/.android
+          echo "$KEYSTORE_B64" | base64 -d > ~/.android/debug.keystore
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build release APK
+        working-directory: android
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Verify the APK is the UAT build
+        run: |
+          APK=android/app/build/outputs/apk/release/app-release.apk
+          unzip -q -o "$APK" assets/index.android.bundle -d /tmp/apkcheck
+          grep -aq 'test-prash.aystera.com/api/' /tmp/apkcheck/assets/index.android.bundle
+          ls -la "$APK"
+
+      - name: Upload to the UAT box
+        env:
+          HOST: ${{ secrets.UAT_VM_HOST }}
+          VMUSER: ${{ secrets.UAT_VM_USER }}
+          SSH_KEY: ${{ secrets.UAT_VM_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/deploy_key && chmod 600 ~/.ssh/deploy_key
+          SSH="ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no"
+          DEST=/home/ubuntu/updater-uat/prash
+          APK=android/app/build/outputs/apk/release/app-release.apk
+          $SSH $VMUSER@$HOST "[ -f $DEST/PRASH-UAT.apk ] && cp $DEST/PRASH-UAT.apk $DEST/PRASH-UAT.apk.bak_\$(date +%Y%m%d_%H%M%S) || true"
+          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no "$APK" $VMUSER@$HOST:$DEST/PRASH-UAT.apk
+
+      - name: Verify the live download
+        run: |
+          curl -fsSL -o /tmp/live.apk https://test-prash.aystera.com/mobile/PRASH-UAT.apk
+          [ "$(sha256sum < /tmp/live.apk)" = "$(sha256sum < android/app/build/outputs/apk/release/app-release.apk)" ]
+          echo "LIVE: https://test-prash.aystera.com/mobile/PRASH-UAT.apk"
