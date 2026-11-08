@@ -41,10 +41,14 @@ import Overlay from './overlay';
 import BillsDashboard from '@components/BillBoard';
 import withTabTransition from '../withTabTransition';
 import Charges from '@screens/Charges';
+import PayHub from '@screens/PayHub';
+import Containers from '@screens/Containers';
 
 const DashboardTab = withTabTransition(Dashboard);
 const BillsTab = withTabTransition(BillsDashboard);
 const ChargesTab = withTabTransition(Charges);
+const PayTab = withTabTransition(PayHub);
+const ContainersTab = withTabTransition(Containers);
 const ProfileTab = withTabTransition(Profile);
 
 const CustomDrawer = ({navigation}) => {
@@ -442,6 +446,12 @@ const CustomDrawer = ({navigation}) => {
             name="Charges"
             options={navOptions}
             component={ChargesTab}
+          />
+          <Tab.Screen name="Pay" options={navOptions} component={PayTab} />
+          <Tab.Screen
+            name="Containers"
+            options={navOptions}
+            component={ContainersTab}
           />
           <Tab.Screen name="Profile" component={ProfileTab} options={navOptions} />
         </Tab.Navigator>

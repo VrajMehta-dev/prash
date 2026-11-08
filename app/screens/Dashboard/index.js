@@ -295,10 +295,10 @@ const DashboardScreen = ({navigation}) => {
     navigation.navigate(screen, params);
   };
   const actions = [
-    {label: 'Bills', icon: 'receipt', onPress: () => go('Bills')},
-    {label: 'Charges', icon: 'layers-outline', onPress: () => go('Charges')},
+    {label: 'Rent', icon: 'receipt', onPress: () => go('Bills')},
+    {label: 'Extras', icon: 'layers-outline', onPress: () => go('Charges')},
     {label: 'Deposit', icon: 'shield-lock-outline', badge: deposit?.locked ? 1 : 0, onPress: () => go('SecurityDeposit')},
-    {label: 'Help', icon: 'lifebuoy', onPress: () => go('HelpAndSupport')},
+    {label: 'Pay', icon: 'wallet-outline', onPress: () => go('Pay')},
   ];
 
   return (
@@ -412,7 +412,7 @@ const DashboardScreen = ({navigation}) => {
                 No dues right now. We'll let you know the moment a new bill arrives.
               </Text>
               <TouchableOpacity activeOpacity={0.85} onPress={() => go('Bills')} style={[styles.cta, styles.ctaGhost, styles.ctaFull]}>
-                <Text style={[styles.ctaText, {color: Brand.primary}]}>View bill history</Text>
+                <Text style={[styles.ctaText, {color: Brand.primary}]}>View rent history</Text>
                 <Icon name="arrow-right" size={20} color={Brand.primary} />
               </TouchableOpacity>
             </Animatable.View>
@@ -471,10 +471,10 @@ const DashboardScreen = ({navigation}) => {
             ))}
           </Animatable.View>
 
-          {/* Outstanding bills */}
+          {/* Rent due */}
           {bills.length > 0 && (
             <Animatable.View animation="fadeInUp" delay={180} duration={450}>
-              <Text style={styles.sectionTitle}>Outstanding bills</Text>
+              <Text style={styles.sectionTitle}>Rent due</Text>
               {bills.map((b, i) => (
                 <TouchableOpacity
                   key={b?.bill_id ?? i}
@@ -502,7 +502,7 @@ const DashboardScreen = ({navigation}) => {
                 activeOpacity={0.85}
                 onPress={() => {
                   tap();
-                  navigation.navigate('Charges', {segment: 'container'});
+                  navigation.navigate('Containers');
                 }}
                 style={styles.billRow}>
                 <View style={styles.billIcon}>

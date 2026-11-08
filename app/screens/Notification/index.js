@@ -14,6 +14,9 @@ import TouchableOpacity from '@components/PressableScale';
 import Icon from 'react-native-vector-icons/Ionicons';
 import ionGlyphs from 'react-native-vector-icons/glyphmaps/Ionicons.json';
 import {useSelector} from 'react-redux';
+import {goToTab} from '../../navigation/NavigationService';
+
+const TAB_ROUTES = ['Bills', 'Charges', 'Pay', 'Containers', 'Profile', 'Dashboard'];
 import {useNavigation, useIsFocused} from '@react-navigation/native';
 
 // Never render a blank / "?" glyph: an icon name must exist in the icon font, otherwise use the bell.
@@ -172,15 +175,15 @@ const NotificationScreen = () => {
     const k = kindOf(item);
     const screen = item?.data?.screen;
     if (screen) {
-      navigation.navigate(screen);
+      TAB_ROUTES.includes(screen) ? goToTab(screen) : navigation.navigate(screen);
     } else if (k.includes('security_deposit')) {
       navigation.navigate('SecurityDeposit');
     } else if (k.includes('container')) {
-      navigation.navigate('Charges', {segment: 'container'});
+      goToTab('Containers');
     } else if (k.includes('additional') || k === 'charge_updated') {
-      navigation.navigate('Charges', {segment: 'additional'});
+      goToTab('Charges');
     } else if (k.includes('payment') || k.includes('paid') || k.includes('bill') || k.includes('due') || k.includes('penalty') || k.includes('rent')) {
-      navigation.navigate('Bills');
+      goToTab('Bills');
     }
   };
 

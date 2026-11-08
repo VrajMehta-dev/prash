@@ -1,360 +1,270 @@
-/* eslint-disable react/no-unstable-nested-components */
-import DeviceInfo from 'react-native-device-info';
-import {TAB_BAR_SPACE} from '@navigation/BottomTab';
 import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
-  Image,
   ActivityIndicator,
-  StatusBar,
   Linking,
+  Platform,
+  StatusBar,
 } from 'react-native';
-import TouchableOpacity from '@components/PressableScale';
+import DeviceInfo from 'react-native-device-info';
+import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import moment from 'moment';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
 import {useIsFocused} from '@react-navigation/native';
-import {isEmpty, set} from 'lodash';
+import TouchableOpacity from '@components/PressableScale';
+import {TAB_BAR_SPACE} from '@navigation/BottomTab';
 import BaseSetting from '@config/setting';
+import {Brand} from '@config/brand';
 import {logout} from '@utils/commonFunction';
-import Toast from 'react-native-toast-message';
+import {useSecurityDeposit} from '@utils/useSecurityDeposit';
+import {useUnreadCount} from '@utils/useUnreadCount';
 import authActions from '@redux/reducers/auth/actions';
 import {store} from '@redux/store/configureStore';
 
-const ProfileScreen = ({navigation}) => {
-  const {userData, accessToken} = useSelector(state => state.auth);
-  const {fcmToken} = useSelector(state => state.notification);
-  const [logoutLoader, setLogoutLoader] = useState(false);
+const TOP = Platform.OS === 'ios' ? 56 : (StatusBar.currentHeight || 24) + 14;
 
-  const {setUserData, setAccessToken, setShopSelected} = authActions;
-  const dispatch = useDispatch();
+// Show only the last 4 characters until the tenant taps "Show".
+const mask = (v, reveal) => {
+  const s = String(v ?? '').trim();
+  if (!s || /^(unknown|not available)$/i.test(s)) {
+    return null;
+  }
+  return reveal ? s : '•'.repeat(Math.max(s.length - 4, 0)) + s.slice(-4);
+};
+
+const Group = ({title, action, children}) => (
+  <View style={styles.groupWrap}>
+    {!!title && (
+      <View style={styles.groupHead}>
+        <Text style={styles.groupTitle}>{title}</Text>
+        {action}
+      </View>
+    )}
+    <View style={styles.group}>{children}</View>
+  </View>
+);
+
+// One row: icon, title, optional value/subtitle, optional badge/chip, chevron when it opens something.
+const Row = ({icon, title, value, onPress, badge, chip, last, danger}) => {
+  const body = (
+    <View style={[styles.row, !last && styles.rowDivider]}>
+      <View style={[styles.rowIcon, danger && {backgroundColor: '#FBE4E1'}]}>
+        <Icon name={icon} size={20} color={danger ? '#C0392B' : Brand.primary} />
+      </View>
+      <View style={{flex: 1}}>
+        <Text style={[styles.rowTitle, danger && {color: '#C0392B'}]}>{title}</Text>
+        {value !== undefined && value !== null && (
+          <Text style={styles.rowValue} numberOfLines={1}>
+            {value}
+          </Text>
+        )}
+      </View>
+      {!!chip && (
+        <View style={[styles.chip, chip.warn ? styles.chipWarn : styles.chipOk]}>
+          <Text style={[styles.chipText, {color: chip.warn ? '#9A5B00' : '#1E7B4B'}]}>{chip.text}</Text>
+        </View>
+      )}
+      {badge > 0 && (
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>{badge > 9 ? '9+' : badge}</Text>
+        </View>
+      )}
+      {!!onPress && !danger && <Icon name="chevron-right" size={22} color="#B5B5BD" />}
+    </View>
+  );
+  return onPress ? (
+    <TouchableOpacity activeOpacity={0.85} onPress={onPress}>
+      {body}
+    </TouchableOpacity>
+  ) : (
+    body
+  );
+};
+
+const ProfileScreen = ({navigation}) => {
+  const {userData, accessToken, shopSelected} = useSelector(state => ({
+    userData: state.auth.userData,
+    accessToken: state.auth.accessToken,
+    shopSelected: state.auth.shopSelected,
+  }));
+  const [loggingOut, setLoggingOut] = useState(false);
+  const [reveal, setReveal] = useState(false);
   const isFocused = useIsFocused();
+  const {data: deposit} = useSecurityDeposit();
+  const unread = useUnreadCount();
+  const {setUserData} = authActions;
+
   useEffect(() => {
     fetchData();
   }, []);
+
   const fetchData = async () => {
-    const url = BaseSetting.baseUrl + BaseSetting.endpoints.userInfo;
-    console.log('URL:', url);
-
-    const headers = {
-      // 'Content-Type': 'application/json',
-      Accept: '*/*',
-      Authorization: 'Bearer ' + accessToken,
-    };
-    console.log('headers', headers);
-
     try {
-      const response = await fetch(url, {
+      const response = await fetch(BaseSetting.baseUrl + BaseSetting.endpoints.userInfo, {
         method: 'GET',
-        headers: headers,
+        headers: {Accept: '*/*', Authorization: 'Bearer ' + accessToken},
       });
-
-      console.log('Raw Response:', response);
-
-      // ✅ Handle empty response case
-      const text = await response.text(); // Read response as text
-      const data = text ? JSON.parse(text) : {}; // Parse if not empty
-      console.log('data', data);
-
+      const text = await response.text();
+      const data = text ? JSON.parse(text) : {};
       if (response.ok) {
         store.dispatch(setUserData(data));
-      } else {
-        console.log('Error:');
       }
-
-      console.log('Response Data:', data);
     } catch (error) {
       console.error('Error fetching data:', error);
-      Toast.show({
-        type: 'error',
-        text1: 'Network Error',
-        text2: 'Please check your connection.',
-      });
     }
   };
+
   const logOut = async () => {
-    setLogoutLoader(true);
+    setLoggingOut(true);
     try {
       await logout(userData); // server push-token cleanup + FCM delete + local reset
     } finally {
-      setLogoutLoader(false);
+      setLoggingOut(false);
     }
   };
 
-  const ProfileSection = ({icon, title, value}) => (
-    <View style={styles.sectionContainer}>
-      <Icon name={icon} size={24} color="#632240" />
-      <View style={styles.sectionContent}>
-        <Text style={styles.sectionTitle}>{title}</Text>
-        <Text style={styles.sectionValue}>{value}</Text>
-      </View>
-    </View>
-  );
-
-  const DocumentSection = ({title, number, image}) => (
-    <TouchableOpacity style={styles.documentContainer}>
-      <View style={styles.documentHeader}>
-        <Icon name="file-document" size={24} color="#632240" />
-        <Text style={styles.documentTitle}>{title}</Text>
-      </View>
-      <Text style={styles.documentNumber}>{number}</Text>
-      {!isEmpty(image) && (
-        <View style={styles.imageContainer}>
-          <Image
-            source={{uri: image}}
-            style={styles.documentImage}
-            resizeMode="cover"
-          />
-        </View>
-      )}
+  const initials = `${userData?.first_name?.charAt(0) || ''}${userData?.last_name?.charAt(0) || ''}`.toUpperCase();
+  const eye = (
+    <TouchableOpacity onPress={() => setReveal(v => !v)} hitSlop={10} style={styles.eye}>
+      <Icon name={reveal ? 'eye-off-outline' : 'eye-outline'} size={16} color={Brand.primary} />
+      <Text style={styles.eyeText}>{reveal ? 'Hide' : 'Show'}</Text>
     </TouchableOpacity>
   );
 
   return (
-    <View View style={{flex: 1, paddingTop: 38, backgroundColor: '#632240'}}>
-      {isFocused && (
-        <StatusBar backgroundColor="#632240" barStyle="light-content" />
-      )}
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        style={styles.container}
-        contentContainerStyle={{paddingBottom: TAB_BAR_SPACE}}>
-        {/* Header Section */}
-        <View style={styles.header}>
-          <View style={styles.avatarContainer}>
-            <Text style={styles.avatarText}>
-              {userData?.first_name?.charAt(0) || ''}
-              {userData?.last_name?.charAt(0) || ''}
+    <View style={styles.screen}>
+      {isFocused && <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />}
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{paddingBottom: TAB_BAR_SPACE}}>
+        <LinearGradient colors={[Brand.gradientTop, Brand.gradientBottom]} style={styles.hero}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>{initials || '?'}</Text>
+          </View>
+          <Text style={styles.name} numberOfLines={1}>
+            {`${userData?.first_name || ''} ${userData?.last_name || ''}`.trim() || 'Your account'}
+          </Text>
+          <Text style={styles.email} numberOfLines={1}>{userData?.email || ''}</Text>
+          {!!shopSelected?.property_name && (
+            <View style={styles.outletChip}>
+              <Icon name="storefront-outline" size={14} color="#fff" />
+              <Text style={styles.outletText} numberOfLines={1}>{shopSelected.property_name}</Text>
+            </View>
+          )}
+        </LinearGradient>
+
+        <View style={styles.body}>
+          <Group title="Payments & alerts">
+            <Row
+              icon={deposit?.locked ? 'lock-outline' : 'shield-check-outline'}
+              title="Security Deposit"
+              value={deposit?.locked ? 'Payment due' : deposit?.has_deposit ? 'Paid' : 'Not required'}
+              chip={deposit?.locked ? {text: 'DUE', warn: true} : deposit?.has_deposit ? {text: 'PAID'} : null}
+              onPress={() => navigation.navigate('SecurityDeposit')}
+            />
+            <Row
+              icon="bell-outline"
+              title="Notifications"
+              value={unread > 0 ? `${unread} unread` : 'All caught up'}
+              badge={unread}
+              onPress={() => navigation.navigate('NotificationScreen')}
+              last
+            />
+          </Group>
+
+          <Group title="Personal details">
+            <Row icon="phone-outline" title="Phone" value={userData?.phone ? String(userData.phone) : 'Not added'} />
+            <Row icon="email-outline" title="Email" value={userData?.email || 'Not added'} />
+            <Row
+              icon="calendar-check-outline"
+              title="Member since"
+              value={userData?.created_at ? moment(userData.created_at).format('MMMM YYYY') : '-'}
+              last
+            />
+          </Group>
+
+          <Group title="Bank account" action={eye}>
+            <Row icon="bank-outline" title="Account number" value={mask(userData?.bank_account_num, reveal) || 'Not added'} />
+            <Row icon="bank-transfer" title="IFSC code" value={userData?.ifsc_code || 'Not added'} last />
+          </Group>
+
+          <Group title="Documents" action={eye}>
+            <Row icon="card-account-details-outline" title="Aadhar" value={mask(userData?.aadhar_num, reveal) || 'Not added'} />
+            <Row icon="card-text-outline" title="PAN" value={mask(userData?.pan_num, reveal) || 'Not added'} />
+            <Row icon="file-certificate-outline" title="GST certificate" value={mask(userData?.gst_num, reveal) || 'Not added'} />
+            <Row icon="file-document-outline" title="TAN" value={mask(userData?.tan_num, reveal) || 'Not added'} last />
+          </Group>
+
+          <Group title="Help">
+            <Row icon="lifebuoy" title="Help & Support" onPress={() => navigation.navigate('HelpAndSupport')} />
+            <Row icon="information-outline" title="About PRASH" onPress={() => navigation.navigate('About')} last />
+          </Group>
+
+          <Group>
+            <TouchableOpacity activeOpacity={0.85} onPress={logOut} disabled={loggingOut}>
+              <View style={styles.row}>
+                <View style={[styles.rowIcon, {backgroundColor: '#FBE4E1'}]}>
+                  {loggingOut ? (
+                    <ActivityIndicator size="small" color="#C0392B" />
+                  ) : (
+                    <Icon name="logout" size={20} color="#C0392B" />
+                  )}
+                </View>
+                <Text style={[styles.rowTitle, {color: '#C0392B', flex: 1}]}>Log out</Text>
+              </View>
+            </TouchableOpacity>
+          </Group>
+
+          <View style={styles.footer}>
+            <Text style={styles.footerLogo}>PRASH</Text>
+            <Text style={styles.footerVersion}>
+              v{DeviceInfo.getVersion()} ({DeviceInfo.getBuildNumber()})
+            </Text>
+            <Text style={styles.footerLine}>Built and managed by</Text>
+            <Text
+              accessibilityRole="link"
+              onPress={() => Linking.openURL('https://aystera.com/')}
+              style={styles.footerBrand}>
+              Aystera Software Solutions LLP
             </Text>
           </View>
-          <Text style={styles.userName}>
-            {userData?.first_name || ''} {userData?.last_name || ''}
-          </Text>
-          <Text style={styles.userEmail}>{userData?.email || ''}</Text>
-        </View>
-
-        {/* Basic Info Section */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Basic Information</Text>
-          <ProfileSection
-            icon="phone"
-            title="Phone"
-            value={userData?.phone || ''}
-          />
-          <ProfileSection
-            icon="email"
-            title="Email"
-            value={userData?.email || ''}
-          />
-          <ProfileSection
-            icon="calendar"
-            title="Joined"
-            value={moment(userData?.created_at).format('MMMM DD, YYYY') || ''}
-          />
-        </View>
-
-        {/* Bank Details Section */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Bank Details</Text>
-          <ProfileSection
-            icon="bank"
-            title="Account Number"
-            value={userData?.bank_account_num || 'Unknown'}
-          />
-          <ProfileSection
-            icon="bank-transfer"
-            title="IFSC Code"
-            value={userData?.ifsc_code || 'Unknown'}
-          />
-        </View>
-
-        {/* Documents Section */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Documents</Text>
-          <DocumentSection
-            title="Aadhar Card"
-            number={userData?.aadhar_num || 'Not Available'}
-          />
-          <DocumentSection
-            title="PAN Card"
-            number={userData?.pan_num || 'Not Available'}
-          />
-          <DocumentSection
-            title="GST Certificate"
-            number={userData?.gst_num || 'Not Available'}
-          />
-          <DocumentSection
-            title="TAN Card"
-            number={userData?.tan_num || 'Not Available'}
-          />
-        </View>
-        <View style={styles.logoutContainer}>
-          <TouchableOpacity
-            style={styles.logoutButton}
-            onPress={() => {
-              // Add your logout logic here
-              logOut();
-            }}>
-            {logoutLoader ? (
-              <ActivityIndicator color={'#fff'} style={{padding: 2}} />
-            ) : (
-              <>
-                <Icon
-                  name="logout"
-                  size={24}
-                  color="#fff"
-                  style={styles.logoutIcon}
-                />
-                <Text style={styles.logoutText}>Logout</Text>
-              </>
-            )}
-          </TouchableOpacity>
-        </View>
-              <View style={styles.footer}>
-          <Text style={styles.footerLogo}>PRASH</Text>
-          <Text style={styles.footerVersion}>
-            v{DeviceInfo.getVersion()} ({DeviceInfo.getBuildNumber()})
-          </Text>
-          <Text style={styles.footerLine}>Built and managed by</Text>
-          <Text
-            accessibilityRole="link"
-            onPress={() => Linking.openURL('https://aystera.com/')}
-            style={styles.footerBrand}>
-            Aystera Software Solutions LLP
-          </Text>
         </View>
       </ScrollView>
     </View>
   );
 };
 
+const SHADOW = {shadowColor: '#1B1230', shadowOffset: {width: 0, height: 4}, shadowOpacity: 0.06, shadowRadius: 12, elevation: 2};
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f3f4f6',
-  },
-  header: {
-    backgroundColor: '#632240',
-    padding: 20,
-    alignItems: 'center',
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-  },
-  avatarContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  avatarText: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#632240',
-  },
-  userName: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 5,
-  },
-  userEmail: {
-    fontSize: 16,
-    color: '#e5e7eb',
-  },
-  logoutContainer: {
-    paddingHorizontal: 15,
-    paddingBottom: 30,
-    paddingTop: 10,
-  },
-  logoutButton: {
-    backgroundColor: '#632240',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 10,
-    borderRadius: 10,
-    elevation: 3,
-  },
-  logoutIcon: {
-    marginRight: 10,
-  },
-  logoutText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  card: {
-    backgroundColor: '#fff',
-    margin: 15,
-    padding: 15,
-    borderRadius: 15,
-    elevation: 2,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1f2937',
-    marginBottom: 15,
-  },
-  sectionContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-  },
-  sectionContent: {
-    marginLeft: 15,
-    flex: 1,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    color: '#6b7280',
-  },
-  sectionValue: {
-    fontSize: 16,
-    color: '#1f2937',
-    marginTop: 2,
-  },
-  documentContainer: {
-    backgroundColor: '#f8fafc',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 10,
-  },
-  documentHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 5,
-  },
-  documentTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1f2937',
-    marginLeft: 10,
-  },
-  documentNumber: {
-    fontSize: 14,
-    color: '#6b7280',
-    marginLeft: 34,
-  },
-  imageContainer: {
-    marginTop: 10,
-    height: 150,
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  documentImage: {
-    width: '100%',
-    height: '100%',
-  },
-  footer: {alignItems: 'flex-start', paddingTop: 26, paddingBottom: 12, paddingHorizontal: 20},
+  screen: {flex: 1, backgroundColor: '#F4F5FA'},
+  hero: {alignItems: 'center', paddingTop: TOP, paddingBottom: 28, paddingHorizontal: 20, borderBottomLeftRadius: 30, borderBottomRightRadius: 30},
+  avatar: {width: 76, height: 76, borderRadius: 38, backgroundColor: 'rgba(255,255,255,0.18)', borderWidth: 2, borderColor: 'rgba(255,255,255,0.5)', alignItems: 'center', justifyContent: 'center'},
+  avatarText: {color: '#fff', fontSize: 28, fontWeight: 'bold'},
+  name: {color: '#fff', fontSize: 22, fontWeight: 'bold', marginTop: 12},
+  email: {color: 'rgba(255,255,255,0.75)', fontSize: 13, marginTop: 2},
+  outletChip: {flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.16)', maxWidth: '90%'},
+  outletText: {color: '#fff', fontSize: 12, fontWeight: '600', flexShrink: 1},
+  body: {paddingHorizontal: 16, paddingTop: 6},
+  groupWrap: {marginTop: 18},
+  groupHead: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 6, marginBottom: 8},
+  groupTitle: {color: '#6B6B76', fontSize: 13, fontWeight: '700', letterSpacing: 0.4, textTransform: 'uppercase'},
+  group: {backgroundColor: '#fff', borderRadius: 20, overflow: 'hidden', ...SHADOW},
+  row: {flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 13, paddingHorizontal: 14},
+  rowDivider: {borderBottomWidth: StyleSheet.hairlineWidth * 2, borderBottomColor: '#EEEEF3'},
+  rowIcon: {width: 36, height: 36, borderRadius: 12, backgroundColor: '#F6EEF2', alignItems: 'center', justifyContent: 'center'},
+  rowTitle: {color: '#17171C', fontSize: 15, fontWeight: '600'},
+  rowValue: {color: '#8A8A95', fontSize: 13, marginTop: 2},
+  chip: {paddingVertical: 3, paddingHorizontal: 9, borderRadius: 10},
+  chipWarn: {backgroundColor: '#FFF1D6'},
+  chipOk: {backgroundColor: '#DDF5E7'},
+  chipText: {fontSize: 10, fontWeight: '800'},
+  badge: {minWidth: 22, height: 22, paddingHorizontal: 6, borderRadius: 11, backgroundColor: Brand.primary, alignItems: 'center', justifyContent: 'center'},
+  badgeText: {color: '#fff', fontSize: 11, fontWeight: 'bold'},
+  eye: {flexDirection: 'row', alignItems: 'center', gap: 4},
+  eyeText: {color: Brand.primary, fontSize: 12, fontWeight: '700'},
+  footer: {alignItems: 'flex-start', paddingTop: 26, paddingBottom: 12, paddingHorizontal: 6},
   footerLogo: {fontFamily: 'Inter-Bold', fontSize: 24, letterSpacing: 3, color: '#B5B5BD'},
   footerVersion: {fontSize: 12, color: '#9A9AA5', marginTop: 2},
   footerLine: {fontSize: 12, color: '#9A9AA5', marginTop: 14},

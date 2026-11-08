@@ -827,7 +827,7 @@ const BillsDashboard = ({navigation}) => {
           style={{marginHorizontal: 0, marginTop: 0, marginBottom: 12}}
         />
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Bills Dashboard</Text>
+          <Text style={styles.headerTitle}>Monthly Rent</Text>
           <Text style={styles.headerSubtitle}>
             Track and manage your payments for (
             {shopSelected?.property_name ||

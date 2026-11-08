@@ -2,7 +2,7 @@ import {useEffect} from 'react';
 import messaging from '@react-native-firebase/messaging';
 import PushNotification from 'react-native-push-notification';
 import {showNotification} from '@components/NotificationConfig/NotificationHelper';
-import {navigationRef} from '../../navigation/NavigationService';
+import {navigationRef, goToTab} from '../../navigation/NavigationService';
 import {store} from '@redux/store/configureStore';
 import NotificationAction from '@redux/reducers/notification/actions';
 import _ from 'lodash';
@@ -28,7 +28,11 @@ const handleNotification = remoteMessage => {
   // Server-provided deep link (e.g. security deposit notifications carry screen: 'SecurityDeposit').
   const screen = remoteMessage?.data?.screen;
   if (screen) {
-    navigationRef.current?.navigate(screen);
+    if (['Bills', 'Charges', 'Pay', 'Containers', 'Profile', 'Dashboard'].includes(screen)) {
+      goToTab(screen);
+    } else {
+      navigationRef.current?.navigate(screen);
+    }
     return;
   }
 

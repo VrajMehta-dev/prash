@@ -627,7 +627,7 @@ const AdditionalCharges = ({navigation, route}) => {
         {backgroundColor: !filteredCharges.length === 0 ? '#f8f9fa' : 'white'},
       ]}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Additional Charges</Text>
+        <Text style={styles.headerTitle}>Extra Charges</Text>
         <Text style={styles.headerSubtitle}>
           Track and manage your additional charges for (
           {shopSelected?.property_name || 'Select the Property from Dashboard'})
