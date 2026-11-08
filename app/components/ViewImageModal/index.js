@@ -2,12 +2,12 @@
 import React from 'react';
 import {
   Modal,
-  TouchableOpacity,
   View,
   Dimensions,
   Platform,
-  Image,
+  Image
 } from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import FIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import styles from './styles';
 

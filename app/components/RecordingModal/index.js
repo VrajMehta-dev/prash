@@ -3,15 +3,15 @@ import {
   Modal,
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
   Animated,
   Easing,
   Dimensions,
   Platform,
   StatusBar,
-  Vibration,
+  Vibration
 } from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import IconFeather from 'react-native-vector-icons/Feather';
 import IconIonicons from 'react-native-vector-icons/Ionicons';

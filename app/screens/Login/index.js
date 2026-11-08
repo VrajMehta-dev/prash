@@ -6,7 +6,6 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
@@ -17,8 +16,9 @@ import {
   Easing,
   ScrollView,
   Keyboard,
-  ActivityIndicator,
+  ActivityIndicator
 } from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import IconFA from 'react-native-vector-icons/FontAwesome5';
 import axios from 'axios';
@@ -41,7 +41,8 @@ const Login = ({navigation}) => {
   const [isFocused, setIsFocused] = useState({email: false, password: false});
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [shadowActive, setShadowActive] = useState(false);
-  const {setUserData, setAccessToken, setShopSelected} = authActions;
+  const {setUserData, setAccessToken, setRefreshToken, setShopSelected} =
+    authActions;
   const scrollViewRef = useRef(null);
 
   const {userData, shopSelected, accessToken} = useSelector(
@@ -213,6 +214,7 @@ const Login = ({navigation}) => {
         });
         console.log('data?.accessToken==>', data?.accessToken);
         dispatch(setAccessToken(data?.accessToken));
+        dispatch(setRefreshToken(data?.refreshToken || ''));
         navigation.reset({
           routes: [{name: 'Dashboard'}],
         });

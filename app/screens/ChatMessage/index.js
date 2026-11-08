@@ -5,7 +5,6 @@ import React, {useState, useCallback, useEffect, useRef} from 'react';
 import {
   View,
   SafeAreaView,
-  TouchableOpacity,
   Image,
   StyleSheet,
   Platform,
@@ -16,8 +15,9 @@ import {
   Pressable,
   Modal,
   KeyboardAvoidingView,
-  Alert,
+  Alert
 } from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import {useDispatch, useSelector} from 'react-redux';
 import EmojiPicker from 'rn-emoji-keyboard';
 import * as Animatable from 'react-native-animatable';

@@ -15,30 +15,77 @@ import BaseSetting from '@config/setting';
 import {store} from '@redux/store/configureStore';
 import AuthAction from '@redux/reducers/auth/actions';
 import NotificationAction from '@redux/reducers/notification/actions';
+import messaging from '@react-native-firebase/messaging';
 
 export const IOS = Platform.OS === 'ios';
 
-export const logout = async (userData, hideToast = false) => {
+let loggingOut = false;
+
+// The ONE logout path (button, expired session, API auth errors). Beyond clearing local state it
+// (1) tells the server to deactivate this device's push token, (2) deletes the FCM token so Firebase
+// itself stops delivering to this install, and (3) clears the stored token so the next login
+// registers a fresh one. Skipping any of these is what kept notifications coming after logout.
+export const logout = async (userData, hideToast = false, reason = '') => {
+  if (loggingOut) {
+    return;
+  }
+  loggingOut = true;
   try {
+    const {
+      auth: {refreshToken},
+      notification: {fcmToken},
+    } = store.getState();
+
+    if (fcmToken || refreshToken) {
+      // Public endpoint (works with an expired access token). Best effort, capped so logout never hangs.
+      await Promise.race([
+        global
+          .fetch(BaseSetting.baseUrl + BaseSetting.endpoints.loginOUT, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+              fcm_token: fcmToken || undefined,
+              refresh_token: refreshToken || undefined,
+            }),
+          })
+          .catch(() => {}),
+        new Promise(resolve => setTimeout(resolve, 3500)),
+      ]);
+    }
+    try {
+      await messaging().deleteToken();
+    } catch (e) {}
+
     store.dispatch(AuthAction.logOut());
     store.dispatch(NotificationAction.clearData());
+    store.dispatch(NotificationAction.setFcmToken(''));
     redirectToLogin();
     if (!hideToast) {
       Toast.show({
-        type: 'success',
-        text1: 'Success',
-        text2: 'Logged out successfully.',
+        type: reason === 'expired' ? 'info' : 'success',
+        text1: reason === 'expired' ? 'Session expired' : 'Success',
+        text2:
+          reason === 'expired'
+            ? 'Please sign in again.'
+            : 'Logged out successfully.',
       });
     }
+    // Fresh token for the next login (deleteToken invalidated the old one).
+    messaging()
+      .getToken()
+      .then(t => store.dispatch(NotificationAction.setFcmToken(t)))
+      .catch(() => {});
   } catch (error) {
     console.error('Error signing out:', error);
+  } finally {
+    loggingOut = false;
   }
 };
 
 export const redirectToLogin = () => {
   navigationRef?.current?.reset({
     index: 0,
-    routes: [{name: 'Intro'}],
+    routes: [{name: 'Login'}], // was the old travel-template Intro screen (untranslated keys)
   });
 };
 

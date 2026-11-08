@@ -4,9 +4,9 @@ import {
   Text,
   StyleSheet,
   SafeAreaView,
-  TouchableOpacity,
-  StatusBar,
+  StatusBar
 } from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import {useRoute, useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Toast from 'react-native-toast-message';

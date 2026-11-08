@@ -3,14 +3,14 @@ import {
   Modal,
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
   Dimensions,
   ScrollView,
   Alert,
   Platform,
-  StatusBar,
+  StatusBar
 } from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import {BlurView} from '@react-native-community/blur';
 
 const {width, height} = Dimensions.get('window');

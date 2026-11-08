@@ -1,17 +1,18 @@
 import React, {useEffect, useState, useCallback, useRef} from 'react';
+import {TAB_BAR_SPACE} from '@navigation/BottomTab';
 import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   ScrollView,
   Animated,
   Dimensions,
   Platform,
   PermissionsAndroid,
   ActivityIndicator,
-  StatusBar,
+  StatusBar
 } from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {LinearGradient} from 'react-native-linear-gradient';
 import {BaseColors} from '@config/theme';
@@ -617,6 +618,7 @@ const AdditionalCharges = ({navigation, route}) => {
         />
       )}
     <ScrollView
+      contentContainerStyle={{paddingBottom: TAB_BAR_SPACE}}
       style={[
         styles.container,
         {backgroundColor: !filteredCharges.length === 0 ? '#f8f9fa' : 'white'},

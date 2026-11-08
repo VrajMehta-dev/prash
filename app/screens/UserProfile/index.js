@@ -5,12 +5,12 @@ import {
   View,
   Text,
   Image,
-  TouchableOpacity,
   ScrollView,
   StyleSheet,
   FlatList,
-  ActivityIndicator,
+  ActivityIndicator
 } from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import Ionicons from 'react-native-vector-icons/Ionicons';

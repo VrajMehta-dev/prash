@@ -8,9 +8,9 @@ import {
   ImageBackground,
   Platform,
   Text,
-  TouchableOpacity,
-  View,
+  View
 } from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -40,6 +40,12 @@ import BottomTab from '../BottomTab';
 import GetStyles from './styles';
 import Overlay from './overlay';
 import BillsDashboard from '@components/BillBoard';
+import withTabTransition from '../withTabTransition';
+
+const DashboardTab = withTabTransition(Dashboard);
+const BillsTab = withTabTransition(BillsDashboard);
+const ChargesTab = withTabTransition(AdditionalCharges);
+const ProfileTab = withTabTransition(Profile);
 
 const CustomDrawer = ({navigation}) => {
   const IOS = Platform.OS === 'ios';
@@ -424,20 +430,20 @@ const CustomDrawer = ({navigation}) => {
           <Tab.Screen
             name="Dashboard"
             options={navOptions}
-            component={Dashboard}
+            component={DashboardTab}
           />
 
           <Tab.Screen
             name="Bills"
             options={navOptions}
-            component={BillsDashboard}
+            component={BillsTab}
           />
           <Tab.Screen
             name="Charges"
             options={navOptions}
-            component={AdditionalCharges}
+            component={ChargesTab}
           />
-          <Tab.Screen name="Profile" component={Profile} options={navOptions} />
+          <Tab.Screen name="Profile" component={ProfileTab} options={navOptions} />
         </Tab.Navigator>
       </Animated.View>
       <Overlay active={active} onPress={closeDrawer} />

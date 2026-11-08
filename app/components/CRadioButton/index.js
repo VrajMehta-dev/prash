@@ -1,5 +1,6 @@
 import React from 'react';
-import {View, Text, TouchableOpacity} from 'react-native';
+import {View, Text} from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import {useTheme} from '@react-navigation/native';
 import * as Animatable from 'react-native-animatable';
 import _ from 'lodash';

@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
-import {Text, TouchableOpacity, View} from 'react-native';
+import {Text, View} from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import {useTheme} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import moment from 'moment';

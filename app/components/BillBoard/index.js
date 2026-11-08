@@ -1,9 +1,10 @@
 import React, {useEffect, useState, useCallback} from 'react';
+import {tap} from '@utils/haptics';
+import {TAB_BAR_SPACE} from '@navigation/BottomTab';
 import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   ScrollView,
   Animated,
   Dimensions,
@@ -11,8 +12,9 @@ import {
   PermissionsAndroid,
   Linking,
   ActivityIndicator,
-  StatusBar,
+  StatusBar
 } from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {LinearGradient} from 'react-native-linear-gradient';
 import BaseSetting from '@config/setting';
@@ -151,6 +153,7 @@ const BillCard = ({
         )
       : 0;
   const [loader, setLoader] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   // Rounded amount display - only show if greater than 0
   const roundedAmount = bill?.rounded_amount || 0;
@@ -243,6 +246,34 @@ const BillCard = ({
           </View>
         </View>
 
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => {
+            tap();
+            setExpanded(e => !e);
+          }}
+          style={styles.amountRow}>
+          <View>
+            <Text style={styles.amountLabel}>
+              {isPaid ? 'Amount paid' : 'Amount due'}
+            </Text>
+            <Text style={styles.amountValue}>
+              {'\u20B9'}
+              {Number(payment_amount || 0).toLocaleString('en-IN')}
+            </Text>
+          </View>
+          <View style={styles.detailsToggle}>
+            <Text style={styles.detailsToggleText}>
+              {expanded ? 'Hide' : 'Breakdown'}
+            </Text>
+            <Icon
+              name={expanded ? 'chevron-up' : 'chevron-down'}
+              size={18}
+              color="#632240"
+            />
+          </View>
+        </TouchableOpacity>
+        {expanded && (
         <View style={styles.billDetails}>
           <View style={styles.row}>
             <Text style={styles.label}>Rent</Text>
@@ -323,25 +354,20 @@ const BillCard = ({
             </View>
           )}
         </View>
-
-        <View style={styles.totalContainer}>
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Total Amount</Text>
-            <Text style={styles.totalValue}>
-              ₹{payment_amount?.toLocaleString()}
-            </Text>
-          </View>
-        </View>
+        )}
         <View style={styles.actionsRow}>
           {statusNow !== 'in_review' ? (
             <View
               style={{
-                flexDirection: 'column',
+                flexDirection: 'row',
                 justifyContent: 'center',
+                alignItems: 'stretch',
                 flex: 1,
+                gap: 10,
               }}>
               <TouchableOpacity
                 onPress={() => {
+                  tap();
                   if (!isPaid) {
                     onPayNow(bill_id);
                   } else {
@@ -350,6 +376,7 @@ const BillCard = ({
                 }}
                 style={[
                   styles.button,
+                  {flex: 1.5},
                   isPaid ? styles.downloadButton : styles.payButton,
                 ]}
                 activeOpacity={0.8}>
@@ -359,13 +386,14 @@ const BillCard = ({
                   color="#fff"
                 />
                 <Text style={styles.buttonText}>
-                  {isPaid ? 'Download Receipt' : 'Pay Now'}
+                  {isPaid ? 'Receipt' : 'Pay now'}
                 </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 disabled={loader}
                 onPress={() => {
+                  tap();
                   onDownloadInvoice(bill_id);
                   setLoader(true);
                   setTimeout(() => {
@@ -383,7 +411,7 @@ const BillCard = ({
                   <>
                     <Icon name={'download'} size={20} color="#632240" />
                     <Text style={{color: '#632240', marginLeft: 6}}>
-                      Download Invoice
+                      Invoice
                     </Text>
                   </>
                 )}
@@ -403,6 +431,7 @@ const BillCard = ({
               <TouchableOpacity
                 disabled={loader}
                 onPress={() => {
+                  tap();
                   onDownloadInvoice(bill_id);
                   setLoader(true);
                   setTimeout(() => {
@@ -781,6 +810,7 @@ const BillsDashboard = ({navigation}) => {
         />
       )}
       <ScrollView
+        contentContainerStyle={{paddingBottom: TAB_BAR_SPACE}}
         style={[
           styles.container,
           {backgroundColor: !filteredBills.length === 0 ? '#f8f9fa' : 'white'},
@@ -866,7 +896,7 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === 'ios' ? 60 : 20,
   },
   actionsRow: {
-    marginTop: 12,
+    marginTop: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -950,7 +980,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   cardContainer: {
-    marginBottom: 16,
+    marginBottom: 12,
     borderRadius: 16,
     // overflow: 'hidden',
     elevation: 3,
@@ -961,14 +991,14 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: '#fff',
-    padding: 20,
+    padding: 16,
     borderRadius: 16,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 20,
+    marginBottom: 12,
   },
   month: {
     fontSize: 18,
@@ -1007,15 +1037,16 @@ const styles = StyleSheet.create({
   },
   billDetails: {
     backgroundColor: '#f8f9fa',
-    padding: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderRadius: 12,
-    marginBottom: 20,
+    marginTop: 10,
   },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 5,
   },
   labelWithIcon: {
     flexDirection: 'row',
@@ -1072,9 +1103,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
     borderRadius: 12,
-    marginTop: 20,
+    marginTop: 0,
   },
   payButton: {
     backgroundColor: '#632240',
@@ -1085,9 +1117,24 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     fontWeight: '600',
-    fontSize: 16,
+    fontSize: 15,
     marginLeft: 8,
   },
+  amountRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#f1f3f5',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+  },
+  amountLabel: {fontSize: 12, color: '#6c757d', fontWeight: '600'},
+  amountValue: {fontSize: 24, fontWeight: '700', color: '#2d3436', marginTop: 2},
+  detailsToggle: {flexDirection: 'row', alignItems: 'center', gap: 2},
+  detailsToggleText: {fontSize: 13, color: '#632240', fontWeight: '600'},
 });
 
 export default BillsDashboard;

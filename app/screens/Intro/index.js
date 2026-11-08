@@ -10,15 +10,15 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   Image,
   SafeAreaView,
   Animated,
   Easing,
   Modal,
   Dimensions,
-  FlatList,
+  FlatList
 } from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import {SvgXml} from 'react-native-svg';
 import Toast from 'react-native-toast-message';
 import {useSelector} from 'react-redux';

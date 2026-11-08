@@ -10,15 +10,15 @@ import React, {
 import {
   View,
   Modal,
-  TouchableOpacity,
   Text,
   KeyboardAvoidingView,
   Platform,
   TouchableWithoutFeedback,
   Vibration,
   Dimensions,
-  StatusBar,
+  StatusBar
 } from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import {BlurView} from '@react-native-community/blur';
 import _ from 'lodash';
 import PropTypes from 'prop-types';

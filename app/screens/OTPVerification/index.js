@@ -5,9 +5,9 @@ import {
   ScrollView,
   StatusBar,
   Text,
-  TouchableOpacity,
-  View,
+  View
 } from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import moment from 'moment';
 import Toast from 'react-native-toast-message';
 import {useDispatch, useSelector} from 'react-redux';

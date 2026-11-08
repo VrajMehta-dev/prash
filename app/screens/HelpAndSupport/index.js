@@ -1,5 +1,6 @@
 /* eslint-disable react/react-in-jsx-scope */
-import {TouchableOpacity} from 'react-native';
+import {} from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import {FlatList, Text, View} from 'react-native';
 import {useTheme} from '@react-navigation/native';
 import {useSelector} from 'react-redux';

@@ -1,5 +1,6 @@
 import React from 'react';
-import {Platform, Text, TouchableOpacity, View} from 'react-native';
+import {Platform, Text, View} from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import _ from 'lodash';
 import CSwitch from '@components/CSwitch';
 import {CustomIcon} from '@config/LoadIcons';

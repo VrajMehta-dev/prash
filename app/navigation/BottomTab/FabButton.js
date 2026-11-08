@@ -1,5 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import {StyleSheet, TouchableOpacity, View, Pressable} from 'react-native';
+import {StyleSheet, View, Pressable} from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import React, {forwardRef, useCallback, useImperativeHandle} from 'react';
 import Animated, {
   Easing,

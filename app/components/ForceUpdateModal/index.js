@@ -6,9 +6,9 @@ import {
   StyleSheet,
   Linking,
   Platform,
-  TouchableOpacity,
-  StatusBar,
+  StatusBar
 } from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import DeviceInfo from 'react-native-device-info';
 import BaseSetting from '@config/setting';
 import {Brand} from '@config/brand';

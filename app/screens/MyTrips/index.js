@@ -5,12 +5,12 @@ import {
   Text,
   StyleSheet,
   Image,
-  TouchableOpacity,
   ScrollView,
   Dimensions,
   Animated,
-  FlatList,
+  FlatList
 } from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {LinearGradient} from 'react-native-linear-gradient';
 import BaseSetting from '@config/setting';

@@ -1,5 +1,6 @@
 /* eslint-disable react/react-in-jsx-scope */
-import {ActivityIndicator, Text, TouchableOpacity, View} from 'react-native';
+import {ActivityIndicator, Text, View} from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import propTypes from 'prop-types';
 import {useTheme} from '@react-navigation/native';
 import {GetTypography} from '@config/theme';

@@ -4,10 +4,10 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   StatusBar,
-  ActivityIndicator,
+  ActivityIndicator
 } from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import NetInfo, {useNetInfo} from '@react-native-community/netinfo';
 import Icon, {Icons} from '@config/Icons';
 import BaseSetting from '@config/setting';

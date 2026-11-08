@@ -3,13 +3,13 @@ import {
   View,
   Text,
   Image,
-  TouchableOpacity,
   StyleSheet,
   TextInput,
   FlatList,
   Alert,
-  Dimensions,
+  Dimensions
 } from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import RBSheet from 'react-native-raw-bottom-sheet'; // Import RBSheet
 import {FontFamily} from '@config/theme';

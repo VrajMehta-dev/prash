@@ -3,15 +3,15 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
   StyleSheet,
   Animated,
   Dimensions,
   StatusBar,
   ScrollView,
   SafeAreaView,
-  Platform,
+  Platform
 } from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import {translate} from '@lang/Translate';

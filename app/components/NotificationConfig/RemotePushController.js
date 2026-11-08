@@ -94,6 +94,10 @@ const RemotePushController = () => {
   const {matchData} = useSelector(state => state?.auth);
   useEffect(() => {
     const unsubscribe = messaging().onMessage(async remoteMessage => {
+      // Belt and braces: a logged-out device must not surface notifications.
+      if (!store.getState().auth.accessToken) {
+        return;
+      }
       const actionType = remoteMessage?.data?.type;
 
       const screenName =

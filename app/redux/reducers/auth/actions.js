@@ -1,6 +1,7 @@
 const actions = {
   SET_USER_DATA: 'auth/SET_USER_DATA',
   SET_ACCESS_TOKEN: 'auth/SET_ACCESS_TOKEN',
+  SET_REFRESH_TOKEN: 'auth/SET_REFRESH_TOKEN',
   SET_WALKTHROUGH: 'auth/SET_WALKTHROUGH',
   LOGOUT: 'auth/LOGOUT',
   SET_DARK_MODE: 'auth/SET_DARK_MODE',
@@ -20,6 +21,12 @@ const actions = {
     dispatch({
       type: actions.SET_ACCESS_TOKEN,
       accessToken,
+    });
+  },
+  setRefreshToken: refreshToken => dispatch => {
+    dispatch({
+      type: actions.SET_REFRESH_TOKEN,
+      refreshToken,
     });
   },
   setWalkThrough: bool => dispatch => {

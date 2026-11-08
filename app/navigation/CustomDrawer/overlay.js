@@ -1,5 +1,6 @@
 import React from 'react';
-import {Dimensions, StyleSheet, TouchableOpacity} from 'react-native';
+import {Dimensions, StyleSheet} from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import Animated, {useAnimatedStyle} from 'react-native-reanimated';
 
 const Overlay = props => {

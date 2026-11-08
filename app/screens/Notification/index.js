@@ -5,12 +5,12 @@ import {
   Text,
   FlatList,
   StyleSheet,
-  TouchableOpacity,
   SafeAreaView,
   StatusBar,
   Animated,
-  RefreshControl,
+  RefreshControl
 } from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {useSelector} from 'react-redux';
 import {useNavigation, useIsFocused} from '@react-navigation/native';

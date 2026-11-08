@@ -1,8 +1,42 @@
-import React from 'react';
-import {View, TouchableOpacity, Text, StyleSheet, Platform} from 'react-native';
+import React, {useEffect} from 'react';
+import {View, Text, StyleSheet, Platform} from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import Icon, {Icons} from '@config/Icons';
 import {translate} from '@lang/Translate';
 import {tap} from '@utils/haptics';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSequence,
+  withTiming,
+  withSpring,
+} from 'react-native-reanimated';
+
+// Space screens must leave at the bottom so content isn't hidden behind the floating bar.
+export const TAB_BAR_SPACE = 104;
+
+// Icon pops (squash then springy overshoot) when its tab becomes active.
+const TabIcon = ({icon, focused, color}) => {
+  const scale = useSharedValue(1);
+  useEffect(() => {
+    if (focused) {
+      scale.value = withSequence(
+        withTiming(0.78, {duration: 70}),
+        withSpring(1, {damping: 5, stiffness: 320}),
+      );
+    }
+  }, [focused]);
+  const style = useAnimatedStyle(() => ({transform: [{scale: scale.value}]}));
+  return (
+    <Animated.View style={style}>
+      <Icon
+        type={icon.type}
+        name={focused ? icon.on : icon.name}
+        style={{fontSize: 24, color}}
+      />
+    </Animated.View>
+  );
+};
 
 // Floating pill tab bar, four equal tabs.
 // Routes (CustomDrawer): 0 Dashboard, 1 Bills, 2 Charges, 3 Profile.
@@ -34,11 +68,7 @@ export default function BottomTabBar({state, descriptors, navigation}) {
           tap();
           if (!focused) navigation.navigate(route.name);
         }}>
-        <Icon
-          type={icon.type}
-          name={focused ? icon.on : icon.name}
-          style={{fontSize: 24, color}}
-        />
+        <TabIcon icon={icon} focused={focused} color={color} />
         <Text numberOfLines={1} style={[styles.label, {color, fontWeight: focused ? '700' : '500'}]}>
           {LABELS[route.name] || translate(label)}
         </Text>

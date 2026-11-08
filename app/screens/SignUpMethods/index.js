@@ -3,11 +3,11 @@ import React, {useState} from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
   Image,
   SafeAreaView,
-  Alert,
+  Alert
 } from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import {styles} from './styles';
 import {
   AppleButton,

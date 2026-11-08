@@ -4,9 +4,9 @@ import {
   Text,
   StyleSheet,
   Modal,
-  Dimensions,
-  TouchableOpacity,
+  Dimensions
 } from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import ImagePicker from 'react-native-image-crop-picker';
 import DocumentPicker from 'react-native-document-picker';
 import LinearGradient from 'react-native-linear-gradient';

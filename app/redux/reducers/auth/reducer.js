@@ -4,6 +4,7 @@ import types from './actions';
 const initialState = {
   userData: {},
   accessToken: '',
+  refreshToken: '',
   darkMode: Appearance.getColorScheme() == 'dark' ? true : false,
   walkThrough: true,
   lastScreen: '',
@@ -36,6 +37,11 @@ export default function reducer(state = initialState, action) {
       return {
         ...state,
         accessToken: action.accessToken,
+      };
+    case types.SET_REFRESH_TOKEN:
+      return {
+        ...state,
+        refreshToken: action.refreshToken,
       };
     case types.SET_WALKTHROUGH:
       return {

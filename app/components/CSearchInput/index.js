@@ -4,11 +4,11 @@ import {
   ActivityIndicator,
   Platform,
   TextInput,
-  TouchableOpacity,
   View,
   Keyboard,
-  Text,
+  Text
 } from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import {useTheme} from '@react-navigation/native';
 import _ from 'lodash';
 import {FontFamily, GetTypography} from '@config/theme';

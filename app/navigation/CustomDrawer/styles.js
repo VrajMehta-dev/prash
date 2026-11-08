@@ -78,8 +78,10 @@ const GetStyles = () => {
       fontFamily: FontFamily.medium,
       fontSize: FontSize.F18,
     },
+    // Transparent overlay: the floating pill sits over the screen, no block behind it.
     tabBarContainer: {
-      backgroundColor: BaseColors.whiteColor,
+      position: 'absolute',
+      backgroundColor: 'transparent',
       bottom: 0,
       right: 0,
       left: 0,

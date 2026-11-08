@@ -1,4 +1,5 @@
 /* eslint-disable react/no-unstable-nested-components */
+import {TAB_BAR_SPACE} from '@navigation/BottomTab';
 import React, {useEffect, useState} from 'react';
 import {
   View,
@@ -6,10 +7,10 @@ import {
   StyleSheet,
   ScrollView,
   Image,
-  TouchableOpacity,
   ActivityIndicator,
-  StatusBar,
+  StatusBar
 } from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import moment from 'moment';
 import {useDispatch, useSelector} from 'react-redux';
@@ -74,78 +75,10 @@ const ProfileScreen = ({navigation}) => {
   };
   const logOut = async () => {
     setLogoutLoader(true);
-    const url = BaseSetting.baseUrl + BaseSetting.endpoints.loginOUT;
-
-    const headers = {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-      Authorization: 'Bearer ' + accessToken,
-    };
-    console.log('headers', headers);
-
-    const body = JSON.stringify({
-      fcm_token: fcmToken,
-    });
-
-    console.log('body', body);
     try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: headers,
-        body: body,
-      });
-
-      console.log('Raw Response:', response);
-
-      // ✅ Handle empty response case
-      const text = await response.text(); // Read response as text
-      const data = text ? JSON.parse(text) : {}; // Parse if not empty
-
-      if (response.ok) {
-        setLogoutLoader(false);
-        Toast.show({
-          type: 'success',
-          text1: 'Great!',
-          text2: data.msg || 'Logout successful!',
-        });
-
-        store.dispatch(setAccessToken(''));
-        store.dispatch(setShopSelected({}));
-        store.dispatch(setUserData({}));
-        navigation.reset({
-          routes: [{name: 'Login'}],
-        });
-        // Toast.show({
-        //   type: 'success',
-        //   text1: 'Hurray!',
-        //   text2: 'You have been logged out successfully',
-        // });
-      } else {
-        setLogoutLoader(false);
-        store.dispatch(setAccessToken(''));
-        store.dispatch(setShopSelected({}));
-        navigation.reset({
-          routes: [{name: 'Login'}],
-        });
-        Toast.show({
-          type: 'error',
-          text1: 'Error',
-          text2: 'You have been logged out successfully',
-        });
-      }
-      console.log('Response Data:', data);
-    } catch (error) {
+      await logout(userData); // server push-token cleanup + FCM delete + local reset
+    } finally {
       setLogoutLoader(false);
-      store.dispatch(setAccessToken(''));
-      store.dispatch(setShopSelected({}));
-      navigation.reset({
-        routes: [{name: 'Login'}],
-      });
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'You have been logged out successfully',
-      });
     }
   };
 
@@ -183,7 +116,10 @@ const ProfileScreen = ({navigation}) => {
       {isFocused && (
         <StatusBar backgroundColor="#632240" barStyle="light-content" />
       )}
-      <ScrollView showsVerticalScrollIndicator={false} style={styles.container}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        style={styles.container}
+        contentContainerStyle={{paddingBottom: TAB_BAR_SPACE}}>
         {/* Header Section */}
         <View style={styles.header}>
           <View style={styles.avatarContainer}>

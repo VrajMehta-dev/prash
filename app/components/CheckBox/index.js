@@ -1,5 +1,6 @@
 import React, {memo} from 'react';
-import {View, Text, TouchableOpacity} from 'react-native';
+import {View, Text} from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import Svg from 'react-native-svg';
 import {useDerivedValue, withTiming} from 'react-native-reanimated';
 import {useTheme} from '@react-navigation/native';

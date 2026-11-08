@@ -1,7 +1,6 @@
 /* eslint-disable react/no-unstable-nested-components */
 import React, {useRef, useState} from 'react';
 import {
-  TouchableOpacity,
   View,
   Text,
   ActivityIndicator,
@@ -9,8 +8,9 @@ import {
   Platform,
   Linking,
   Alert,
-  FlatList,
+  FlatList
 } from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import DeviceInfo from 'react-native-device-info';
 import _, {isEmpty} from 'lodash';
 import Toast from 'react-native-toast-message';

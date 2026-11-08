@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
   Animated,
   Dimensions,
   KeyboardAvoidingView,
@@ -11,8 +10,9 @@ import {
   ActivityIndicator,
   ScrollView,
   Keyboard,
-  StatusBar,
+  StatusBar
 } from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import styles from './styles';
 import BaseSetting from '@config/setting';

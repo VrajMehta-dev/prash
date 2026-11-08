@@ -3,13 +3,13 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   ScrollView,
   Image,
   Alert,
   Platform,
-  Dimensions,
+  Dimensions
 } from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import CInput from '@components/CInput';
 import CDateTimePicker from '@components/CDateTimePicker';
 import ImagePicker from 'react-native-image-crop-picker'; // Install via `npm install react-native-image-crop-picker`

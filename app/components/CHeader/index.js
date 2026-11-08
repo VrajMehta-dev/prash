@@ -1,5 +1,6 @@
 import React from 'react';
-import {Keyboard, StatusBar, Text, TouchableOpacity, View} from 'react-native';
+import {Keyboard, StatusBar, Text, View} from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import {useTheme} from '@react-navigation/native';
 import {GetTypography} from '@config/theme';
 import Icon, {Icons} from '@config/Icons';

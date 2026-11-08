@@ -9,11 +9,11 @@ import {
   KeyboardAvoidingView,
   Modal,
   Dimensions,
-  TouchableOpacity,
   Image,
   Platform,
-  Animated,
+  Animated
 } from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import AnimatedView from '@components/AnimatedView';
 import CButton from '@components/CButton';
 import CDateTimePicker from '@components/CDateTimePicker';

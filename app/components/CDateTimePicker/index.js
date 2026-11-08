@@ -3,7 +3,8 @@
 /* eslint-disable react/require-default-props */
 /* eslint-disable no-nested-ternary */
 import React, {forwardRef, useImperativeHandle, useState} from 'react';
-import {View, TouchableOpacity, Text} from 'react-native';
+import {View, Text} from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import PropTypes from 'prop-types';
 import moment from 'moment';

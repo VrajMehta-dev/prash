@@ -1,7 +1,8 @@
 /* eslint-disable react/react-in-jsx-scope */
 // Disabling eslint rule for avoiding the "React must be in scope" error
 import React, {forwardRef, useImperativeHandle, useRef, useState} from 'react';
-import {Platform, Text, TouchableOpacity, View} from 'react-native';
+import {Platform, Text, View} from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import Animated, {
   Easing,
   interpolate,

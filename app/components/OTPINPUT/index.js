@@ -4,9 +4,9 @@ import {
   View,
   TextInput,
   StyleSheet,
-  TouchableOpacity,
-  Text,
+  Text
 } from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 
 const OtpInput = ({length = 6, onComplete}) => {
   const [otp, setOtp] = useState(Array(length).fill(''));

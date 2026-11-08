@@ -16,10 +16,10 @@ import {
   StatusBar,
   Animated,
   Platform,
-  TouchableOpacity,
   Dimensions,
-  ActivityIndicator,
+  ActivityIndicator
 } from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import {RefreshControl} from 'react-native-gesture-handler';
 import LinearGradient from 'react-native-linear-gradient';
 import {useSelector} from 'react-redux';

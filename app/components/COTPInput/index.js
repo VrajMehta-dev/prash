@@ -1,6 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, { useImperativeHandle, useRef, useState, useCallback } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, ActivityIndicator} from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import OTPInputView from '@twotalltotems/react-native-otp-input';
 import { useTheme } from '@react-navigation/native';
 import PropTypes from 'prop-types';

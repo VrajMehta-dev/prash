@@ -4,10 +4,10 @@ import {
   Text,
   Image,
   StyleSheet,
-  TouchableOpacity,
   FlatList,
-  Dimensions,
+  Dimensions
 } from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import FeatIcon from 'react-native-vector-icons/Feather';
 

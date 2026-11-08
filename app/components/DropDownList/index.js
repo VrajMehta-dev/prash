@@ -9,9 +9,9 @@ import {
   View,
   Text,
   ActivityIndicator,
-  TextInput,
-  TouchableOpacity,
+  TextInput
 } from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import {Dropdown, MultiSelect} from 'react-native-element-dropdown';
 import {useTheme} from '@react-navigation/native';
 import {FontFamily, GetTypography} from '@config/theme';

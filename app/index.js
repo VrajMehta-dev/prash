@@ -10,6 +10,7 @@ import {persistor, store} from '@redux/store/configureStore';
 import ForceUpdateModal from '@components/ForceUpdateModal';
 import {withOta} from '@utils/hotUpdater';
 import OfflineScreen from '@components/OfflineScreen';
+import '@utils/session'; // installs token refresh + 401 retry on fetch
 
 // import TrackPlayer from 'react-native-track-player';
 

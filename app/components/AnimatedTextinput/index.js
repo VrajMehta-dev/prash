@@ -4,11 +4,11 @@ import {
   TextInput,
   Animated,
   StyleSheet,
-  TouchableOpacity,
   LayoutAnimation,
   Platform,
-  UIManager,
+  UIManager
 } from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 // Enable LayoutAnimation for Android

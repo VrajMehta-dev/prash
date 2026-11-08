@@ -1,6 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, {useState} from 'react';
-import {Platform, Text, TextInput, TouchableOpacity, View} from 'react-native';
+import {Platform, Text, TextInput, View} from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import {useTheme} from '@react-navigation/native';
 import CountryPicker, {
   DARK_THEME,

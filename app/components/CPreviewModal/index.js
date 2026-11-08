@@ -1,6 +1,7 @@
 /* eslint-disable react/react-in-jsx-scope */
 import React, {forwardRef, useImperativeHandle, useState} from 'react';
-import {Dimensions, Image, Modal, TouchableOpacity, View} from 'react-native';
+import {Dimensions, Image, Modal, View} from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import {BlurView} from '@react-native-community/blur';
 import _ from 'lodash';
 import {useTheme} from '@react-navigation/native';

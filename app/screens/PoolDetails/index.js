@@ -5,11 +5,11 @@ import {
   Image,
   ScrollView,
   StyleSheet,
-  TouchableOpacity,
   Alert,
   Dimensions,
-  FlatList,
+  FlatList
 } from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import Icon, {Icons} from '@config/Icons';
 import CHeader from '@components/CHeader';
 

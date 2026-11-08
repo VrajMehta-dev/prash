@@ -4,10 +4,10 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   Image,
-  Dimensions,
+  Dimensions
 } from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 const {width} = Dimensions.get('window');

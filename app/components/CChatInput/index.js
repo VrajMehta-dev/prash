@@ -2,9 +2,9 @@ import React from 'react';
 import {
   KeyboardAvoidingView,
   TextInput,
-  TouchableOpacity,
-  View,
+  View
 } from 'react-native';
+import TouchableOpacity from '@components/PressableScale';
 import {useTheme} from '@react-navigation/native';
 import _ from 'lodash';
 import MaterialCommunityIcons from 'react-native-vector-icons/Octicons';
