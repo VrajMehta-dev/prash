@@ -26,7 +26,6 @@ import Chat from '@screens/Chat';
 import Profile from '@screens/Profile';
 import MyTrips from '@screens/MyTrips';
 import Dashboard from '@screens/Dashboard';
-import AdditionalCharges from '@screens/AdditionalCharges';
 import CHeader from '@components/CHeader';
 import CImage from '@components/CImage';
 import {Images} from '@config/images';
@@ -41,10 +40,11 @@ import GetStyles from './styles';
 import Overlay from './overlay';
 import BillsDashboard from '@components/BillBoard';
 import withTabTransition from '../withTabTransition';
+import Charges from '@screens/Charges';
 
 const DashboardTab = withTabTransition(Dashboard);
 const BillsTab = withTabTransition(BillsDashboard);
-const ChargesTab = withTabTransition(AdditionalCharges);
+const ChargesTab = withTabTransition(Charges);
 const ProfileTab = withTabTransition(Profile);
 
 const CustomDrawer = ({navigation}) => {

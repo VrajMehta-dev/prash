@@ -1,4 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
+import {apiGet} from '@utils/authedApi';
+import {useSecurityDeposit} from '@utils/useSecurityDeposit';
+import DepositBanner from '@components/DepositBanner';
 import {logout} from '@utils/commonFunction';
 import {TAB_BAR_SPACE} from '@navigation/BottomTab';
 import React, {useEffect, useRef, useState} from 'react';
@@ -43,6 +46,8 @@ const DashboardScreen = ({navigation}) => {
   const [loadError, setLoadError] = useState(false);
   const [shopsLoaded, setShopsLoaded] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const {data: deposit} = useSecurityDeposit();
+  const [ccDue, setCcDue] = useState({count: 0, total: 0});
   const isFocused = useIsFocused();
 
   useFocusEffect(
@@ -50,6 +55,7 @@ const DashboardScreen = ({navigation}) => {
       fetchNotifications();
       fetchData();
       fetchDashboardData();
+      fetchContainerCharges();
     }, [shopSelected]),
   );
 
@@ -77,6 +83,20 @@ const DashboardScreen = ({navigation}) => {
       store.dispatch(setShopSelected({}));
     }
   }, [shopList, shopSelected, shopsLoaded]);
+
+  const fetchContainerCharges = async () => {
+    if (!shopSelected?.pr_id) {
+      return;
+    }
+    try {
+      const r = await apiGet(`client/container-charges/${shopSelected.pr_id}`);
+      const due = (r.data?.data || []).filter(c => c.status !== 'paid');
+      setCcDue({
+        count: due.length,
+        total: due.reduce((sum, c) => sum + Number(c.payment_amount || 0), 0),
+      });
+    } catch (e) {}
+  };
 
   const fetchData = async () => {
     const url = BaseSetting.baseUrl + BaseSetting.endpoints.getAllShops;
@@ -184,19 +204,6 @@ const DashboardScreen = ({navigation}) => {
   }));
   console.log('barData', barData);
 
-  const minAmount = () => {
-    const containerCharges =
-      !_.isUndefined(dashboardList?.charges) &&
-      _.isArray(dashboardList?.charges)
-        ? _.first(dashboardList?.charges)
-        : '';
-    console.log('dashboardList?.charges---->', dashboardList?.charges);
-    const progress =
-      (containerCharges?.paid_amount / containerCharges?.total_amount) * 100;
-
-    return {...containerCharges, progress};
-  };
-
   const fetchDashboardData = async () => {
     // Do not fetch dashboard data without a selected shop
     if (!shopSelected?.pr_id) {
@@ -271,7 +278,12 @@ const DashboardScreen = ({navigation}) => {
   const refresh = async () => {
     tap();
     setRefreshing(true);
-    await Promise.all([fetchNotifications(), fetchData(), fetchDashboardData()]);
+    await Promise.all([
+      fetchNotifications(),
+      fetchData(),
+      fetchDashboardData(),
+      fetchContainerCharges(),
+    ]);
     setRefreshing(false);
   };
   const unreadCount = notifications.filter(n => n.read === false).length;
@@ -285,7 +297,7 @@ const DashboardScreen = ({navigation}) => {
   const actions = [
     {label: 'Bills', icon: 'receipt', onPress: () => go('Bills')},
     {label: 'Charges', icon: 'layers-outline', onPress: () => go('Charges')},
-    {label: 'Alerts', icon: 'bell-outline', badge: unreadCount, onPress: () => go('NotificationScreen')},
+    {label: 'Deposit', icon: 'shield-lock-outline', badge: deposit?.locked ? 1 : 0, onPress: () => go('SecurityDeposit')},
     {label: 'Help', icon: 'lifebuoy', onPress: () => go('HelpAndSupport')},
   ];
 
@@ -353,6 +365,11 @@ const DashboardScreen = ({navigation}) => {
         </LinearGradient>
 
         <View style={styles.body}>
+          <DepositBanner
+            deposit={deposit}
+            onPress={() => go('SecurityDeposit')}
+            style={{marginHorizontal: 0, marginTop: 0, marginBottom: 12}}
+          />
           {/* Total due: loading / no outlet / error / all clear / amount due */}
           {loading ? (
             <View style={styles.dueCard}>
@@ -414,8 +431,13 @@ const DashboardScreen = ({navigation}) => {
               <Text style={styles.dueHint}>
                 Clear your dues on time to keep your outlet running smoothly.
               </Text>
-              <TouchableOpacity activeOpacity={0.85} onPress={() => go('Bills')} style={styles.cta}>
-                <Text style={styles.ctaText}>Pay now</Text>
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => go(deposit?.locked ? 'SecurityDeposit' : 'Bills')}
+                style={styles.cta}>
+                <Text style={styles.ctaText}>
+                  {deposit?.locked ? 'Pay security deposit first' : 'Pay now'}
+                </Text>
                 <Icon name="arrow-right" size={20} color="#fff" />
               </TouchableOpacity>
             </Animatable.View>
@@ -473,17 +495,28 @@ const DashboardScreen = ({navigation}) => {
             </Animatable.View>
           )}
 
-          {/* Container charges */}
-          {!isEmpty(dashboardList?.charges) && (
-            <Animatable.View animation="fadeInUp" delay={220} duration={450} style={styles.card}>
-              <Text style={styles.cardTitle}>Container charges</Text>
-              <View style={styles.progressTrack}>
-                <View style={[styles.progressFill, {width: `${minAmount()?.progress || 0}%`}]} />
-              </View>
-              <View style={styles.progressRow}>
-                <Text style={styles.progressText}>Paid {money(minAmount()?.paid_amount)}</Text>
-                <Text style={styles.progressText}>of {money(minAmount()?.total_amount)}</Text>
-              </View>
+          {/* Container charges due */}
+          {ccDue.count > 0 && (
+            <Animatable.View animation="fadeInUp" delay={200} duration={450}>
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => {
+                  tap();
+                  navigation.navigate('Charges', {segment: 'container'});
+                }}
+                style={styles.billRow}>
+                <View style={styles.billIcon}>
+                  <Icon name="package-variant-closed" size={22} color={Brand.primary} />
+                </View>
+                <View style={{flex: 1}}>
+                  <Text style={styles.billMonth}>Container charges</Text>
+                  <Text style={styles.billSub}>
+                    {ccDue.count} {ccDue.count === 1 ? 'charge' : 'charges'} to pay
+                  </Text>
+                </View>
+                <Text style={styles.billAmount}>{money(ccDue.total)}</Text>
+                <Icon name="chevron-right" size={22} color="#B5B5BD" />
+              </TouchableOpacity>
             </Animatable.View>
           )}
 

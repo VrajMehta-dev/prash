@@ -25,6 +25,12 @@ const storeFCMToken = async token => {
 
 const handleNotification = remoteMessage => {
   const actionType = remoteMessage?.data?.action;
+  // Server-provided deep link (e.g. security deposit notifications carry screen: 'SecurityDeposit').
+  const screen = remoteMessage?.data?.screen;
+  if (screen) {
+    navigationRef.current?.navigate(screen);
+    return;
+  }
 
   if (actionType == 'my_orders') {
     navigationRef.current?.navigate('MyOrders');

@@ -441,6 +441,9 @@ const AdditionalCharges = ({navigation, route}) => {
         console.log('Error fetching payment link');
         setPaymentLink(null);
         setShouldNavigate(false);
+        if (data?.code === 'SECURITY_DEPOSIT_UNPAID') {
+          navigation.navigate('SecurityDeposit');
+        }
       }
     } catch (error) {
       console.error('Error fetching payment link:', error);

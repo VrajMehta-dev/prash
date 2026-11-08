@@ -131,14 +131,50 @@ const NotificationScreen = () => {
     );
   };
 
-  const getCategoryIcon = category => {
-    switch (category) {
-      case 'rent_start':
-        return 'calendar';
-      case 'general':
-        return 'notifications';
-      default:
-        return 'information-circle';
+  // What a notification is about, from its server-side type (e.g. security_deposit_paid).
+  const kindOf = item =>
+    String(item?.type || item?.data?.type || item?.category || '').toLowerCase();
+
+  const look = item => {
+    const k = kindOf(item);
+    if (k.includes('fail')) {
+      return {icon: 'close-circle', color: '#C0392B', bg: '#FBE4E1'};
+    }
+    if (k.includes('security_deposit')) {
+      return {icon: 'shield-checkmark', color: '#7A3E9D', bg: '#F1E6F8'};
+    }
+    if (k.includes('paid') || k.includes('success')) {
+      return {icon: 'checkmark-circle', color: '#1E7B4B', bg: '#DDF5E7'};
+    }
+    if (k.includes('overdue') || k.includes('penalty')) {
+      return {icon: 'alert-circle', color: '#9A5B00', bg: '#FFF1D6'};
+    }
+    if (k.includes('container')) {
+      return {icon: 'cube', color: '#2D6CDF', bg: '#E4EDFC'};
+    }
+    if (k.includes('additional')) {
+      return {icon: 'layers', color: '#2D6CDF', bg: '#E4EDFC'};
+    }
+    if (k.includes('bill') || k.includes('rent')) {
+      return {icon: 'receipt', color: '#632240', bg: '#F6EEF2'};
+    }
+    return {icon: 'notifications', color: '#632240', bg: '#F6EEF2'};
+  };
+
+  // Tapping opens what the notification is about.
+  const open = item => {
+    const k = kindOf(item);
+    const screen = item?.data?.screen;
+    if (screen) {
+      navigation.navigate(screen);
+    } else if (k.includes('security_deposit')) {
+      navigation.navigate('SecurityDeposit');
+    } else if (k.includes('container')) {
+      navigation.navigate('Charges', {segment: 'container'});
+    } else if (k.includes('additional')) {
+      navigation.navigate('Charges', {segment: 'additional'});
+    } else if (k.includes('bill') || k.includes('rent') || k.includes('penalty') || k.includes('paid')) {
+      navigation.navigate('Bills');
     }
   };
 
@@ -152,16 +188,10 @@ const NotificationScreen = () => {
           ]}
           onPress={() => {
             markAsRead(item.notify_id);
-            if (item?.category === 'bill_arrived') {
-              navigation.navigate('Bills');
-            }
+            open(item);
           }}>
-          <View style={styles.iconContainer}>
-            <Icon
-              name={getCategoryIcon(item.category)}
-              size={24}
-              color="#3498db"
-            />
+          <View style={[styles.iconContainer, {backgroundColor: look(item).bg}]}>
+            <Icon name={look(item).icon} size={22} color={look(item).color} />
           </View>
           <View style={styles.contentContainer}>
             <Text style={styles.title}>{item.title}</Text>
