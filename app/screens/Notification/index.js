@@ -131,34 +131,33 @@ const NotificationScreen = () => {
     );
   };
 
-  // What a notification is about, from its server-side type (e.g. security_deposit_paid).
+  // The category of a notification (the server derives it from the title when none was stored).
   const kindOf = item =>
-    String(item?.type || item?.data?.type || item?.category || '').toLowerCase();
+    String(item?.type || item?.data?.type || item?.category || 'general').toLowerCase();
 
+  // One look per category: [icon, accent colour, tinted background].
+  const LOOKS = [
+    // order matters: failure / unpaid before paid, deposit before the generic charge kinds
+    [k => k.includes('fail'), 'close-circle', '#C0392B', '#FBE4E1'],
+    [k => k.includes('security_deposit'), 'shield-checkmark', '#7A3E9D', '#F1E6F8'],
+    [k => k.includes('unpaid'), 'alert-circle', '#B45309', '#FFF1D6'],
+    [k => k.includes('penalty') || k.includes('overdue'), 'warning', '#B45309', '#FFF1D6'],
+    [k => k.includes('paid') || k.includes('success'), 'checkmark-circle', '#1E7B4B', '#DDF5E7'],
+    [k => k.includes('due_today'), 'alarm', '#C0392B', '#FBE4E1'],
+    [k => k.includes('due'), 'time', '#B45309', '#FFF1D6'],
+    [k => k.includes('bill_generation'), 'receipt', '#632240', '#F6EEF2'],
+    [k => k.includes('bill'), 'document-text', '#632240', '#F6EEF2'],
+    [k => k.includes('rent_start'), 'key', '#1E7B4B', '#DDF5E7'],
+    [k => k.includes('rent_end'), 'calendar', '#B45309', '#FFF1D6'],
+    [k => k.includes('container'), 'cube', '#0F766E', '#DDF3F0'],
+    [k => k.includes('additional') || k.includes('charge'), 'layers', '#0F766E', '#DDF3F0'],
+  ];
   const look = item => {
     const k = kindOf(item);
-    if (k.includes('fail')) {
-      return {icon: 'close-circle', color: '#C0392B', bg: '#FBE4E1'};
-    }
-    if (k.includes('security_deposit')) {
-      return {icon: 'shield-checkmark', color: '#7A3E9D', bg: '#F1E6F8'};
-    }
-    if (k.includes('paid') || k.includes('success')) {
-      return {icon: 'checkmark-circle', color: '#1E7B4B', bg: '#DDF5E7'};
-    }
-    if (k.includes('overdue') || k.includes('penalty')) {
-      return {icon: 'alert-circle', color: '#9A5B00', bg: '#FFF1D6'};
-    }
-    if (k.includes('container')) {
-      return {icon: 'cube', color: '#2D6CDF', bg: '#E4EDFC'};
-    }
-    if (k.includes('additional')) {
-      return {icon: 'layers', color: '#2D6CDF', bg: '#E4EDFC'};
-    }
-    if (k.includes('bill') || k.includes('rent')) {
-      return {icon: 'receipt', color: '#632240', bg: '#F6EEF2'};
-    }
-    return {icon: 'notifications', color: '#632240', bg: '#F6EEF2'};
+    const hit = LOOKS.find(l => l[0](k));
+    return hit
+      ? {icon: hit[1], color: hit[2], bg: hit[3]}
+      : {icon: 'notifications', color: '#632240', bg: '#F6EEF2'};
   };
 
   // Tapping opens what the notification is about.
@@ -171,9 +170,9 @@ const NotificationScreen = () => {
       navigation.navigate('SecurityDeposit');
     } else if (k.includes('container')) {
       navigation.navigate('Charges', {segment: 'container'});
-    } else if (k.includes('additional')) {
+    } else if (k.includes('additional') || k === 'charge_updated') {
       navigation.navigate('Charges', {segment: 'additional'});
-    } else if (k.includes('bill') || k.includes('rent') || k.includes('penalty') || k.includes('paid')) {
+    } else if (k.includes('payment') || k.includes('paid') || k.includes('bill') || k.includes('due') || k.includes('penalty') || k.includes('rent')) {
       navigation.navigate('Bills');
     }
   };
@@ -316,7 +315,7 @@ const styles = StyleSheet.create({
   },
   markAllRead: {
     fontSize: 14,
-    color: '#3498db',
+    color: '#632240',
     padding: 4,
   },
   headerSpacer: {
@@ -335,7 +334,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   unreadItem: {
-    backgroundColor: '#edf6ff',
+    backgroundColor: '#FBF5F8',
   },
   iconContainer: {
     width: 40,
@@ -369,7 +368,7 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: '#3498db',
+    backgroundColor: '#632240',
     marginLeft: 12,
     alignSelf: 'center',
   },
@@ -388,7 +387,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     paddingVertical: 10,
     paddingHorizontal: 20,
-    backgroundColor: '#3498db',
+    backgroundColor: '#632240',
     borderRadius: 8,
   },
   refreshButtonText: {
