@@ -17,6 +17,11 @@ function ChargeCard({charge, navigation}) {
   const paid = charge.status === 'paid';
   const [busy, setBusy] = useState(false);
   const id = charge.container_charge_id;
+  // Title/description are clamped (1 and 2 lines). Hidden unclamped copies tell us if anything is cut off.
+  const [expanded, setExpanded] = useState(false);
+  const [titleCut, setTitleCut] = useState(false);
+  const [descCut, setDescCut] = useState(false);
+  const cut = titleCut || descCut;
   return (
     <View style={styles.card}>
       <View style={styles.top}>
@@ -24,9 +29,27 @@ function ChargeCard({charge, navigation}) {
           <Icon name="package-variant-closed" size={22} color={Brand.primary} />
         </View>
         <View style={{flex: 1}}>
-          <Text style={styles.title} numberOfLines={1}>{charge.title}</Text>
+          <Text style={styles.title} numberOfLines={expanded ? undefined : 1}>{charge.title}</Text>
           {!!charge.description && (
-            <Text style={styles.desc} numberOfLines={2}>{charge.description}</Text>
+            <Text style={styles.desc} numberOfLines={expanded ? undefined : 2}>{charge.description}</Text>
+          )}
+          {/* invisible, unclamped copies used only to detect truncation */}
+          <Text
+            style={[styles.title, styles.measure]}
+            onTextLayout={e => setTitleCut(e.nativeEvent.lines.length > 1)}>
+            {charge.title}
+          </Text>
+          {!!charge.description && (
+            <Text
+              style={[styles.desc, styles.measure]}
+              onTextLayout={e => setDescCut(e.nativeEvent.lines.length > 2)}>
+              {charge.description}
+            </Text>
+          )}
+          {cut && (
+            <TouchableOpacity onPress={() => setExpanded(v => !v)} hitSlop={8} style={styles.moreBtn}>
+              <Text style={styles.more}>{expanded ? 'Show less' : 'Read more'}</Text>
+            </TouchableOpacity>
           )}
           <Text style={styles.date}>Added {moment(charge.created_at).format('DD MMM YYYY')}</Text>
         </View>
@@ -136,6 +159,9 @@ const styles = StyleSheet.create({
   title: {color: '#17171C', fontSize: 15, fontWeight: '700'},
   desc: {color: '#7A7A85', fontSize: 12, marginTop: 2},
   date: {color: '#A0A0AB', fontSize: 11, marginTop: 4},
+  measure: {position: 'absolute', left: 0, right: 0, opacity: 0},
+  moreBtn: {alignSelf: 'flex-start', marginTop: 4},
+  more: {color: Brand.primary, fontSize: 12, fontWeight: '700'},
   amount: {color: '#17171C', fontSize: 17, fontWeight: 'bold'},
   chip: {marginTop: 6, paddingVertical: 3, paddingHorizontal: 9, borderRadius: 10},
   chipDue: {backgroundColor: '#FFF1D6'},
