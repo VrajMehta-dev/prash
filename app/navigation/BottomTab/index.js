@@ -51,7 +51,7 @@ const PILL = [
   {key: 'More', label: 'More', icon: {type: Icons.Ionicons, name: 'grid-outline', on: 'grid'}},
 ];
 const HOME = {type: Icons.Ionicons, name: 'home-outline', on: 'home'};
-const MORE_ROUTES = ['Containers', 'SecurityDeposit', 'PropertyDocuments', 'Profile'];
+const MORE_ROUTES = ['Containers', 'SecurityDeposit', 'PropertyDocuments', 'HelpAndSupport', 'Profile'];
 const ACTIVE = Brand.primary;
 const INACTIVE = '#9A9AA0';
 

@@ -28,7 +28,6 @@ import OTPVerification from '@screens/OTPVerification';
 import PersonalTouch from '@screens/PersonalTouch';
 import TermsAndConditions from '@screens/TermsAndConditions';
 import PrivacyPolicy from '@screens/PrivacyPolicy';
-import HelpAndSupport from '@screens/HelpAndSupport';
 import FAQs from '@screens/FAQs';
 import ContactUs from '@screens/ContactUs';
 import About from '@screens/About';
