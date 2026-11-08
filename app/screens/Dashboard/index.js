@@ -31,6 +31,8 @@ import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import LinearGradient from 'react-native-linear-gradient';
 import DueRow from '@components/DueRow';
+import {usePaymentQueue, dueRowProps} from '@utils/usePaymentQueue';
+import {startPayment} from '@utils/startPayment';
 import {Brand} from '@config/brand';
 import {tap} from '@utils/haptics';
 const DashboardScreen = ({navigation}) => {
@@ -48,7 +50,7 @@ const DashboardScreen = ({navigation}) => {
   const [shopsLoaded, setShopsLoaded] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const {data: deposit} = useSecurityDeposit();
-  const [ccDue, setCcDue] = useState({count: 0, total: 0, list: []});
+  const queue = usePaymentQueue();
   const isFocused = useIsFocused();
 
   useFocusEffect(
@@ -56,7 +58,6 @@ const DashboardScreen = ({navigation}) => {
       fetchNotifications();
       fetchData();
       fetchDashboardData();
-      fetchContainerCharges();
     }, [shopSelected]),
   );
 
@@ -84,21 +85,6 @@ const DashboardScreen = ({navigation}) => {
       store.dispatch(setShopSelected({}));
     }
   }, [shopList, shopSelected, shopsLoaded]);
-
-  const fetchContainerCharges = async () => {
-    if (!shopSelected?.pr_id) {
-      return;
-    }
-    try {
-      const r = await apiGet(`client/container-charges/${shopSelected.pr_id}`);
-      const due = (r.data?.data || []).filter(c => c.status !== 'paid');
-      setCcDue({
-        count: due.length,
-        total: due.reduce((sum, c) => sum + Number(c.payment_amount || 0), 0),
-        list: due,
-      });
-    } catch (e) {}
-  };
 
   const fetchData = async () => {
     const url = BaseSetting.baseUrl + BaseSetting.endpoints.getAllShops;
@@ -270,13 +256,13 @@ const DashboardScreen = ({navigation}) => {
     }
   }, [hasUnread]);
 
-  const bills = dashboardList?.outstandingBills || [];
-  const totalDue = bills.reduce((sum, b) => sum + Number(b?.payment_amount || 0), 0);
+  const dues = queue.items || [];
+  const totalDue = dues.reduce((sum, d) => sum + Number(d?.amount || 0), 0);
   const yearTotal = barData.reduce((sum, b) => sum + (b.value || 0), 0);
   const multiOutlet = Array.isArray(shopList) && shopList.length > 1;
   const noOutlet = shopsLoaded && Array.isArray(shopList) && shopList.length === 0;
   const showError = loadError && !loading && !noOutlet;
-  const allClear = !loading && !loadError && !noOutlet && bills.length === 0;
+  const allClear = !loading && !loadError && !noOutlet && !!queue.items && dues.length === 0;
   const refresh = async () => {
     tap();
     setRefreshing(true);
@@ -284,7 +270,7 @@ const DashboardScreen = ({navigation}) => {
       fetchNotifications(),
       fetchData(),
       fetchDashboardData(),
-      fetchContainerCharges(),
+      queue.reload(),
     ]);
     setRefreshing(false);
   };
@@ -425,7 +411,7 @@ const DashboardScreen = ({navigation}) => {
                 <View style={[styles.chip, styles.chipWarn]}>
                   <Icon name="clock-alert-outline" size={14} color="#9A5B00" />
                   <Text style={[styles.chipText, {color: '#9A5B00'}]}>
-                    {`${bills.length} pending ${bills.length === 1 ? 'bill' : 'bills'}`}
+                    {`${dues.length} pending ${dues.length === 1 ? 'item' : 'items'}`}
                   </Text>
                 </View>
               </View>
@@ -435,10 +421,13 @@ const DashboardScreen = ({navigation}) => {
               </Text>
               <TouchableOpacity
                 activeOpacity={0.85}
-                onPress={() => go(deposit?.locked ? 'SecurityDeposit' : 'Bills')}
+                onPress={() => {
+                  tap();
+                  startPayment(navigation, dueRowProps(dues[0], queue.pr_id).payPath);
+                }}
                 style={styles.cta}>
-                <Text style={styles.ctaText}>
-                  {deposit?.locked ? 'Pay security deposit first' : 'Pay now'}
+                <Text style={styles.ctaText} numberOfLines={1}>
+                  {dues[0] ? `Pay ${dues[0].title}` : 'Pay now'}
                 </Text>
                 <Icon name="arrow-right" size={20} color="#fff" />
               </TouchableOpacity>
@@ -473,37 +462,15 @@ const DashboardScreen = ({navigation}) => {
             ))}
           </Animatable.View>
 
-          {/* Rent due */}
-          {bills.length > 0 && (
+          {/* Dues, in the order they must be paid */}
+          {dues.length > 0 && (
             <Animatable.View animation="fadeInUp" delay={180} duration={450}>
-              <Text style={styles.sectionTitle}>Rent due</Text>
-              {bills.map((b, i) => (
+              <Text style={styles.sectionTitle}>Pay in this order</Text>
+              {dues.map(d => (
                 <DueRow
-                  key={b?.bill_id ?? i}
+                  key={`${d.type}-${d.id}`}
                   navigation={navigation}
-                  icon="calendar-month-outline"
-                  title={b?.month || 'Bill'}
-                  sub="Monthly rent"
-                  amount={b?.payment_amount}
-                  payPath={`client/bills/initiate-payment/${b?.bill_id}`}
-                />
-              ))}
-            </Animatable.View>
-          )}
-
-          {/* Container charges due */}
-          {ccDue.list.length > 0 && (
-            <Animatable.View animation="fadeInUp" delay={200} duration={450}>
-              <Text style={styles.sectionTitle}>Container charges</Text>
-              {ccDue.list.map(c => (
-                <DueRow
-                  key={c.container_charge_id}
-                  navigation={navigation}
-                  icon="package-variant-closed"
-                  title={c.title}
-                  sub="Container charge"
-                  amount={c.payment_amount}
-                  payPath={`client/container-charges/initiate-payment/${c.container_charge_id}`}
+                  {...dueRowProps(d, queue.pr_id)}
                 />
               ))}
             </Animatable.View>

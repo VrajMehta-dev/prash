@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -8,87 +8,28 @@ import {
   Platform,
   StatusBar,
 } from 'react-native';
-import TouchableOpacity from '@components/PressableScale';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useSelector} from 'react-redux';
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 import {Brand} from '@config/brand';
-import {apiGet} from '@utils/authedApi';
 import {useSecurityDeposit} from '@utils/useSecurityDeposit';
+import {usePaymentQueue, dueRowProps} from '@utils/usePaymentQueue';
 import DueRow from '@components/DueRow';
 import {TAB_BAR_SPACE} from '@navigation/BottomTab';
 
 const money = n => '₹' + Number(n || 0).toLocaleString('en-IN');
 const TOP = Platform.OS === 'ios' ? 56 : (StatusBar.currentHeight || 24) + 14;
-const sum = (rows, key = 'payment_amount') =>
-  rows.reduce((t, r) => t + Number(r?.[key] || 0), 0);
 
-// "Payments": everything the tenant can owe, in one place. Each type opens its own screen.
+// "Payments": everything owed, in the order it must be paid (the server enforces the same order):
+// security deposit > container charges > extra charges > rent, oldest first. Only the first can be paid.
 export default function PayHub({navigation}) {
   const shop = useSelector(s => s.auth.shopSelected);
   const isFocused = useIsFocused();
-  const {data: deposit, reload: reloadDeposit} = useSecurityDeposit();
-  const [dues, setDues] = useState(null); // {rent:{n,total,rows}, extra:{...}, container:{...}}
+  const {reload: reloadDeposit} = useSecurityDeposit();
+  const {items, pr_id, reload} = usePaymentQueue();
   const [refreshing, setRefreshing] = useState(false);
-
-  const EMPTY = {rent: {n: 0, total: 0, rows: []}, extra: {n: 0, total: 0, rows: []}, container: {n: 0, total: 0, rows: []}};
-  const load = useCallback(async () => {
-    if (!shop?.pr_id) {
-      setDues(EMPTY);
-      return;
-    }
-    const unpaid = r => (r?.data?.data || []).filter(c => c.status !== 'paid');
-    try {
-      const [rent, extra, container] = await Promise.all([
-        apiGet(`client/dashboard/${shop.pr_id}`),
-        apiGet(`client/additional-charges/${shop.pr_id}`),
-        apiGet(`client/container-charges/${shop.pr_id}`),
-      ]);
-      const pack = rows => ({n: rows.length, total: sum(rows), rows});
-      setDues({
-        rent: pack(rent.data?.outstandingBills || []),
-        extra: pack(unpaid(extra)),
-        container: pack(unpaid(container)),
-      });
-    } catch (e) {
-      setDues(d => d || EMPTY);
-    }
-  }, [shop?.pr_id]);
-
-  useFocusEffect(
-    useCallback(() => {
-      load();
-    }, [load]),
-  );
-
-  const locked = !!deposit?.locked;
-  const depositDue = locked ? Number(deposit?.amount || 0) : 0;
-  const total = dues ? dues.rent.total + dues.extra.total + dues.container.total + depositDue : 0;
-
-  const sections = [
-    {
-      key: 'rent',
-      title: 'Monthly Rent',
-      empty: 'All paid',
-      icon: 'calendar-month-outline',
-      item: r => ({id: r.bill_id, title: r.month || 'Bill', path: `client/bills/initiate-payment/${r.bill_id}`}),
-    },
-    {
-      key: 'extra',
-      title: 'Extra Charges',
-      empty: 'Nothing pending',
-      icon: 'plus-circle-outline',
-      item: r => ({id: r.additional_charge_id, title: r.title, path: `client/additional-charges/initiate-payment/${r.additional_charge_id}`}),
-    },
-    {
-      key: 'container',
-      title: 'Container Charges',
-      empty: 'Nothing pending',
-      icon: 'package-variant-closed',
-      item: r => ({id: r.container_charge_id, title: r.title, path: `client/container-charges/initiate-payment/${r.container_charge_id}`}),
-    },
-  ];
+  const total = (items || []).reduce((t, i) => t + Number(i.amount || 0), 0);
 
   return (
     <View style={styles.screen}>
@@ -101,7 +42,7 @@ export default function PayHub({navigation}) {
             colors={[Brand.primary]}
             onRefresh={async () => {
               setRefreshing(true);
-              await Promise.all([load(), reloadDeposit()]);
+              await Promise.all([reload(), reloadDeposit()]);
               setRefreshing(false);
             }}
           />
@@ -117,61 +58,34 @@ export default function PayHub({navigation}) {
         <View style={styles.body}>
           <View style={styles.totalCard}>
             <Text style={styles.totalLabel}>Total to pay</Text>
-            <Text style={styles.totalAmount}>{dues ? money(total) : '...'}</Text>
+            <Text style={styles.totalAmount}>{items ? money(total) : '...'}</Text>
             <Text style={styles.totalHint}>
-              {!dues
+              {!items
                 ? ' '
-                : total > 0
-                ? 'Tap Pay on any item below.'
+                : items.length > 0
+                ? 'Dues are paid in order: deposit, container charges, extra charges, then rent (oldest first).'
                 : "You're all caught up. Nothing to pay right now."}
             </Text>
           </View>
 
-          {locked && (
-            <View style={{marginTop: 18}}>
-              <Text style={styles.sectionTitle}>Pay this first</Text>
-              <DueRow
-                navigation={navigation}
-                highlight
-                icon="lock-outline"
-                title="Security Deposit"
-                sub="Unlocks rent and charge payments"
-                amount={deposit.amount}
-                payPath={`client/security-deposit/initiate-payment/${shop?.pr_id}`}
-              />
-            </View>
-          )}
-
-          {sections.map(sec => {
-            const d = dues?.[sec.key];
-            return (
-              <View key={sec.key} style={{marginTop: 18}}>
-                <Text style={styles.sectionTitle}>{sec.title}</Text>
-                {!d ? (
-                  <Text style={styles.empty}>...</Text>
-                ) : d.n === 0 ? (
-                  <View style={styles.emptyRow}>
-                    <Icon name="check-circle-outline" size={20} color="#1E7B4B" />
-                    <Text style={styles.emptyText}>{sec.empty}</Text>
-                  </View>
-                ) : (
-                  d.rows.map(r => {
-                    const it = sec.item(r);
-                    return (
-                      <DueRow
-                        key={it.id}
-                        navigation={navigation}
-                        icon={sec.icon}
-                        title={it.title}
-                        amount={r.payment_amount}
-                        payPath={it.path}
-                      />
-                    );
-                  })
-                )}
+          <View style={{marginTop: 18}}>
+            {!items ? (
+              <Text style={styles.empty}>...</Text>
+            ) : items.length === 0 ? (
+              <View style={styles.emptyRow}>
+                <Icon name="check-circle-outline" size={20} color="#1E7B4B" />
+                <Text style={styles.emptyText}>Nothing pending</Text>
               </View>
-            );
-          })}
+            ) : (
+              items.map(it => (
+                <DueRow
+                  key={`${it.type}-${it.id}`}
+                  navigation={navigation}
+                  {...dueRowProps(it, pr_id)}
+                />
+              ))
+            )}
+          </View>
         </View>
       </ScrollView>
     </View>
