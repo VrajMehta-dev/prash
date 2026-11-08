@@ -267,8 +267,12 @@ const NotificationScreen = () => {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Notifications</Text>
         {hasUnreadNotifications ? (
-          <TouchableOpacity onPress={markAllAsRead}>
-            <Text style={styles.markAllRead}>Mark all as read</Text>
+          <TouchableOpacity
+            onPress={markAllAsRead}
+            style={styles.backButton}
+            accessibilityLabel="Mark all as read"
+            hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+            <Icon name="checkmark-done" size={24} color="#632240" />
           </TouchableOpacity>
         ) : (
           <View style={styles.headerSpacer} />
@@ -326,7 +330,7 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   headerSpacer: {
-    width: 80, // Reduced from 100 to balance spacing
+    width: 32, // same width as the back button / mark-all icon so the title stays centred
   },
   listContainer: {
     padding: 12,
