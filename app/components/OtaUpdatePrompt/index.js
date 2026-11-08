@@ -6,6 +6,24 @@ import TouchableOpacity from '@components/PressableScale';
 import {hotUpdater, launchSettled} from '@utils/hotUpdater';
 import {Brand} from '@config/brand';
 
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+// updateBundle() resolves while the native side is still downloading/patching, so "ready" must wait
+// until the SDK reports a *different* bundle staged for the next launch (otherwise Restart does nothing).
+async function waitUntilStaged(timeoutMs = 120000) {
+  const current = hotUpdater.getBundleId();
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    const state = await hotUpdater.getActiveUpdateState();
+    const staged = state?.activeSelection?.bundleId;
+    if (staged && staged !== current) {
+      return true;
+    }
+    await sleep(500);
+  }
+  return false;
+}
+
 // Tells the user when a new version of the app's code is available, lets them download it, and
 // asks them to restart to apply it. (Native/store updates are handled by ForceUpdateModal.)
 export default function OtaUpdatePrompt() {
@@ -56,7 +74,13 @@ export default function OtaUpdatePrompt() {
     busy.current = true;
     try {
       const ok = await info.updateBundle();
-      setPhase(ok ? 'ready' : 'error');
+      if (!ok) {
+        setPhase('error');
+      } else if (await waitUntilStaged()) {
+        setPhase('ready');
+      } else {
+        setPhase('idle'); // nothing new was staged: we are already on the latest
+      }
     } catch (e) {
       setPhase('error');
     } finally {
@@ -114,7 +138,9 @@ export default function OtaUpdatePrompt() {
           {phase === 'downloading' && (
             <>
               <Text style={styles.title}>Downloading update</Text>
-              <Text style={styles.text}>Please keep the app open.</Text>
+              <Text style={styles.text}>
+                {pct >= 100 ? 'Finishing up...' : 'Please keep the app open.'}
+              </Text>
               <View style={styles.track}>
                 <View style={[styles.fill, {width: `${pct}%`}]} />
               </View>
