@@ -12,8 +12,13 @@ import {
 } from 'react-native';
 import TouchableOpacity from '@components/PressableScale';
 import Icon from 'react-native-vector-icons/Ionicons';
+import ionGlyphs from 'react-native-vector-icons/glyphmaps/Ionicons.json';
 import {useSelector} from 'react-redux';
 import {useNavigation, useIsFocused} from '@react-navigation/native';
+
+// Never render a blank / "?" glyph: an icon name must exist in the icon font, otherwise use the bell.
+const FALLBACK_ICON = 'notifications';
+const safeIcon = name => (name && ionGlyphs[name] ? name : FALLBACK_ICON);
 
 const NotificationScreen = () => {
   const [notifications, setNotifications] = useState([]);
@@ -155,9 +160,11 @@ const NotificationScreen = () => {
   const look = item => {
     const k = kindOf(item);
     const hit = LOOKS.find(l => l[0](k));
+    // A server-sent data.icon wins if it is a real glyph; then the category icon; then the bell.
+    const icon = safeIcon(ionGlyphs[item?.data?.icon] ? item.data.icon : hit?.[1]);
     return hit
-      ? {icon: hit[1], color: hit[2], bg: hit[3]}
-      : {icon: 'notifications', color: '#632240', bg: '#F6EEF2'};
+      ? {icon, color: hit[2], bg: hit[3]}
+      : {icon, color: '#632240', bg: '#F6EEF2'};
   };
 
   // Tapping opens what the notification is about.
