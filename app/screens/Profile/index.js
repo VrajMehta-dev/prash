@@ -27,13 +27,9 @@ import {store} from '@redux/store/configureStore';
 
 const TOP = Platform.OS === 'ios' ? 56 : (StatusBar.currentHeight || 24) + 14;
 
-// Show only the last 4 characters until the tenant taps "Show".
-const mask = (v, reveal) => {
+const show = v => {
   const s = String(v ?? '').trim();
-  if (!s || /^(unknown|not available)$/i.test(s)) {
-    return null;
-  }
-  return reveal ? s : '•'.repeat(Math.max(s.length - 4, 0)) + s.slice(-4);
+  return !s || /^(unknown|not available)$/i.test(s) ? null : s;
 };
 
 const Group = ({title, action, children}) => (
@@ -92,7 +88,6 @@ const ProfileScreen = ({navigation}) => {
     shopSelected: state.auth.shopSelected,
   }));
   const [loggingOut, setLoggingOut] = useState(false);
-  const [reveal, setReveal] = useState(false);
   const isFocused = useIsFocused();
   const {data: deposit} = useSecurityDeposit();
   const unread = useUnreadCount();
@@ -128,12 +123,6 @@ const ProfileScreen = ({navigation}) => {
   };
 
   const initials = `${userData?.first_name?.charAt(0) || ''}${userData?.last_name?.charAt(0) || ''}`.toUpperCase();
-  const eye = (
-    <TouchableOpacity onPress={() => setReveal(v => !v)} hitSlop={10} style={styles.eye}>
-      <Icon name={reveal ? 'eye-off-outline' : 'eye-outline'} size={16} color={Brand.primary} />
-      <Text style={styles.eyeText}>{reveal ? 'Hide' : 'Show'}</Text>
-    </TouchableOpacity>
-  );
 
   return (
     <View style={styles.screen}>
@@ -189,16 +178,16 @@ const ProfileScreen = ({navigation}) => {
             />
           </Group>
 
-          <Group title="Bank account" action={eye}>
-            <Row icon="bank-outline" title="Account number" value={mask(userData?.bank_account_num, reveal) || 'Not added'} />
+          <Group title="Bank account">
+            <Row icon="bank-outline" title="Account number" value={show(userData?.bank_account_num) || 'Not added'} />
             <Row icon="bank-transfer" title="IFSC code" value={userData?.ifsc_code || 'Not added'} last />
           </Group>
 
-          <Group title="Documents" action={eye}>
-            <Row icon="card-account-details-outline" title="Aadhar" value={mask(userData?.aadhar_num, reveal) || 'Not added'} />
-            <Row icon="card-text-outline" title="PAN" value={mask(userData?.pan_num, reveal) || 'Not added'} />
-            <Row icon="file-certificate-outline" title="GST certificate" value={mask(userData?.gst_num, reveal) || 'Not added'} />
-            <Row icon="file-document-outline" title="TAN" value={mask(userData?.tan_num, reveal) || 'Not added'} last />
+          <Group title="Documents">
+            <Row icon="card-account-details-outline" title="Aadhar" value={show(userData?.aadhar_num) || 'Not added'} />
+            <Row icon="card-text-outline" title="PAN" value={show(userData?.pan_num) || 'Not added'} />
+            <Row icon="file-certificate-outline" title="GST certificate" value={show(userData?.gst_num) || 'Not added'} />
+            <Row icon="file-document-outline" title="TAN" value={show(userData?.tan_num) || 'Not added'} last />
           </Group>
 
           <Group title="Help">
@@ -266,8 +255,6 @@ const styles = StyleSheet.create({
   chipText: {fontSize: 10, fontWeight: '800'},
   badge: {minWidth: 22, height: 22, paddingHorizontal: 6, borderRadius: 11, backgroundColor: Brand.primary, alignItems: 'center', justifyContent: 'center'},
   badgeText: {color: '#fff', fontSize: 11, fontWeight: 'bold'},
-  eye: {flexDirection: 'row', alignItems: 'center', gap: 4},
-  eyeText: {color: Brand.primary, fontSize: 12, fontWeight: '700'},
   footer: {alignItems: 'flex-start', paddingTop: 26, paddingBottom: 12, paddingHorizontal: 6},
   footerLogo: {fontFamily: 'Inter-Bold', fontSize: 24, letterSpacing: 3, color: '#B5B5BD'},
   footerVersion: {fontSize: 12, color: '#9A9AA5', marginTop: 2},
