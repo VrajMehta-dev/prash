@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
   footerRule: {width: 36, height: StyleSheet.hairlineWidth * 2, backgroundColor: '#D5D5DC', marginBottom: 12},
   footerVersion: {fontSize: 12, color: '#9A9AA5', fontWeight: '600'},
   footerLine: {fontSize: 11, color: '#B5B5BD', marginTop: 3, textAlign: 'center'},
-  footerBrand: {fontSize: 13, color: '#632240', marginTop: 2, fontWeight: 'bold', textAlign: 'center', textDecorationLine: 'underline'},
+  footerBrand: {fontSize: 12, color: '#9A9AA5', marginTop: 2, fontWeight: 'bold', textAlign: 'center', textDecorationLine: 'underline'},
 });
 
 export default ProfileScreen;
