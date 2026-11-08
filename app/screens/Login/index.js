@@ -32,6 +32,8 @@ import {useFocusEffect} from '@react-navigation/native';
 
 const {width, height} = Dimensions.get('window');
 
+const STATUS_H = Platform.OS === 'ios' ? 50 : StatusBar.currentHeight || 24;
+
 const Login = ({navigation}) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -336,18 +338,18 @@ const Login = ({navigation}) => {
               {
                 opacity: fadeIn,
                 transform: [{translateY: slideUp}],
-                height: keyboardVisible ? 100 : 'auto',
-                marginTop: keyboardVisible ? 20 : height * 0.08,
+                // Same header with the keyboard open, just tighter and always below the status bar
+                // (it used to jump above it and lose the tagline).
+                marginTop: keyboardVisible ? STATUS_H + 16 : height * 0.08,
+                marginBottom: keyboardVisible ? 18 : 30,
               },
             ]}>
-            {!keyboardVisible ? (
-              <>
-                <Text style={styles.title}>{Brand.name}</Text>
-                <Text style={styles.subtitle}>{Brand.tagline}</Text>
-              </>
-            ) : (
-              <Text style={styles.compactTitle}>{Brand.name}</Text>
-            )}
+            <Text style={[styles.title, keyboardVisible && {fontSize: 30, marginBottom: 4}]}>
+              {Brand.name}
+            </Text>
+            <Text style={[styles.subtitle, keyboardVisible && {fontSize: 13}]}>
+              {Brand.tagline}
+            </Text>
           </Animated.View>
 
           <Animated.View
