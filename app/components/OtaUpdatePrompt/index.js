@@ -4,6 +4,7 @@ import {useHotUpdaterStore} from '@hot-updater/react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import TouchableOpacity from '@components/PressableScale';
 import {hotUpdater, launchSettled} from '@utils/hotUpdater';
+import {navigationRef} from '@navigation/NavigationService';
 import {Brand} from '@config/brand';
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -32,6 +33,24 @@ export default function OtaUpdatePrompt() {
   const {progress} = useHotUpdaterStore();
   const dismissed = useRef(new Set()); // updates the user said "Later" to this session
   const busy = useRef(false);
+  const [splashDone, setSplashDone] = useState(false);
+
+  // This component lives above the navigator, so it must not appear on top of the splash screen:
+  // wait until the app has navigated away from it (plus a beat so it doesn't pop in mid-transition).
+  useEffect(() => {
+    let grace;
+    const poll = setInterval(() => {
+      const route = navigationRef.current?.getCurrentRoute?.()?.name;
+      if (route && route !== 'SplashScreen') {
+        clearInterval(poll);
+        grace = setTimeout(() => setSplashDone(true), 500);
+      }
+    }, 300);
+    return () => {
+      clearInterval(poll);
+      clearTimeout(grace);
+    };
+  }, []);
 
   const check = useCallback(async () => {
     if (!hotUpdater || busy.current) {
@@ -62,6 +81,9 @@ export default function OtaUpdatePrompt() {
   }, []);
 
   useEffect(() => {
+    if (!splashDone) {
+      return;
+    }
     check();
     const sub = AppState.addEventListener('change', s => {
       if (s === 'active') {
@@ -69,7 +91,7 @@ export default function OtaUpdatePrompt() {
       }
     });
     return () => sub.remove();
-  }, [check]);
+  }, [check, splashDone]);
 
   const download = async () => {
     setPhase('downloading');
@@ -97,7 +119,7 @@ export default function OtaUpdatePrompt() {
     setPhase('idle');
   };
 
-  if (phase === 'idle') {
+  if (phase === 'idle' || !splashDone) {
     return null;
   }
 
