@@ -18,6 +18,7 @@ import {BaseColors} from '@config/theme';
 import {useSelector} from 'react-redux';
 import CPageLoader from '@components/CPageLoader';
 import {downloadPdf} from '@utils/downloadPdf';
+import {usePaymentQueue} from '@utils/usePaymentQueue';
 import BaseSetting from '@config/setting';
 import * as Animatable from 'react-native-animatable';
 import RBSheet from 'react-native-raw-bottom-sheet';
@@ -80,6 +81,7 @@ const ChargeCard = ({
   onDownloadInvoice,
   onDownloadReceipt,
   onPayNow,
+  blockedBy,
   shouldAnimate,
 }) => {
   const {
@@ -256,6 +258,11 @@ const ChargeCard = ({
           </View>
         </View>
 
+        {!isPaid && !!blockedBy && (
+          <Text style={{color: '#9A5B00', fontSize: 12, fontWeight: '600', marginBottom: 8}}>
+            {`Pay "${blockedBy}" first`}
+          </Text>
+        )}
         <Animated.View
           style={[
             shouldAnimate &&
@@ -265,6 +272,9 @@ const ChargeCard = ({
           ]}>
           <TouchableOpacity
             onPress={() => {
+              if (!isPaid && blockedBy) {
+                return;
+              }
               if (!isPaid) {
                 onPayNow(additional_charge_id);
               } else {
@@ -274,15 +284,16 @@ const ChargeCard = ({
             style={[
               styles.button,
               isPaid ? styles.downloadButton : styles.payButton,
+              !isPaid && !!blockedBy && {backgroundColor: '#ECECF1'},
             ]}
-            activeOpacity={0.8}>
+            activeOpacity={blockedBy && !isPaid ? 1 : 0.8}>
             <Icon
-              name={isPaid ? 'download' : 'credit-card'}
+              name={isPaid ? 'download' : blockedBy ? 'lock-outline' : 'credit-card'}
               size={20}
-              color="#fff"
+              color={!isPaid && blockedBy ? '#8A8A95' : '#fff'}
             />
-            <Text style={styles.buttonText}>
-              {isPaid ? 'Download Receipt' : 'Pay Now'}
+            <Text style={[styles.buttonText, !isPaid && !!blockedBy && {color: '#8A8A95'}]}>
+              {isPaid ? 'Download Receipt' : blockedBy ? 'Locked' : 'Pay Now'}
             </Text>
           </TouchableOpacity>
         </Animated.View>
@@ -314,6 +325,7 @@ const ChargeCard = ({
 };
 
 const AdditionalCharges = ({navigation, route}) => {
+  const queue = usePaymentQueue();
   const [activeTab, setActiveTab] = useState('pending');
   const [chargesList, setChargesList] = useState([]);
   const [selectedCharge, setSelectedCharge] = useState(null);
@@ -519,6 +531,7 @@ const AdditionalCharges = ({navigation, route}) => {
               <ChargeCard
                 key={`charge-${charge.additional_charge_id}`}
                 charge={charge}
+                blockedBy={queue.blockedOf('additional_charge', charge.additional_charge_id)}
                 isLast={index === filteredCharges.length - 1}
                 onViewDetails={handleViewDetails}
                 onDownloadInvoice={fetchInvoiceLink}

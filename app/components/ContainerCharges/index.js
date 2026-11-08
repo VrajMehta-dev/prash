@@ -8,12 +8,13 @@ import moment from 'moment';
 import {Brand} from '@config/brand';
 import {apiGet} from '@utils/authedApi';
 import {startPayment} from '@utils/startPayment';
+import {usePaymentQueue} from '@utils/usePaymentQueue';
 import {downloadPdf} from '@utils/downloadPdf';
 import {TAB_BAR_SPACE} from '@navigation/BottomTab';
 
 const money = n => '₹' + Number(n || 0).toLocaleString('en-IN');
 
-function ChargeCard({charge, navigation}) {
+function ChargeCard({charge, navigation, blockedBy}) {
   const paid = charge.status === 'paid';
   const [busy, setBusy] = useState(false);
   const id = charge.container_charge_id;
@@ -62,18 +63,21 @@ function ChargeCard({charge, navigation}) {
           </View>
         </View>
       </View>
+      {!paid && !!blockedBy && (
+        <Text style={{color: '#9A5B00', fontSize: 12, fontWeight: '600', marginTop: 10}}>{`Pay "${blockedBy}" first`}</Text>
+      )}
       <View style={styles.actions}>
         {!paid && (
           <TouchableOpacity
-            disabled={busy}
-            style={[styles.btn, styles.btnPrimary]}
+            disabled={busy || !!blockedBy}
+            style={[styles.btn, styles.btnPrimary, !!blockedBy && {backgroundColor: '#ECECF1'}]}
             onPress={async () => {
               setBusy(true);
               await startPayment(navigation, `client/container-charges/initiate-payment/${id}`);
               setBusy(false);
             }}>
-            <Icon name="credit-card-outline" size={18} color="#fff" />
-            <Text style={styles.btnPrimaryText}>Pay now</Text>
+            <Icon name={blockedBy ? 'lock-outline' : 'credit-card-outline'} size={18} color={blockedBy ? '#8A8A95' : '#fff'} />
+            <Text style={[styles.btnPrimaryText, !!blockedBy && {color: '#8A8A95'}]}>{blockedBy ? 'Locked' : 'Pay now'}</Text>
           </TouchableOpacity>
         )}
         {paid && (
@@ -97,6 +101,7 @@ function ChargeCard({charge, navigation}) {
 
 export default function ContainerCharges({navigation}) {
   const prId = useSelector(s => s.auth.shopSelected?.pr_id);
+  const queue = usePaymentQueue();
   const [list, setList] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -141,7 +146,7 @@ export default function ContainerCharges({navigation}) {
       ) : (
         <>
           {due.length > 0 && <Text style={styles.section}>Due</Text>}
-          {due.map(c => <ChargeCard key={c.container_charge_id} charge={c} navigation={navigation} />)}
+          {due.map(c => <ChargeCard key={c.container_charge_id} charge={c} navigation={navigation} blockedBy={queue.blockedOf('container_charge', c.container_charge_id)} />)}
           {paid.length > 0 && <Text style={styles.section}>Paid</Text>}
           {paid.map(c => <ChargeCard key={c.container_charge_id} charge={c} navigation={navigation} />)}
         </>

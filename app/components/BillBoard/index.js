@@ -19,6 +19,7 @@ import TouchableOpacity from '@components/PressableScale';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {LinearGradient} from 'react-native-linear-gradient';
 import {downloadPdf} from '@utils/downloadPdf';
+import {usePaymentQueue} from '@utils/usePaymentQueue';
 import BaseSetting from '@config/setting';
 import {useSelector} from 'react-redux';
 import CPageLoader from '@components/CPageLoader';
@@ -82,6 +83,7 @@ const TabSelector = ({activeTab, onTabChange}) => (
 const BillCard = ({
   bill,
   onPayNow,
+  blockedBy,
   onDownloadInvoice,
   onDownloadReceipt,
   isLast,
@@ -355,6 +357,11 @@ const BillCard = ({
           )}
         </View>
         )}
+        {!isPaid && !!blockedBy && (
+          <Text style={{color: '#9A5B00', fontSize: 12, fontWeight: '600', marginBottom: 8}}>
+            {`Pay "${blockedBy}" first`}
+          </Text>
+        )}
         <View style={styles.actionsRow}>
           {statusNow !== 'in_review' ? (
             <View
@@ -367,6 +374,9 @@ const BillCard = ({
               }}>
               <TouchableOpacity
                 onPress={() => {
+                  if (!isPaid && blockedBy) {
+                    return;
+                  }
                   tap();
                   if (!isPaid) {
                     onPayNow(bill_id);
@@ -378,15 +388,16 @@ const BillCard = ({
                   styles.button,
                   {flex: 1.5},
                   isPaid ? styles.downloadButton : styles.payButton,
+                  !isPaid && !!blockedBy && {backgroundColor: '#ECECF1'},
                 ]}
-                activeOpacity={0.8}>
+                activeOpacity={blockedBy && !isPaid ? 1 : 0.8}>
                 <Icon
-                  name={isPaid ? 'download' : 'credit-card'}
+                  name={isPaid ? 'download' : blockedBy ? 'lock-outline' : 'credit-card'}
                   size={20}
-                  color="#fff"
+                  color={!isPaid && blockedBy ? '#8A8A95' : '#fff'}
                 />
-                <Text style={styles.buttonText}>
-                  {isPaid ? 'Receipt' : 'Pay now'}
+                <Text style={[styles.buttonText, !isPaid && !!blockedBy && {color: '#8A8A95'}]}>
+                  {isPaid ? 'Receipt' : blockedBy ? 'Locked' : 'Pay now'}
                 </Text>
               </TouchableOpacity>
 
@@ -463,6 +474,7 @@ const BillCard = ({
 };
 
 const BillsDashboard = ({navigation}) => {
+  const queue = usePaymentQueue();
   const [activeTab, setActiveTab] = useState('pending');
   const [billsList, setBillsList] = useState([]);
   const [paymentLink, setPaymentLink] = useState(null);
@@ -704,6 +716,7 @@ const BillsDashboard = ({navigation}) => {
               <BillCard
                 key={`bill-${bill.bill_id}`}
                 bill={bill}
+                blockedBy={queue.blockedOf('bill', bill.bill_id)}
                 isLast={index === filteredBills.length - 1}
                 onPayNow={id => {
                   fetchPaymentLink(id);

@@ -24,7 +24,9 @@ export function usePaymentQueue() {
       reload();
     }, [reload]),
   );
-  return {items, pr_id, reload};
+  // Title of the item that must be paid before (type, id), or undefined when it can be paid now.
+  const blockedOf = (type, id) => items?.find(i => i.type === type && i.id === Number(id))?.blocked_by?.title;
+  return {items, pr_id, reload, blockedOf};
 }
 
 const KIND = {
