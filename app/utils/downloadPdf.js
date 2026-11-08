@@ -16,7 +16,11 @@ export async function downloadPdf(path, fileName) {
       },
     });
     if (!res.ok) {
-      Toast.show({type: 'error', text1: 'Download', text2: 'Could not download the file.'});
+      let msg = 'Could not download the file.';
+      try {
+        msg = (await res.json())?.msg || msg;
+      } catch (e) {}
+      Toast.show({type: 'error', text1: 'Download', text2: msg});
       return;
     }
     const blob = await res.blob();

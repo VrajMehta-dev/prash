@@ -11,7 +11,6 @@ import {
   Animated,
   Dimensions,
   Platform,
-  PermissionsAndroid,
   Linking,
   ActivityIndicator,
   StatusBar
@@ -19,6 +18,7 @@ import {
 import TouchableOpacity from '@components/PressableScale';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {LinearGradient} from 'react-native-linear-gradient';
+import {downloadPdf} from '@utils/downloadPdf';
 import BaseSetting from '@config/setting';
 import {useSelector} from 'react-redux';
 import CPageLoader from '@components/CPageLoader';
@@ -26,8 +26,6 @@ import {Images} from '@config/images';
 import {BaseColors, ToastConfig} from '@config/theme';
 import {isNull} from 'lodash';
 import {useIsFocused} from '@react-navigation/native';
-import RNFS from 'react-native-fs';
-import FileViewer from 'react-native-file-viewer';
 const {width} = Dimensions.get('window');
 import * as Animatable from 'react-native-animatable';
 import Toast from 'react-native-toast-message';
@@ -639,164 +637,10 @@ const BillsDashboard = ({navigation}) => {
     }
   };
 
-  const fetchInvoiceLink = async id => {
-    const url = `${BaseSetting.baseUrl}${BaseSetting.endpoints.invoiceDownload}/${id}`;
-    console.log('Fetching Invoice URL:', url);
-
-    const headers = {
-      Accept: 'application/pdf',
-      Authorization: `Bearer ${accessToken}`,
-    };
-
-    try {
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: headers,
-      });
-      console.log('response', response);
-
-      if (!response.ok) {
-        console.error(
-          'Error fetching invoice:',
-          response.status,
-          response.statusText,
-        );
-        return;
-      }
-
-      // ✅ Convert response to a Blob
-      const blob = await response.blob();
-
-      // ✅ File Name
-      const fileName = `invoice-${id}.pdf`;
-      let filePath = '';
-
-      // ✅ Use the system's default storage path
-      if (Platform.OS === 'android') {
-        if (Platform.Version < 29) {
-          // Below Android 10 → Need WRITE_EXTERNAL_STORAGE Permission
-          const granted = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-          );
-          if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-            console.log('Storage permission denied');
-            return;
-          }
-          filePath = `${RNFS.DownloadDirectoryPath}/${fileName}`; // Downloads Folder
-        } else {
-          // Android 10+ (Scoped Storage) → Use Document Directory
-          filePath = `${RNFS.DocumentDirectoryPath}/${fileName}`;
-        }
-      } else {
-        filePath = `${RNFS.DocumentDirectoryPath}/${fileName}`; // iOS Default Path
-      }
-
-      // ✅ Convert Blob to Base64 and Save File
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        try {
-          const base64Data = reader.result.split(',')[1];
-          await RNFS.writeFile(filePath, base64Data, 'base64');
-
-          console.log('Invoice downloaded successfully at:', filePath);
-
-          // ✅ Open File Using FileViewer Plugin
-          FileViewer.open(filePath, {
-            showOpenWithDialog: true,
-            displayName: `Invoice-${id}.pdf`,
-            mimeType: 'application/pdf',
-          })
-            .then(() => console.log('PDF opened successfully in FileViewer'))
-            .catch(error => console.error('Error opening PDF:', error));
-        } catch (writeError) {
-          console.error('Error saving file:', writeError);
-        }
-      };
-
-      reader.readAsDataURL(blob);
-    } catch (error) {
-      console.error('Error fetching invoice:', error);
-    }
-  };
-  const receiptDownload = async id => {
-    const url = `${BaseSetting.baseUrl}${BaseSetting.endpoints.receiptDownload}/${id}`;
-    console.log('Fetching Invoice URL:', url);
-
-    const headers = {
-      Accept: 'application/pdf',
-      Authorization: `Bearer ${accessToken}`,
-    };
-
-    try {
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: headers,
-      });
-      console.log('response', response);
-
-      if (!response.ok) {
-        console.error(
-          'Error fetching receipt:',
-          response.status,
-          response.statusText,
-        );
-        return;
-      }
-
-      // ✅ Convert response to a Blob
-      const blob = await response.blob();
-
-      // ✅ File Name
-      const fileName = `receipt-${id}.pdf`;
-      let filePath = '';
-
-      // ✅ Use the system's default storage path
-      if (Platform.OS === 'android') {
-        if (Platform.Version < 29) {
-          // Below Android 10 → Need WRITE_EXTERNAL_STORAGE Permission
-          const granted = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-          );
-          if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-            console.log('Storage permission denied');
-            return;
-          }
-          filePath = `${RNFS.DownloadDirectoryPath}/${fileName}`; // Downloads Folder
-        } else {
-          // Android 10+ (Scoped Storage) → Use Document Directory
-          filePath = `${RNFS.DocumentDirectoryPath}/${fileName}`;
-        }
-      } else {
-        filePath = `${RNFS.DocumentDirectoryPath}/${fileName}`; // iOS Default Path
-      }
-
-      // ✅ Convert Blob to Base64 and Save File
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        try {
-          const base64Data = reader.result.split(',')[1];
-          await RNFS.writeFile(filePath, base64Data, 'base64');
-
-          console.log('Invoice downloaded successfully at:', filePath);
-
-          // ✅ Open File Using FileViewer Plugin
-          FileViewer.open(filePath, {
-            showOpenWithDialog: true,
-            displayName: `Receipt-${id}.pdf`,
-            mimeType: 'application/pdf',
-          })
-            .then(() => console.log('PDF opened successfully in FileViewer'))
-            .catch(error => console.error('Error opening PDF:', error));
-        } catch (writeError) {
-          console.error('Error saving file:', writeError);
-        }
-      };
-
-      reader.readAsDataURL(blob);
-    } catch (error) {
-      console.error('Error fetching receipt:', error);
-    }
-  };
+  const fetchInvoiceLink = id =>
+    downloadPdf(`${BaseSetting.endpoints.invoiceDownload}/${id}`, `invoice-${id}.pdf`);
+  const receiptDownload = id =>
+    downloadPdf(`${BaseSetting.endpoints.receiptDownload}/${id}`, `receipt-${id}.pdf`);
 
   const filteredBills = billsList.filter(bill =>
     activeTab === 'pending'
