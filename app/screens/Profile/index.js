@@ -174,6 +174,10 @@ const ProfileScreen = ({navigation}) => {
             />
           </Group>
 
+          <Group title="Shop">
+            <Row icon="file-sign" title="Shop documents" value="Rental contract, FSSAI licence" onPress={() => navigation.navigate('PropertyDocuments')} last />
+          </Group>
+
           <Group title="Personal details">
             <Row icon="phone-outline" title="Phone" value={userData?.phone ? String(userData.phone) : 'Not added'} />
             <Row icon="email-outline" title="Email" value={userData?.email || 'Not added'} />

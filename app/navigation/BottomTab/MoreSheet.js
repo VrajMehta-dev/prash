@@ -9,6 +9,7 @@ import {tap} from '@utils/haptics';
 const ITEMS = [
   {name: 'Containers', icon: 'package-variant-closed', title: 'Container Charges', sub: 'Containers and their charges'},
   {name: 'SecurityDeposit', icon: 'shield-check-outline', title: 'Security Deposit', sub: 'Status and payment'},
+  {name: 'PropertyDocuments', icon: 'file-sign', title: 'Shop Documents', sub: 'Rental contract and FSSAI licence'},
   {name: 'Profile', icon: 'account-outline', title: 'Account', sub: 'Details, bank, documents, help'},
 ];
 
