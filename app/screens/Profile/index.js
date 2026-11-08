@@ -218,11 +218,12 @@ const ProfileScreen = ({navigation}) => {
           <Text style={styles.footerVersion}>
             Version {DeviceInfo.getVersion()} ({DeviceInfo.getBuildNumber()})
           </Text>
+          <Text style={styles.footerLine}>Built and managed by</Text>
           <Text
             accessibilityRole="link"
             onPress={() => Linking.openURL('https://aystera.com/')}
-            style={[styles.footerLine, styles.footerLink]}>
-            Built and managed by Aystera Software Solutions LLP
+            style={styles.footerBrand}>
+            Aystera Software Solutions LLP
           </Text>
         </View>
       </ScrollView>
@@ -357,7 +358,7 @@ const styles = StyleSheet.create({
   footerRule: {width: 36, height: StyleSheet.hairlineWidth * 2, backgroundColor: '#D5D5DC', marginBottom: 12},
   footerVersion: {fontSize: 12, color: '#9A9AA5', fontWeight: '600'},
   footerLine: {fontSize: 11, color: '#B5B5BD', marginTop: 3, textAlign: 'center'},
-  footerLink: {textDecorationLine: 'underline', textDecorationColor: '#D5D5DC'},
+  footerBrand: {fontSize: 13, color: '#632240', marginTop: 2, fontWeight: 'bold', textAlign: 'center', textDecorationLine: 'underline'},
 });
 
 export default ProfileScreen;
