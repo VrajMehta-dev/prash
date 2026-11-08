@@ -661,6 +661,10 @@ const BillsDashboard = ({navigation}) => {
         bill.status === 'in_review'
       : bill.status === 'paid',
   );
+  // Pending list reads in the order the dues must be paid: oldest first.
+  if (activeTab === 'pending') {
+    filteredBills.sort((a, b) => a.bill_id - b.bill_id);
+  }
 
   return (
     <>

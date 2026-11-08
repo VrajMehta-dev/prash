@@ -120,7 +120,7 @@ export default function ContainerCharges({navigation}) {
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
-  const due = (list || []).filter(c => c.status !== 'paid');
+  const due = (list || []).filter(c => c.status !== 'paid').sort((a, b) => a.container_charge_id - b.container_charge_id);
   const paid = (list || []).filter(c => c.status === 'paid');
 
   return (

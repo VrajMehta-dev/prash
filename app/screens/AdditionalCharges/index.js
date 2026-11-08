@@ -414,6 +414,9 @@ const AdditionalCharges = ({navigation, route}) => {
       ? charge.status === 'pending' || charge.status === 'overdue'
       : charge.status === 'paid',
   );
+  if (activeTab === 'pending') {
+    filteredCharges.sort((a, b) => a.additional_charge_id - b.additional_charge_id);
+  }
 
   const handleViewDetails = charge => {
     setSelectedCharge(charge);
