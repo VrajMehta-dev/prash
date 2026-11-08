@@ -8,7 +8,7 @@ import {PersistGate} from 'redux-persist/es/integration/react';
 import Navigator from '@navigation';
 import {persistor, store} from '@redux/store/configureStore';
 import ForceUpdateModal from '@components/ForceUpdateModal';
-import {withOta} from '@utils/hotUpdater';
+import OtaUpdatePrompt from '@components/OtaUpdatePrompt';
 import OfflineScreen from '@components/OfflineScreen';
 import '@utils/session'; // installs token refresh + 401 retry on fetch
 
@@ -35,10 +35,11 @@ const App = () => {
           {loading ? <ActivityIndicator /> : <Navigator />}
       <ForceUpdateModal />
       <OfflineScreen />
+      <OtaUpdatePrompt />
         </PersistGate>
       </Provider>
     </ThemeProvider>
   );
 };
 
-export default withOta(App);
+export default App;

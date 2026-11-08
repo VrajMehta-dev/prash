@@ -47,7 +47,7 @@ const ICONS = {
   Charges: {type: Icons.Ionicons, name: 'layers-outline', on: 'layers'},
   Profile: {type: Icons.Ionicons, name: 'person-outline', on: 'person'},
 };
-const ACTIVE = '#FFFFFF'; // on the filled brand pill
+const ACTIVE = Brand.primary; // selected tab: filled icon + label in the brand colour
 const INACTIVE = '#9A9AA0';
 const LABELS = {Dashboard: 'Home'}; // shorter than "Dashboard" so it never wraps
 
@@ -64,7 +64,7 @@ export default function BottomTabBar({state, descriptors, navigation}) {
         accessibilityRole="button"
         accessibilityState={focused ? {selected: true} : {}}
         activeOpacity={0.7}
-        style={[styles.tab, focused && styles.tabActive]}
+        style={styles.tab}
         onPress={() => {
           tap();
           if (!focused) navigation.navigate(route.name);
@@ -108,7 +108,6 @@ const styles = StyleSheet.create({
     shadowRadius: 18,
     elevation: 10,
   },
-  tab: {flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3, paddingVertical: 8, marginHorizontal: 2, borderRadius: 28},
-  tabActive: {backgroundColor: Brand.primary},
+  tab: {flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3, paddingVertical: 4},
   label: {fontSize: 11},
 });
