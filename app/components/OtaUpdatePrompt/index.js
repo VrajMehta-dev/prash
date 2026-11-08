@@ -3,7 +3,7 @@ import {Modal, View, Text, StyleSheet, AppState, ActivityIndicator} from 'react-
 import {useHotUpdaterStore} from '@hot-updater/react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import TouchableOpacity from '@components/PressableScale';
-import {hotUpdater} from '@utils/hotUpdater';
+import {hotUpdater, launchSettled} from '@utils/hotUpdater';
 import {Brand} from '@config/brand';
 
 // Tells the user when a new version of the app's code is available, lets them download it, and
@@ -21,6 +21,8 @@ export default function OtaUpdatePrompt() {
     }
     busy.current = true;
     try {
+      // Wait for the SDK to finish verifying this launch (capped, in case it never reports).
+      await Promise.race([launchSettled, new Promise(r => setTimeout(r, 15000))]);
       const found = await hotUpdater.checkForUpdate({updateStrategy: 'appVersion'});
       if (!found || dismissed.current.has(found.id)) {
         return;
