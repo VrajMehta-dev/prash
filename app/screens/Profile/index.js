@@ -9,7 +9,8 @@ import {
   ScrollView,
   Image,
   ActivityIndicator,
-  StatusBar
+  StatusBar,
+  Linking,
 } from 'react-native';
 import TouchableOpacity from '@components/PressableScale';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -217,7 +218,10 @@ const ProfileScreen = ({navigation}) => {
           <Text style={styles.footerVersion}>
             Version {DeviceInfo.getVersion()} ({DeviceInfo.getBuildNumber()})
           </Text>
-          <Text style={styles.footerLine}>
+          <Text
+            accessibilityRole="link"
+            onPress={() => Linking.openURL('https://aystera.com/')}
+            style={[styles.footerLine, styles.footerLink]}>
             Built and managed by Aystera Software Solutions LLP
           </Text>
         </View>
@@ -353,6 +357,7 @@ const styles = StyleSheet.create({
   footerRule: {width: 36, height: StyleSheet.hairlineWidth * 2, backgroundColor: '#D5D5DC', marginBottom: 12},
   footerVersion: {fontSize: 12, color: '#9A9AA5', fontWeight: '600'},
   footerLine: {fontSize: 11, color: '#B5B5BD', marginTop: 3, textAlign: 'center'},
+  footerLink: {textDecorationLine: 'underline', textDecorationColor: '#D5D5DC'},
 });
 
 export default ProfileScreen;
