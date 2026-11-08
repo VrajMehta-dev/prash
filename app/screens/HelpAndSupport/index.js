@@ -52,6 +52,16 @@ export default function HelpAndSupport({navigation}) {
         </LinearGradient>
 
         <View style={styles.body}>
+          <View style={styles.card}>
+            <View style={styles.iconBox}>
+              <Icon name="clock-outline" size={24} color={Brand.primary} />
+            </View>
+            <View style={{flex: 1}}>
+              <Text style={styles.cardTitle}>Support hours</Text>
+              <Text style={styles.cardValue}>9:30 AM to 4:30 PM</Text>
+              <Text style={styles.cardSub}>Monday to Saturday, including University holidays</Text>
+            </View>
+          </View>
           <Card
             icon="phone-outline"
             title="Call us"
@@ -64,8 +74,7 @@ export default function HelpAndSupport({navigation}) {
             icon="email-outline"
             title="Email us"
             value={CONTACT.email}
-            sub="We reply on working days"
-            action="Email"
+                        action="Email"
             onPress={() => Linking.openURL(`mailto:${CONTACT.email}`)}
           />
           <Card
