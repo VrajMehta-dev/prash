@@ -73,7 +73,8 @@ export default function BottomTabBar({state, navigation}) {
           activeOpacity={0.8}
           style={[styles.round, current === 'Dashboard' && {backgroundColor: ACTIVE}]}
           onPress={() => go('Dashboard')}>
-          <TabIcon icon={HOME} focused={current === 'Dashboard'} color={current === 'Dashboard' ? '#fff' : ACTIVE} />
+          <TabIcon icon={HOME} focused={current === 'Dashboard'} color={current === 'Dashboard' ? '#fff' : INACTIVE} />
+          <Text style={[styles.label, {color: current === 'Dashboard' ? '#fff' : INACTIVE, fontWeight: current === 'Dashboard' ? '700' : '500'}]}>Home</Text>
         </TouchableOpacity>
 
         <View style={styles.bar}>
@@ -125,7 +126,7 @@ const styles = StyleSheet.create({
     paddingTop: 6,
     paddingBottom: Platform.OS === 'ios' ? 24 : 14,
   },
-  row: {flexDirection: 'row', alignItems: 'center', gap: 8},
+  row: {flexDirection: 'row', alignItems: 'stretch', gap: 8},
   bar: {
     flex: 1,
     flexDirection: 'row',
@@ -139,9 +140,9 @@ const styles = StyleSheet.create({
     ...SHADOW,
   },
   round: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 72,
+    borderRadius: 40,
+    gap: 3,
     backgroundColor: '#F4F4F6',
     borderWidth: 1,
     borderColor: '#fff',
