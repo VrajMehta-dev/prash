@@ -9,16 +9,32 @@ const devMode = __DEV__;
 
 // const baseUrl = 'https://phpl.paruluniversity.ac.in/api/';
 // const baseUrl2 = 'https://prash.paruluniversity.ac.in/api/';
-const baseUrl2 = 'https://testprash.paruluniversity.ac.in/api/';
-const baseUrl = 'https://prash.paruluniversity.ac.in/api/';
+// Environment is a build-time switch (app/config/env.js), flipped on the `uat` branch.
+import {IS_UAT as isUat} from '@config/env';
+const baseUrl2 = 'https://test-prash.aystera.com/api/';
+const baseUrl = isUat
+  ? baseUrl2
+  : 'https://prash.paruluniversity.ac.in/api/';
 
 // const webUrl = 'https://staging.letsgoplan.com/';
 const webUrl = 'https://letsgoplan.com/';
 
+// OTA update server (Hot Updater). UAT only for now; null disables OTA (prod until its server exists).
+// apiKey is a read-only client key, not the admin token.
+const ota = isUat
+  ? {
+      baseURL: 'https://test-prash.aystera.com/ota/hot-updater',
+      apiKey: 'fSQ8LeD9UaDfIprfOMTQGval_WnYAijYjqT2TS9dvWc',
+    }
+  : null;
+
 const BaseSetting = {
+  ota,
+  // JSON {android:{min,url}, ios:{min,url}}; UAT only for now (null = never force-update)
+  versionUrl: isUat ? 'https://test-prash.aystera.com/mobile/app-version.json' : null,
   baseUrl: baseUrl,
   api: baseUrl,
-  payMode: 'production',
+  payMode: isUat ? 'test' : 'production',
   api2: baseUrl,
   webUrl: webUrl,
   phoneCode: '+1',

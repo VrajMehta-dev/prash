@@ -10,6 +10,7 @@ import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.load
 import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
 import com.facebook.react.defaults.DefaultReactNativeHost
 import com.facebook.soloader.SoLoader
+import com.hotupdater.HotUpdater
 import com.oblador.vectoricons.VectorIconsPackage;
 
 class MainApplication : Application(), ReactApplication {
@@ -21,6 +22,10 @@ class MainApplication : Application(), ReactApplication {
               // Packages that cannot be autolinked yet can be added manually here, for example:
               // add(MyReactNativePackage())
             }
+
+        // OTA: release builds load the newest downloaded bundle (falls back to the built-in one)
+        override fun getJSBundleFile(): String? =
+            if (BuildConfig.DEBUG) null else HotUpdater.getJSBundleFile(applicationContext)
 
         override fun getJSMainModuleName(): String = "index"
 

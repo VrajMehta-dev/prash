@@ -8,6 +8,7 @@ import {PersistGate} from 'redux-persist/es/integration/react';
 import Navigator from '@navigation';
 import {persistor, store} from '@redux/store/configureStore';
 import ForceUpdateModal from '@components/ForceUpdateModal';
+import {withOta} from '@utils/hotUpdater';
 
 // import TrackPlayer from 'react-native-track-player';
 
@@ -30,11 +31,11 @@ const App = () => {
           persistor={persistor}
           onBeforeLift={onBeforeLift}>
           {loading ? <ActivityIndicator /> : <Navigator />}
-      {/* <ForceUpdateModal /> */}
+      <ForceUpdateModal />
         </PersistGate>
       </Provider>
     </ThemeProvider>
   );
 };
 
-export default App;
+export default withOta(App);

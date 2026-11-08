@@ -9,16 +9,13 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
+import BaseSetting from '@config/setting';
 
 const ForceUpdateModal = () => {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Define minimum required versions directly in the component
-  const MIN_VERSIONS = {
-    ios: '1.2', // Minimum iOS version
-    android: '1.2.1', // Minimum Android version
-  };
+  const [updateUrl, setUpdateUrl] = useState(null);
 
   useEffect(() => {
     checkAppVersion();
@@ -28,14 +25,14 @@ const ForceUpdateModal = () => {
     try {
       setLoading(true);
 
-      // Get current app version
+      // Min version comes from the server so it can be raised without a release.
+      // No versionUrl (prod, for now) or any fetch failure => never block the user.
+      if (!BaseSetting.versionUrl) return;
+      const res = await fetch(BaseSetting.versionUrl, {cache: 'no-store'});
+      const cfg = (await res.json())[Platform.OS];
       const currentVersion = DeviceInfo.getVersion();
-
-      // Select the appropriate minimum version for the platform
-      const minRequiredVersion = Platform.select({
-        ios: MIN_VERSIONS.ios,
-        android: MIN_VERSIONS.android,
-      });
+      const minRequiredVersion = cfg.min;
+      setUpdateUrl(cfg.url);
 
       // Compare versions
       if (isVersionLowerThan(currentVersion, minRequiredVersion)) {
@@ -70,7 +67,7 @@ const ForceUpdateModal = () => {
     const packageName = DeviceInfo.getBundleId();
     console.log('packageName', packageName);
 
-    const storeUrl = Platform.select({
+    const storeUrl = updateUrl || Platform.select({
       ios: `https://apps.apple.com/app/id${6743940477}`,
       android: `https://play.google.com/store/apps/details?id=${packageName}`,
     });

@@ -11,13 +11,14 @@ import {useRoute, useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Toast from 'react-native-toast-message';
 import {initializeEasebuzzCheckout} from 'react-native-easebuzz-sdk';
+import BaseSetting from '@config/setting';
 
 const Settings = () => {
   const route = useRoute();
   const navigation = useNavigation();
 
   const accessKey = route?.params?.accessKey; // Must come from backend
-  const payMode = 'production'; // 'test' or 'production'
+  const payMode = BaseSetting.payMode; // 'test' (UAT app) or 'production'
 
   useEffect(() => {
     if (!accessKey) {
