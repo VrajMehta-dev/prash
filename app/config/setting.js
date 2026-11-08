@@ -30,7 +30,7 @@ const ota = isUat
 
 const BaseSetting = {
   ota,
-  // JSON {android:{min,url}, ios:{min,url}}; UAT only for now (null = never force-update)
+  // JSON {android:{min}, ios:{min}}; UAT only for now (null = never force-update)
   versionUrl: isUat ? 'https://test-prash.aystera.com/mobile/app-version.json' : null,
   baseUrl: baseUrl,
   api: baseUrl,
