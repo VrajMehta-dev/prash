@@ -214,9 +214,9 @@ const ProfileScreen = ({navigation}) => {
           </TouchableOpacity>
         </View>
               <View style={styles.footer}>
-          <View style={styles.footerRule} />
+          <Text style={styles.footerLogo}>PRASH</Text>
           <Text style={styles.footerVersion}>
-            Version {DeviceInfo.getVersion()} ({DeviceInfo.getBuildNumber()})
+            v{DeviceInfo.getVersion()} ({DeviceInfo.getBuildNumber()})
           </Text>
           <Text style={styles.footerLine}>Built and managed by</Text>
           <Text
@@ -354,11 +354,11 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  footer: {alignItems: 'center', paddingTop: 22, paddingBottom: 12, paddingHorizontal: 24},
-  footerRule: {width: 36, height: StyleSheet.hairlineWidth * 2, backgroundColor: '#D5D5DC', marginBottom: 12},
-  footerVersion: {fontSize: 12, color: '#9A9AA5', fontWeight: '600'},
-  footerLine: {fontSize: 11, color: '#B5B5BD', marginTop: 3, textAlign: 'center'},
-  footerBrand: {fontSize: 12, color: '#9A9AA5', marginTop: 2, fontWeight: 'bold', textAlign: 'center', textDecorationLine: 'underline'},
+  footer: {alignItems: 'flex-start', paddingTop: 26, paddingBottom: 12, paddingHorizontal: 20},
+  footerLogo: {fontFamily: 'Inter-Bold', fontSize: 24, letterSpacing: 3, color: '#B5B5BD'},
+  footerVersion: {fontSize: 12, color: '#9A9AA5', marginTop: 2},
+  footerLine: {fontSize: 12, color: '#9A9AA5', marginTop: 14},
+  footerBrand: {fontSize: 12, color: '#9A9AA5', marginTop: 1, fontWeight: 'bold', textDecorationLine: 'underline'},
 });
 
 export default ProfileScreen;
