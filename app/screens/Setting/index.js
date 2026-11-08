@@ -37,33 +37,45 @@ const Settings = () => {
 
   const initiatePayment = async () => {
     try {
-      const response = await initializeEasebuzzCheckout(accessKey, payMode);
-      console.log('EBZ_RESULT', typeof response, String(response));
+      const raw = await initializeEasebuzzCheckout(accessKey, payMode);
+      // The native SDK resolves with a JSON *string*: {"result":"payment_successfull","response":{...signed fields}}
+      let outcome = null;
+      try {
+        outcome = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      } catch (e) {}
+      const paid =
+        outcome?.result === 'payment_successfull' &&
+        outcome?.response?.status === 'success';
 
-      if (response?.status == 'success') {
+      if (paid) {
         Toast.show({
           type: 'success',
-          text1: 'Hurrah!',
-          text2: response?.error_Message || 'Bill Paid successful',
+          text1: 'Payment successful',
+          text2: 'Thank you! Updating your account...',
         });
+        // Security deposit: hand the signed response to the server, which verifies Easebuzz's signature
+        // and marks it paid. Works even when Easebuzz's own webhook can't reach us; the webhook stays
+        // the primary path and this is idempotent with it.
+        if (String(outcome.response.txnid || '').includes('SDT')) {
+          try {
+            await fetch(
+              BaseSetting.baseUrl + 'client/security-deposit/easebuzz/success',
+              {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(outcome.response),
+              },
+            );
+          } catch (e) {}
+        }
         setTimeout(() => {
           navigation.goBack();
         }, 500);
       } else {
-        // Toast.show({
-        //   type: 'error',
-        //   text1: 'Oops!',
-        //   text2: 'Payment Cancelled or Failed',
-        // });
         navigation.goBack();
       }
     } catch (error) {
       console.error('Easebuzz Error:', error);
-      // Toast.show({
-      //   type: 'error',
-      //   text1: 'Opps!',
-      //   text2: 'Payment Cancelled or Failed',
-      // });
       navigation.goBack();
     }
   };
