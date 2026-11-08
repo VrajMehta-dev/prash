@@ -3,6 +3,7 @@ import {View, StyleSheet, useWindowDimensions} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import {Brand} from '@config/brand';
 import {CANVAS, ITEMS} from './layout';
+import {BurstItem, Confetti} from './Burst';
 import Key from '../../assets/illustrations/key.svg';
 import Calendar from '../../assets/illustrations/calendar.svg';
 import PaymentReceipt from '../../assets/illustrations/payment-receipt.svg';
@@ -37,7 +38,9 @@ const ART = {
 
 // Brand screen background from the Figma "PRASH mobile logo" frame: vertical maroon
 // gradient + faint rental-themed line illustrations. The 390x844 canvas is scaled to cover.
-const BrandBackdrop = ({illustrations = true, style, children}) => {
+// animated: play the explosive reveal (illustrations burst out of the centre, then snap into place)
+// burstDelay: ms before the burst starts
+const BrandBackdrop = ({illustrations = true, animated = false, burstDelay = 0, style, children}) => {
   const {width, height} = useWindowDimensions();
   const scale = Math.max(width / CANVAS.w, height / CANVAS.h);
   return (
@@ -55,9 +58,20 @@ const BrandBackdrop = ({illustrations = true, style, children}) => {
               transform: [{scale}],
             },
           ]}>
-          {ITEMS.map(it => {
+          {ITEMS.map((it, i) => {
             const Art = ART[it.name];
-            return (
+            const art = (
+              <Art
+                width={it.svgW}
+                height={it.svgH}
+                style={{position: 'absolute', left: -it.ml, top: -it.mt}}
+              />
+            );
+            return animated ? (
+              <BurstItem key={it.name} it={it} index={i} delay={burstDelay}>
+                {art}
+              </BurstItem>
+            ) : (
               <View
                 key={it.name}
                 style={{
@@ -69,14 +83,11 @@ const BrandBackdrop = ({illustrations = true, style, children}) => {
                   opacity: it.opacity,
                   transform: [{rotate: `${it.rot}deg`}],
                 }}>
-                <Art
-                  width={it.svgW}
-                  height={it.svgH}
-                  style={{position: 'absolute', left: -it.ml, top: -it.mt}}
-                />
+                {art}
               </View>
             );
           })}
+          {animated && <Confetti delay={burstDelay} />}
         </View>
       )}
       {children}
