@@ -7,9 +7,12 @@ import {
   Linking,
   Platform,
   TouchableOpacity,
+  StatusBar,
 } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 import BaseSetting from '@config/setting';
+import {Brand} from '@config/brand';
+import {tap} from '@utils/haptics';
 
 const ForceUpdateModal = () => {
   const [showModal, setShowModal] = useState(false);
@@ -86,72 +89,77 @@ const ForceUpdateModal = () => {
   return (
     <Modal
       visible={showModal}
-      transparent={true}
+      transparent={false}
+      statusBarTranslucent
       animationType="fade"
-      // No onRequestClose to prevent hardware back button from closing the modal on Android
+      // No onRequestClose: the Android back button must not dismiss a forced update
     >
-      <View style={styles.centeredView}>
-        <View style={styles.modalView}>
-          <Text style={styles.title}>Update Required</Text>
+      <StatusBar barStyle="light-content" backgroundColor={Brand.primary} />
+      <View style={styles.screen}>
+        <Text style={styles.wordmark}>{Brand.name}</Text>
+        <View style={styles.body}>
+          <Text style={styles.title}>Update required</Text>
           <Text style={styles.message}>
-            A new version of the app is available. Please update to continue
-            using the app.
+            A newer version of PRASH is available. Please update to keep paying
+            your dues and receiving alerts.
           </Text>
-          <TouchableOpacity style={styles.updateButton} onPress={handleUpdate}>
-            <Text style={styles.updateButtonText}>Update Now</Text>
-          </TouchableOpacity>
         </View>
+        <TouchableOpacity
+          style={styles.updateButton}
+          activeOpacity={0.85}
+          onPress={() => {
+            tap('impactMedium');
+            handleUpdate();
+          }}>
+          <Text style={styles.updateButtonText}>Update now</Text>
+        </TouchableOpacity>
       </View>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
-  centeredView: {
+  screen: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: Brand.primary,
+    paddingHorizontal: 28,
+    paddingTop: 80,
+    paddingBottom: 48,
+    justifyContent: 'space-between',
   },
-  modalView: {
-    margin: 20,
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 24,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-    width: '80%',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 12,
+  wordmark: {
+    color: '#fff',
+    fontFamily: Brand.wordmarkFont,
+    fontSize: 28,
+    letterSpacing: 4,
     textAlign: 'center',
   },
+  body: {
+    alignItems: 'center',
+  },
+  title: {
+    color: '#fff',
+    fontSize: 28,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 14,
+  },
   message: {
+    color: 'rgba(255,255,255,0.8)',
     fontSize: 16,
-    marginBottom: 20,
+    lineHeight: 24,
     textAlign: 'center',
   },
   updateButton: {
-    backgroundColor: '#632240',
-    borderRadius: 8,
-    padding: 12,
-    elevation: 2,
-    width: '100%',
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    paddingVertical: 16,
+    alignItems: 'center',
   },
   updateButtonText: {
-    color: 'white',
+    color: Brand.primary,
     fontWeight: 'bold',
-    textAlign: 'center',
-    fontSize: 16,
+    fontSize: 17,
   },
 });
 

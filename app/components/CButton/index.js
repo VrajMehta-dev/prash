@@ -5,6 +5,7 @@ import {useTheme} from '@react-navigation/native';
 import {GetTypography} from '@config/theme';
 import {CustomIcon} from '@config/LoadIcons';
 import GetStyles from './styles';
+import {tap} from '@utils/haptics';
 
 const CButton = props => {
   const {
@@ -30,13 +31,17 @@ const CButton = props => {
   const {colors} = useTheme();
   const BaseColors = colors;
   const styles = GetStyles();
+  const press = (...a) => {
+    tap();
+    return onPress(...a);
+  };
   return (
     <>
       {outLineBtn ? (
         <TouchableOpacity
           disabled={disabled}
           activeOpacity={0.7}
-          onPress={onPress}
+          onPress={press}
           style={[
             styles.outLineBtnContainer,
             disabled && {opacity: 0.6},
@@ -69,7 +74,7 @@ const CButton = props => {
         <TouchableOpacity
           disabled={disabled}
           activeOpacity={0.7}
-          onPress={onPress}
+          onPress={press}
           style={[
             styles.whiteBtnContainer,
             disabled && {opacity: 0.6},
@@ -103,7 +108,7 @@ const CButton = props => {
         <TouchableOpacity
           activeOpacity={0.7}
           disabled={loading}
-          onPress={onPress}
+          onPress={press}
           style={styles.row}>
           <Text style={styles.textBtnText}>{label}</Text>
           {iconName && (
@@ -114,7 +119,7 @@ const CButton = props => {
         <TouchableOpacity
           disabled={disabled}
           activeOpacity={0.7}
-          onPress={onPress}
+          onPress={press}
           style={[
             styles.linkBtnContainer,
             disabled && {opacity: 0.6},
@@ -140,7 +145,7 @@ const CButton = props => {
             btnStyle,
           ]}
           disabled={disabled}
-          onPress={onPress}>
+          onPress={press}>
           {loading ? (
             <ActivityIndicator size={20} color={BaseColors.primary} />
           ) : (

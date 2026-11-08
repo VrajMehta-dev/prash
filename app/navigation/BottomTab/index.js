@@ -1,100 +1,82 @@
-import React, {useRef} from 'react';
-import {View, TouchableOpacity, Text} from 'react-native';
-import {useTheme} from '@react-navigation/native';
-import * as Animatable from 'react-native-animatable';
+import React from 'react';
+import {View, TouchableOpacity, Text, StyleSheet, Platform} from 'react-native';
 import Icon, {Icons} from '@config/Icons';
-import GetStyles from './styles';
 import {translate} from '@lang/Translate';
-import {BaseColors} from '@config/theme';
+import {tap} from '@utils/haptics';
+
+// Floating pill tab bar, four equal tabs.
+// Routes (CustomDrawer): 0 Dashboard, 1 Bills, 2 Charges, 3 Profile.
+const ICONS = {
+  Dashboard: {type: Icons.Ionicons, name: 'home-outline', on: 'home'},
+  Bills: {type: Icons.Ionicons, name: 'receipt-outline', on: 'receipt'},
+  Charges: {type: Icons.Ionicons, name: 'layers-outline', on: 'layers'},
+  Profile: {type: Icons.Ionicons, name: 'person-outline', on: 'person'},
+};
+const ACTIVE = '#1B1B1F';
+const INACTIVE = '#9A9AA0';
+const LABELS = {Dashboard: 'Home'}; // shorter than "Dashboard" so it never wraps
 
 export default function BottomTabBar({state, descriptors, navigation}) {
-  const {colors} = useTheme();
-  const styles = GetStyles();
-
-  const homeTabRef = useRef();
-  const chatTabRef = useRef();
-  const additionalChargesTabRef = useRef();
-  const profileTabRef = useRef();
-
-  const iconAnimation = index => {
-    if (index === 0) homeTabRef?.current.tada(1500);
-    if (index === 1) chatTabRef?.current.tada(1500);
-    if (index === 2) additionalChargesTabRef?.current.tada(1500);
-    if (index === 3) profileTabRef?.current.tada(1500);
-  };
-
-  const getIcons = (label, isFocused, index) => {
-    const tabIconColor = isFocused ? '#632240' : BaseColors.textGrey;
-    const tabText = isFocused ? 'bold' : 'medium';
-
-    const icons = {
-      Dashboard: {
-        type: Icons.Ionicons,
-        name: isFocused ? 'home' : 'home-outline',
-      },
-      Bills: {
-        type: Icons.Ionicons,
-        name: isFocused ? 'newspaper' : 'newspaper-outline',
-      },
-      Charges: {
-        type: Icons.Ionicons,
-        name: isFocused ? 'cash' : 'cash-outline',
-      },
-      Profile: {type: Icons.FontAwesome, name: isFocused ? 'user' : 'user-o'},
-      
-    };
-
+  const renderTab = (route, index) => {
+    const {options} = descriptors[route.key];
+    const label = options.tabBarLabel || options.title || route.name;
+    const focused = state.index === index;
+    const icon = ICONS[route.name] || ICONS.Dashboard;
+    const color = focused ? ACTIVE : INACTIVE;
     return (
-      <>
-        <Animatable.View
-          style={styles.iconContainer}
-          ref={
-            index === 0 ? homeTabRef : index === 1 ? chatTabRef : index === 2 ? additionalChargesTabRef : profileTabRef
-          }>
-          <Icon
-            type={icons[label]?.type}
-            name={icons[label]?.name}
-            style={[styles.bottomTabIcons, {color: tabIconColor}]}
-          />
-        </Animatable.View>
-        <Text
-          style={[
-            styles.bottomTabLabels,
-            {color: tabIconColor, fontFamily: tabText},
-          ]}>
-          {translate(label)}
+      <TouchableOpacity
+        key={route.key}
+        accessibilityRole="button"
+        accessibilityState={focused ? {selected: true} : {}}
+        activeOpacity={0.7}
+        style={styles.tab}
+        onPress={() => {
+          tap();
+          if (!focused) navigation.navigate(route.name);
+        }}>
+        <Icon
+          type={icon.type}
+          name={focused ? icon.on : icon.name}
+          style={{fontSize: 24, color}}
+        />
+        <Text numberOfLines={1} style={[styles.label, {color, fontWeight: focused ? '700' : '500'}]}>
+          {LABELS[route.name] || translate(label)}
         </Text>
-      </>
+      </TouchableOpacity>
     );
   };
 
   return (
-    <View style={styles.tabContainer}>
-      <View style={styles.tabBar}>
-        {state.routes.map((route, index) => {
-          if (index > 3) return null; // Only allow 4 tabs
-
-          const {options} = descriptors[route.key];
-          const label = options.tabBarLabel || options.title || route.name;
-          const isFocused = state.index === index;
-
-          const onPress = () => {
-            iconAnimation(index);
-            if (!isFocused) navigation.navigate(route.name);
-          };
-
-          return (
-            <TouchableOpacity
-              key={index}
-              accessibilityRole="button"
-              accessibilityState={isFocused ? {selected: true} : {}}
-              onPress={onPress}
-              style={[styles.tab, {flex: 1}]}>
-              {getIcons(label, isFocused, index)}
-            </TouchableOpacity>
-          );
-        })}
+    <View style={styles.wrap}>
+      <View style={styles.bar}>
+        {state.routes.slice(0, 4).map((r, i) => renderTab(r, i))}
       </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  wrap: {
+    backgroundColor: 'transparent',
+    paddingHorizontal: 14,
+    paddingTop: 6,
+    paddingBottom: Platform.OS === 'ios' ? 24 : 14,
+  },
+  bar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F4F4F6',
+    borderRadius: 40,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderWidth: 1,
+    borderColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 8},
+    shadowOpacity: 0.12,
+    shadowRadius: 18,
+    elevation: 10,
+  },
+  tab: {flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3},
+  label: {fontSize: 11},
+});

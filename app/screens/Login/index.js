@@ -1,4 +1,5 @@
 /* eslint-disable react-native/no-inline-styles */
+import {Brand} from '@config/brand';
 import React, {useState, useEffect, useRef, useMemo, useCallback} from 'react';
 import {
   View,
@@ -335,14 +336,11 @@ const Login = ({navigation}) => {
             ]}>
             {!keyboardVisible ? (
               <>
-                <View style={styles.logoContainer}>
-                  <IconFA name="concierge-bell" size={40} color="#fff" />
-                </View>
-                <Text style={styles.title}>Prayashmay</Text>
-                <Text style={styles.subtitle}>Hospitality Private Limited</Text>
+                <Text style={styles.title}>{Brand.name}</Text>
+                <Text style={styles.subtitle}>{Brand.tagline}</Text>
               </>
             ) : (
-              <Text style={styles.compactTitle}>Prayashmay Hospitality</Text>
+              <Text style={styles.compactTitle}>{Brand.name}</Text>
             )}
           </Animated.View>
 
@@ -502,20 +500,23 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   title: {
-    fontSize: 32,
-    fontWeight: 'bold',
+    fontSize: 40,
+    fontFamily: Brand.wordmarkFont,
+    letterSpacing: 4,
     color: '#fff',
-    marginBottom: 5,
+    marginBottom: 8,
   },
   compactTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontFamily: Brand.wordmarkFont,
+    letterSpacing: 3,
     color: '#fff',
   },
   subtitle: {
-    fontSize: 18,
+    fontSize: 15,
     color: '#fff',
-    opacity: 0.9,
+    opacity: 0.8,
+    letterSpacing: 0.5,
   },
   formContainer: {
     flex: 1,

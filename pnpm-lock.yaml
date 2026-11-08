@@ -313,6 +313,9 @@ importers:
       react-native-google-places-autocomplete:
         specifier: ^2.5.7
         version: 2.5.7(react-native@0.75.4(@babel/core@7.26.7(supports-color@8.1.1))(@babel/preset-env@7.26.7(@babel/core@7.26.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@18.3.18)(encoding@0.1.13)(react@18.3.1)(supports-color@8.1.1)(typescript@5.0.4))
+      react-native-haptic-feedback:
+        specifier: ^3.0.0
+        version: 3.0.0(react-native@0.75.4(@babel/core@7.26.7(supports-color@8.1.1))(@babel/preset-env@7.26.7(@babel/core@7.26.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@18.3.18)(encoding@0.1.13)(react@18.3.1)(supports-color@8.1.1)(typescript@5.0.4))(react@18.3.1)
       react-native-image-crop-picker:
         specifier: ^0.41.5
         version: 0.41.6(react-native@0.75.4(@babel/core@7.26.7(supports-color@8.1.1))(@babel/preset-env@7.26.7(@babel/core@7.26.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@18.3.18)(encoding@0.1.13)(react@18.3.1)(supports-color@8.1.1)(typescript@5.0.4))
@@ -6776,6 +6779,15 @@ packages:
     resolution: {integrity: sha512-yWEJ31gsRptStEZDele9no0J6Z+MxtNpQKKwjvGmFrWmpYDEAzpRtxy1Xq0u+ckMepJfrg/EU+OL5LgtMbnCDA==}
     peerDependencies:
       react-native: '>= 0.59'
+
+  react-native-haptic-feedback@3.0.0:
+    resolution: {integrity: sha512-yxBQFHhXU8S0xupGtzDRToGw5yMWezUdLzxtlx2Oi9YpjPwprWZWCw8foPt0S2t84B0ZikzZYyOHiMSXIelUxg==}
+    peerDependencies:
+      react: '>=18.0.0'
+      react-native: '>=0.71.0'
+    peerDependenciesMeta:
+      react:
+        optional: true
 
   react-native-image-crop-picker@0.41.6:
     resolution: {integrity: sha512-oyEVkiJX1cnjYJolQluOqXxz9xhLHrv+pyCs7+jA87yaa110/0jv1UCqxjVjxueKug7zk/UnjG7i9Ks1cGyLpA==}
@@ -15820,6 +15832,12 @@ snapshots:
       qs: 6.9.7
       react-native: 0.75.4(@babel/core@7.26.7(supports-color@8.1.1))(@babel/preset-env@7.26.7(@babel/core@7.26.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@18.3.18)(encoding@0.1.13)(react@18.3.1)(supports-color@8.1.1)(typescript@5.0.4)
       uuid: 10.0.0
+
+  react-native-haptic-feedback@3.0.0(react-native@0.75.4(@babel/core@7.26.7(supports-color@8.1.1))(@babel/preset-env@7.26.7(@babel/core@7.26.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@18.3.18)(encoding@0.1.13)(react@18.3.1)(supports-color@8.1.1)(typescript@5.0.4))(react@18.3.1):
+    dependencies:
+      react-native: 0.75.4(@babel/core@7.26.7(supports-color@8.1.1))(@babel/preset-env@7.26.7(@babel/core@7.26.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@18.3.18)(encoding@0.1.13)(react@18.3.1)(supports-color@8.1.1)(typescript@5.0.4)
+    optionalDependencies:
+      react: 18.3.1
 
   react-native-image-crop-picker@0.41.6(react-native@0.75.4(@babel/core@7.26.7(supports-color@8.1.1))(@babel/preset-env@7.26.7(@babel/core@7.26.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@18.3.18)(encoding@0.1.13)(react@18.3.1)(supports-color@8.1.1)(typescript@5.0.4)):
     dependencies:

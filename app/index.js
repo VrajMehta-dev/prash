@@ -9,6 +9,7 @@ import Navigator from '@navigation';
 import {persistor, store} from '@redux/store/configureStore';
 import ForceUpdateModal from '@components/ForceUpdateModal';
 import {withOta} from '@utils/hotUpdater';
+import OfflineScreen from '@components/OfflineScreen';
 
 // import TrackPlayer from 'react-native-track-player';
 
@@ -32,6 +33,7 @@ const App = () => {
           onBeforeLift={onBeforeLift}>
           {loading ? <ActivityIndicator /> : <Navigator />}
       <ForceUpdateModal />
+      <OfflineScreen />
         </PersistGate>
       </Provider>
     </ThemeProvider>

@@ -11,7 +11,7 @@ export const BaseColors = {
   green: '#34A853',
   orange: '#FF981F',
   yellow: '#F4C430',
-  primary: '#000033',
+  primary: '#632240', // PRASH brand maroon (was navy; screens already hard-coded this)
   primaryLight: '#7C3AED',
   secondary: '#007BFF',
   accent: '#032CFF',
