@@ -30,6 +30,7 @@ import _, {isEmpty} from 'lodash';
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import LinearGradient from 'react-native-linear-gradient';
+import DueRow from '@components/DueRow';
 import {Brand} from '@config/brand';
 import {tap} from '@utils/haptics';
 const DashboardScreen = ({navigation}) => {
@@ -47,7 +48,7 @@ const DashboardScreen = ({navigation}) => {
   const [shopsLoaded, setShopsLoaded] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const {data: deposit} = useSecurityDeposit();
-  const [ccDue, setCcDue] = useState({count: 0, total: 0});
+  const [ccDue, setCcDue] = useState({count: 0, total: 0, list: []});
   const isFocused = useIsFocused();
 
   useFocusEffect(
@@ -94,6 +95,7 @@ const DashboardScreen = ({navigation}) => {
       setCcDue({
         count: due.length,
         total: due.reduce((sum, c) => sum + Number(c.payment_amount || 0), 0),
+        list: due,
       });
     } catch (e) {}
   };
@@ -476,47 +478,34 @@ const DashboardScreen = ({navigation}) => {
             <Animatable.View animation="fadeInUp" delay={180} duration={450}>
               <Text style={styles.sectionTitle}>Rent due</Text>
               {bills.map((b, i) => (
-                <TouchableOpacity
+                <DueRow
                   key={b?.bill_id ?? i}
-                  activeOpacity={0.85}
-                  onPress={() => go('Bills')}
-                  style={styles.billRow}>
-                  <View style={styles.billIcon}>
-                    <Icon name="calendar-month-outline" size={22} color={Brand.primary} />
-                  </View>
-                  <View style={{flex: 1}}>
-                    <Text style={styles.billMonth}>{b?.month || 'Bill'}</Text>
-                    <Text style={styles.billSub}>Tap to view and pay</Text>
-                  </View>
-                  <Text style={styles.billAmount}>{money(b?.payment_amount)}</Text>
-                  <Icon name="chevron-right" size={22} color="#B5B5BD" />
-                </TouchableOpacity>
+                  navigation={navigation}
+                  icon="calendar-month-outline"
+                  title={b?.month || 'Bill'}
+                  sub="Monthly rent"
+                  amount={b?.payment_amount}
+                  payPath={`client/bills/initiate-payment/${b?.bill_id}`}
+                />
               ))}
             </Animatable.View>
           )}
 
           {/* Container charges due */}
-          {ccDue.count > 0 && (
+          {ccDue.list.length > 0 && (
             <Animatable.View animation="fadeInUp" delay={200} duration={450}>
-              <TouchableOpacity
-                activeOpacity={0.85}
-                onPress={() => {
-                  tap();
-                  navigation.navigate('Containers');
-                }}
-                style={styles.billRow}>
-                <View style={styles.billIcon}>
-                  <Icon name="package-variant-closed" size={22} color={Brand.primary} />
-                </View>
-                <View style={{flex: 1}}>
-                  <Text style={styles.billMonth}>Container charges</Text>
-                  <Text style={styles.billSub}>
-                    {ccDue.count} {ccDue.count === 1 ? 'charge' : 'charges'} to pay
-                  </Text>
-                </View>
-                <Text style={styles.billAmount}>{money(ccDue.total)}</Text>
-                <Icon name="chevron-right" size={22} color="#B5B5BD" />
-              </TouchableOpacity>
+              <Text style={styles.sectionTitle}>Container charges</Text>
+              {ccDue.list.map(c => (
+                <DueRow
+                  key={c.container_charge_id}
+                  navigation={navigation}
+                  icon="package-variant-closed"
+                  title={c.title}
+                  sub="Container charge"
+                  amount={c.payment_amount}
+                  payPath={`client/container-charges/initiate-payment/${c.container_charge_id}`}
+                />
+              ))}
             </Animatable.View>
           )}
 

@@ -16,7 +16,7 @@ import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import {Brand} from '@config/brand';
 import {apiGet} from '@utils/authedApi';
 import {useSecurityDeposit} from '@utils/useSecurityDeposit';
-import DepositBanner from '@components/DepositBanner';
+import DueRow from '@components/DueRow';
 import {TAB_BAR_SPACE} from '@navigation/BottomTab';
 
 const money = n => '₹' + Number(n || 0).toLocaleString('en-IN');
@@ -29,12 +29,13 @@ export default function PayHub({navigation}) {
   const shop = useSelector(s => s.auth.shopSelected);
   const isFocused = useIsFocused();
   const {data: deposit, reload: reloadDeposit} = useSecurityDeposit();
-  const [dues, setDues] = useState(null); // {rent:{n,total}, extra:{...}, container:{...}}
+  const [dues, setDues] = useState(null); // {rent:{n,total,rows}, extra:{...}, container:{...}}
   const [refreshing, setRefreshing] = useState(false);
 
+  const EMPTY = {rent: {n: 0, total: 0, rows: []}, extra: {n: 0, total: 0, rows: []}, container: {n: 0, total: 0, rows: []}};
   const load = useCallback(async () => {
     if (!shop?.pr_id) {
-      setDues({rent: {n: 0, total: 0}, extra: {n: 0, total: 0}, container: {n: 0, total: 0}});
+      setDues(EMPTY);
       return;
     }
     const unpaid = r => (r?.data?.data || []).filter(c => c.status !== 'paid');
@@ -44,16 +45,14 @@ export default function PayHub({navigation}) {
         apiGet(`client/additional-charges/${shop.pr_id}`),
         apiGet(`client/container-charges/${shop.pr_id}`),
       ]);
-      const rentRows = rent.data?.outstandingBills || [];
-      const extraRows = unpaid(extra);
-      const containerRows = unpaid(container);
+      const pack = rows => ({n: rows.length, total: sum(rows), rows});
       setDues({
-        rent: {n: rentRows.length, total: sum(rentRows)},
-        extra: {n: extraRows.length, total: sum(extraRows)},
-        container: {n: containerRows.length, total: sum(containerRows)},
+        rent: pack(rent.data?.outstandingBills || []),
+        extra: pack(unpaid(extra)),
+        container: pack(unpaid(container)),
       });
     } catch (e) {
-      setDues(d => d || {rent: {n: 0, total: 0}, extra: {n: 0, total: 0}, container: {n: 0, total: 0}});
+      setDues(d => d || EMPTY);
     }
   }, [shop?.pr_id]);
 
@@ -67,47 +66,29 @@ export default function PayHub({navigation}) {
   const depositDue = locked ? Number(deposit?.amount || 0) : 0;
   const total = dues ? dues.rent.total + dues.extra.total + dues.container.total + depositDue : 0;
 
-  const rows = [
-    {
-      key: 'deposit',
-      route: 'SecurityDeposit',
-      icon: locked ? 'lock-outline' : 'shield-check-outline',
-      title: 'Security Deposit',
-      sub: locked ? 'Pay this first to unlock other payments' : deposit?.has_deposit ? 'Paid' : 'Not required',
-      amount: locked ? money(deposit.amount) : null,
-      chip: locked ? {text: 'DUE', warn: true} : deposit?.has_deposit ? {text: 'PAID', warn: false} : null,
-      highlight: locked,
-    },
+  const sections = [
     {
       key: 'rent',
-      route: 'Bills',
-      icon: 'calendar-month-outline',
       title: 'Monthly Rent',
-      sub: dues ? (dues.rent.n ? `${dues.rent.n} unpaid` : 'All paid') : '...',
-      amount: dues?.rent.n ? money(dues.rent.total) : null,
-      chip: dues && !dues.rent.n ? {text: 'PAID', warn: false} : null,
+      empty: 'All paid',
+      icon: 'calendar-month-outline',
+      item: r => ({id: r.bill_id, title: r.month || 'Bill', path: `client/bills/initiate-payment/${r.bill_id}`}),
     },
     {
       key: 'extra',
-      route: 'Charges',
-      icon: 'plus-circle-outline',
       title: 'Extra Charges',
-      sub: dues ? (dues.extra.n ? `${dues.extra.n} pending` : 'Nothing pending') : '...',
-      amount: dues?.extra.n ? money(dues.extra.total) : null,
-      chip: dues && !dues.extra.n ? {text: 'CLEAR', warn: false} : null,
+      empty: 'Nothing pending',
+      icon: 'plus-circle-outline',
+      item: r => ({id: r.additional_charge_id, title: r.title, path: `client/additional-charges/initiate-payment/${r.additional_charge_id}`}),
     },
     {
       key: 'container',
-      route: 'Containers',
-      icon: 'package-variant-closed',
       title: 'Container Charges',
-      sub: dues ? (dues.container.n ? `${dues.container.n} pending` : 'Nothing pending') : '...',
-      amount: dues?.container.n ? money(dues.container.total) : null,
-      chip: dues && !dues.container.n ? {text: 'CLEAR', warn: false} : null,
+      empty: 'Nothing pending',
+      icon: 'package-variant-closed',
+      item: r => ({id: r.container_charge_id, title: r.title, path: `client/container-charges/initiate-payment/${r.container_charge_id}`}),
     },
   ];
-  // While the deposit is unpaid it goes first and is highlighted; otherwise it sinks to the bottom.
-  const ordered = locked ? rows : [...rows.slice(1), rows[0]];
 
   return (
     <View style={styles.screen}>
@@ -141,45 +122,56 @@ export default function PayHub({navigation}) {
               {!dues
                 ? ' '
                 : total > 0
-                ? 'Open a payment below to pay it. Rent, extra charges and container charges are paid separately.'
+                ? 'Tap Pay on any item below.'
                 : "You're all caught up. Nothing to pay right now."}
             </Text>
           </View>
 
-          <DepositBanner
-            deposit={deposit}
-            onPress={() => navigation.navigate('SecurityDeposit')}
-            style={{marginHorizontal: 0, marginTop: 14, marginBottom: 0}}
-          />
+          {locked && (
+            <View style={{marginTop: 18}}>
+              <Text style={styles.sectionTitle}>Pay this first</Text>
+              <DueRow
+                navigation={navigation}
+                highlight
+                icon="lock-outline"
+                title="Security Deposit"
+                sub="Unlocks rent and charge payments"
+                amount={deposit.amount}
+                payPath={`client/security-deposit/initiate-payment/${shop?.pr_id}`}
+              />
+            </View>
+          )}
 
-          <View style={{marginTop: 18}}>
-            {ordered.map(r => (
-              <TouchableOpacity
-                key={r.key}
-                activeOpacity={0.85}
-                onPress={() => navigation.navigate(r.route)}
-                style={[styles.row, r.highlight && styles.rowHighlight]}>
-                <View style={[styles.iconBox, r.highlight && {backgroundColor: '#FFE2A8'}]}>
-                  <Icon name={r.icon} size={24} color={r.highlight ? '#9A5B00' : Brand.primary} />
-                </View>
-                <View style={{flex: 1}}>
-                  <Text style={styles.rowTitle}>{r.title}</Text>
-                  <Text style={styles.rowSub} numberOfLines={1}>{r.sub}</Text>
-                </View>
-                <View style={{alignItems: 'flex-end'}}>
-                  {!!r.amount && <Text style={styles.rowAmount}>{r.amount}</Text>}
-                  {!!r.chip && (
-                    <View style={[styles.chip, r.chip.warn ? styles.chipWarn : styles.chipOk]}>
-                      <Text style={[styles.chipText, {color: r.chip.warn ? '#9A5B00' : '#1E7B4B'}]}>
-                        {r.chip.text}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-                <Icon name="chevron-right" size={22} color="#B5B5BD" />
-              </TouchableOpacity>
-            ))}
-          </View>
+          {sections.map(sec => {
+            const d = dues?.[sec.key];
+            return (
+              <View key={sec.key} style={{marginTop: 18}}>
+                <Text style={styles.sectionTitle}>{sec.title}</Text>
+                {!d ? (
+                  <Text style={styles.empty}>...</Text>
+                ) : d.n === 0 ? (
+                  <View style={styles.emptyRow}>
+                    <Icon name="check-circle-outline" size={20} color="#1E7B4B" />
+                    <Text style={styles.emptyText}>{sec.empty}</Text>
+                  </View>
+                ) : (
+                  d.rows.map(r => {
+                    const it = sec.item(r);
+                    return (
+                      <DueRow
+                        key={it.id}
+                        navigation={navigation}
+                        icon={sec.icon}
+                        title={it.title}
+                        amount={r.payment_amount}
+                        payPath={it.path}
+                      />
+                    );
+                  })
+                )}
+              </View>
+            );
+          })}
         </View>
       </ScrollView>
     </View>
@@ -197,6 +189,10 @@ const styles = StyleSheet.create({
   totalLabel: {color: '#6B6B76', fontSize: 14, fontWeight: '600'},
   totalAmount: {color: '#17171C', fontSize: 38, fontWeight: 'bold', marginTop: 6},
   totalHint: {color: '#7A7A85', fontSize: 13, lineHeight: 19, marginTop: 6},
+  sectionTitle: {color: '#6B6B76', fontSize: 13, fontWeight: '700', letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 8, paddingHorizontal: 4},
+  empty: {color: '#8A8A95', paddingHorizontal: 4},
+  emptyRow: {flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#fff', borderRadius: 16, padding: 14},
+  emptyText: {color: '#1E7B4B', fontWeight: '600'},
   row: {flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#fff', borderRadius: 20, padding: 14, marginBottom: 10, ...SHADOW},
   rowHighlight: {borderWidth: 1.5, borderColor: '#F0C36A', backgroundColor: '#FFFAF0'},
   iconBox: {width: 46, height: 46, borderRadius: 15, backgroundColor: '#F6EEF2', alignItems: 'center', justifyContent: 'center'},
