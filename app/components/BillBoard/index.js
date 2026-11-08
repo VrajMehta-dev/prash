@@ -17,6 +17,7 @@ import TouchableOpacity from '@components/PressableScale';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {LinearGradient} from 'react-native-linear-gradient';
 import {downloadPdf} from '@utils/downloadPdf';
+import ScreenHeader from '@components/ScreenHeader';
 import {usePaymentQueue} from '@utils/usePaymentQueue';
 import BaseSetting from '@config/setting';
 import {useSelector} from 'react-redux';
@@ -665,28 +666,13 @@ const BillsDashboard = ({navigation}) => {
 
   return (
     <>
-      {isFocused && (
-        <StatusBar
-          barStyle="dark-content"
-          backgroundColor="#fff"
-          showHideTransition="slide"
-        />
-      )}
       <ScrollView
         contentContainerStyle={{paddingBottom: TAB_BAR_SPACE}}
         style={[
           styles.container,
           {backgroundColor: !filteredBills.length === 0 ? '#f8f9fa' : 'white'},
         ]}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Monthly Rent</Text>
-          <Text style={styles.headerSubtitle}>
-            Track and manage your payments for (
-            {shopSelected?.property_name ||
-              'Select the Property from Dashboard'}
-            )
-          </Text>
-        </View>
+        <ScreenHeader title="Monthly Rent" subtitle={shopSelected?.property_name} />
 
         <TabSelector activeTab={activeTab} onTabChange={setActiveTab} />
 

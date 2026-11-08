@@ -15,6 +15,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useSelector} from 'react-redux';
 import moment from 'moment';
 import {Brand} from '@config/brand';
+import ScreenHeader from '@components/ScreenHeader';
 import {TAB_BAR_SPACE} from '@navigation/BottomTab';
 import {useSecurityDeposit} from '@utils/useSecurityDeposit';
 import {startPayment} from '@utils/startPayment';
@@ -72,15 +73,7 @@ export default function SecurityDeposit({navigation}) {
           <RefreshControl refreshing={refreshing} onRefresh={refresh} colors={[Brand.primary]} />
         }
         contentContainerStyle={{paddingBottom: TAB_BAR_SPACE}}>
-        <LinearGradient colors={[Brand.gradientTop, Brand.gradientBottom]} style={styles.hero}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.back}>
-            <Icon name="arrow-left" size={22} color="#fff" />
-          </TouchableOpacity>
-          <Text style={styles.heroTitle}>Security deposit</Text>
-          <Text style={styles.heroSub} numberOfLines={1}>
-            {shop?.property_name || ''}
-          </Text>
-        </LinearGradient>
+        <ScreenHeader title="Security deposit" subtitle={shop?.property_name} overlap />
 
         <View style={styles.body}>
           {loading ? (

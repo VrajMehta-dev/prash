@@ -30,6 +30,7 @@ import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import LinearGradient from 'react-native-linear-gradient';
 import DueRow from '@components/DueRow';
+import {useHeaderTop} from '@components/ScreenHeader';
 import {usePaymentQueue, dueRowProps} from '@utils/usePaymentQueue';
 import {startPayment} from '@utils/startPayment';
 import {Brand} from '@config/brand';
@@ -50,6 +51,7 @@ const DashboardScreen = ({navigation}) => {
   const [refreshing, setRefreshing] = useState(false);
   const {data: deposit} = useSecurityDeposit();
   const queue = usePaymentQueue();
+  const heroTop = useHeaderTop();
   const isFocused = useIsFocused();
 
   useFocusEffect(
@@ -307,14 +309,14 @@ const DashboardScreen = ({navigation}) => {
             onRefresh={refresh}
             tintColor="#fff"
             colors={[Brand.primary]}
-            progressViewOffset={HERO_TOP}
+            progressViewOffset={heroTop}
           />
         }
         contentContainerStyle={{paddingBottom: TAB_BAR_SPACE}}>
         {/* Hero: brand gradient that runs under the status bar */}
         <LinearGradient
           colors={[Brand.gradientTop, Brand.gradientBottom]}
-          style={styles.hero}>
+          style={[styles.hero, {paddingTop: heroTop}]}>
           <View style={styles.heroRow}>
             <View style={{flex: 1}}>
               <Text style={styles.greeting}>{greeting},</Text>

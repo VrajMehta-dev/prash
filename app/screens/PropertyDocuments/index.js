@@ -18,6 +18,7 @@ import {useSelector} from 'react-redux';
 import {useFocusEffect} from '@react-navigation/native';
 import moment from 'moment';
 import {Brand} from '@config/brand';
+import ScreenHeader from '@components/ScreenHeader';
 import {TAB_BAR_SPACE} from '@navigation/BottomTab';
 import {apiGet} from '@utils/authedApi';
 
@@ -128,7 +129,6 @@ export default function PropertyDocuments({navigation}) {
 
   return (
     <View style={styles.screen}>
-      <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -143,13 +143,7 @@ export default function PropertyDocuments({navigation}) {
           />
         }
         contentContainerStyle={{paddingBottom: TAB_BAR_SPACE}}>
-        <LinearGradient colors={[Brand.gradientTop, Brand.gradientBottom]} style={styles.hero}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.back}>
-            <Icon name="arrow-left" size={22} color="#fff" />
-          </TouchableOpacity>
-          <Text style={styles.heroTitle}>Shop documents</Text>
-          <Text style={styles.heroSub} numberOfLines={1}>{shop?.property_name || ''}</Text>
-        </LinearGradient>
+        <ScreenHeader title="Shop documents" subtitle={shop?.property_name} overlap />
 
         <View style={styles.body}>
           {!data && !failed && <ActivityIndicator color={Brand.primary} style={{marginTop: 40}} />}
@@ -209,7 +203,7 @@ const styles = StyleSheet.create({
   back: {width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.16)', alignItems: 'center', justifyContent: 'center'},
   heroTitle: {color: '#fff', fontSize: 26, fontWeight: 'bold', marginTop: 16},
   heroSub: {color: 'rgba(255,255,255,0.75)', fontSize: 14, marginTop: 2},
-  body: {marginTop: -36, paddingHorizontal: 16},
+  body: {marginTop: -48, paddingHorizontal: 16},
   card: {backgroundColor: '#fff', borderRadius: 24, padding: 18, marginBottom: 14, shadowColor: '#1B1230', shadowOffset: {width: 0, height: 6}, shadowOpacity: 0.08, shadowRadius: 16, elevation: 3},
   top: {flexDirection: 'row', alignItems: 'center', gap: 12},
   iconBox: {width: 46, height: 46, borderRadius: 15, backgroundColor: '#F6EEF2', alignItems: 'center', justifyContent: 'center'},

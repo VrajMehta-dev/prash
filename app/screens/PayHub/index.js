@@ -13,6 +13,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useSelector} from 'react-redux';
 import {useIsFocused} from '@react-navigation/native';
 import {Brand} from '@config/brand';
+import ScreenHeader from '@components/ScreenHeader';
 import {useSecurityDeposit} from '@utils/useSecurityDeposit';
 import {usePaymentQueue, dueRowProps} from '@utils/usePaymentQueue';
 import DueRow from '@components/DueRow';
@@ -33,7 +34,6 @@ export default function PayHub({navigation}) {
 
   return (
     <View style={styles.screen}>
-      {isFocused && <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />}
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -48,12 +48,7 @@ export default function PayHub({navigation}) {
           />
         }
         contentContainerStyle={{paddingBottom: TAB_BAR_SPACE}}>
-        <LinearGradient colors={[Brand.gradientTop, Brand.gradientBottom]} style={styles.hero}>
-          <Text style={styles.heroTitle}>Payments</Text>
-          <Text style={styles.heroSub} numberOfLines={1}>
-            {shop?.property_name || ''}
-          </Text>
-        </LinearGradient>
+        <ScreenHeader title="Payments" subtitle={shop?.property_name} overlap />
 
         <View style={styles.body}>
           <View style={styles.totalCard}>

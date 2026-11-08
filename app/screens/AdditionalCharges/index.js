@@ -18,6 +18,7 @@ import {BaseColors} from '@config/theme';
 import {useSelector} from 'react-redux';
 import CPageLoader from '@components/CPageLoader';
 import {downloadPdf} from '@utils/downloadPdf';
+import ScreenHeader from '@components/ScreenHeader';
 import {usePaymentQueue} from '@utils/usePaymentQueue';
 import BaseSetting from '@config/setting';
 import * as Animatable from 'react-native-animatable';
@@ -472,26 +473,13 @@ const AdditionalCharges = ({navigation, route}) => {
 
   return (
     <>
-      {isFocused && (
-        <StatusBar
-          barStyle="dark-content"
-          backgroundColor="#fff"
-          showHideTransition="slide"
-        />
-      )}
     <ScrollView
       contentContainerStyle={{paddingBottom: TAB_BAR_SPACE}}
       style={[
         styles.container,
         {backgroundColor: !filteredCharges.length === 0 ? '#f8f9fa' : 'white'},
       ]}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Extra Charges</Text>
-        <Text style={styles.headerSubtitle}>
-          Track and manage your additional charges for (
-          {shopSelected?.property_name || 'Select the Property from Dashboard'})
-        </Text>
-      </View>
+      <ScreenHeader title="Extra Charges" subtitle={shopSelected?.property_name} />
 
       <TabSelector activeTab={activeTab} onTabChange={setActiveTab} />
 

@@ -19,6 +19,7 @@ import TouchableOpacity from '@components/PressableScale';
 import {TAB_BAR_SPACE} from '@navigation/BottomTab';
 import BaseSetting from '@config/setting';
 import {Brand} from '@config/brand';
+import {useHeaderTop} from '@components/ScreenHeader';
 import {logout} from '@utils/commonFunction';
 import {useSecurityDeposit} from '@utils/useSecurityDeposit';
 import {useUnreadCount} from '@utils/useUnreadCount';
@@ -82,6 +83,7 @@ const Row = ({icon, title, value, onPress, badge, chip, last, danger}) => {
 };
 
 const ProfileScreen = ({navigation}) => {
+  const top = useHeaderTop();
   const {userData, accessToken, shopSelected} = useSelector(state => ({
     userData: state.auth.userData,
     accessToken: state.auth.accessToken,
@@ -128,7 +130,7 @@ const ProfileScreen = ({navigation}) => {
     <View style={styles.screen}>
       {isFocused && <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />}
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{paddingBottom: TAB_BAR_SPACE}}>
-        <LinearGradient colors={[Brand.gradientTop, Brand.gradientBottom]} style={styles.hero}>
+        <LinearGradient colors={[Brand.gradientTop, Brand.gradientBottom]} style={[styles.hero, {paddingTop: top}]}>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>{initials || '?'}</Text>
           </View>

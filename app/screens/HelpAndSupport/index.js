@@ -5,6 +5,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Toast from 'react-native-toast-message';
 import TouchableOpacity from '@components/PressableScale';
 import {Brand} from '@config/brand';
+import ScreenHeader from '@components/ScreenHeader';
 import {TAB_BAR_SPACE} from '@navigation/BottomTab';
 import {tap} from '@utils/haptics';
 
@@ -48,15 +49,8 @@ const Card = ({icon, title, value, sub, action, onPress}) => (
 export default function HelpAndSupport({navigation}) {
   return (
     <View style={styles.screen}>
-      <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{paddingBottom: TAB_BAR_SPACE}}>
-        <LinearGradient colors={[Brand.gradientTop, Brand.gradientBottom]} style={styles.hero}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.back}>
-            <Icon name="arrow-left" size={22} color="#fff" />
-          </TouchableOpacity>
-          <Text style={styles.heroTitle}>Help & Support</Text>
-          <Text style={styles.heroSub}>Questions about your rent, bills or payments? Reach us here.</Text>
-        </LinearGradient>
+        <ScreenHeader title="Help & Support" subtitle="Questions about rent, bills or payments? Reach us here." overlap />
 
         <View style={styles.body}>
           <View style={styles.card}>
@@ -103,7 +97,7 @@ const styles = StyleSheet.create({
   back: {width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.16)', alignItems: 'center', justifyContent: 'center'},
   heroTitle: {color: '#fff', fontSize: 26, fontWeight: 'bold', marginTop: 16},
   heroSub: {color: 'rgba(255,255,255,0.75)', fontSize: 14, marginTop: 4, lineHeight: 20},
-  body: {marginTop: -36, paddingHorizontal: 16, gap: 12},
+  body: {marginTop: -48, paddingHorizontal: 16, gap: 12},
   card: {flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#fff', borderRadius: 22, padding: 16, shadowColor: '#1B1230', shadowOffset: {width: 0, height: 6}, shadowOpacity: 0.08, shadowRadius: 16, elevation: 3},
   iconBox: {width: 48, height: 48, borderRadius: 16, backgroundColor: '#F6EEF2', alignItems: 'center', justifyContent: 'center'},
   cardTitle: {color: '#8A8A95', fontSize: 12, fontWeight: '600'},

@@ -8,7 +8,6 @@ export default function Containers({navigation}) {
   const isFocused = useIsFocused();
   return (
     <View style={{flex: 1, backgroundColor: '#fff'}}>
-      {isFocused && <StatusBar barStyle="dark-content" translucent={false} backgroundColor="#fff" />}
       <ContainerCharges navigation={navigation} />
     </View>
   );

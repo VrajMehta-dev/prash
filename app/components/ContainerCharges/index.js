@@ -10,6 +10,7 @@ import {apiGet} from '@utils/authedApi';
 import {startPayment} from '@utils/startPayment';
 import {usePaymentQueue} from '@utils/usePaymentQueue';
 import {TabSelector} from '@components/BillBoard';
+import ScreenHeader from '@components/ScreenHeader';
 import {downloadPdf} from '@utils/downloadPdf';
 import {TAB_BAR_SPACE} from '@navigation/BottomTab';
 
@@ -139,12 +140,7 @@ export default function ContainerCharges({navigation}) {
         />
       }
       contentContainerStyle={{paddingBottom: TAB_BAR_SPACE}}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Container Charges</Text>
-        <Text style={styles.headerSubtitle}>
-          Track and manage your container charges for ({shop?.property_name || 'Select the Property from Dashboard'})
-        </Text>
-      </View>
+      <ScreenHeader title="Container Charges" subtitle={shop?.property_name} />
       <TabSelector activeTab={activeTab} onTabChange={setActiveTab} />
       <View style={{paddingHorizontal: 16}}>
         {list === null ? (
