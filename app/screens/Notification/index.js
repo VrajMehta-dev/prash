@@ -173,7 +173,8 @@ const NotificationScreen = () => {
 
   // Tapping opens what the notification is about.
   const open = item => {
-    const k = kindOf(item);
+    // type first, then the title (older rows were stored with a generic type like payment_success)
+    const k = `${kindOf(item)} ${String(item?.title || '').toLowerCase().replace(/ /g, '_')}`;
     const screen = item?.data?.screen;
     if (screen) {
       TAB_ROUTES.includes(screen) ? goToTab(screen) : navigation.navigate(screen);
@@ -181,7 +182,7 @@ const NotificationScreen = () => {
       goToTab('SecurityDeposit');
     } else if (k.includes('container')) {
       goToTab('Containers');
-    } else if (k.includes('additional') || k === 'charge_updated') {
+    } else if (k.includes('additional') || k.includes('extra_charge') || k.includes('charge_updated')) {
       goToTab('Charges');
     } else if (k.includes('payment') || k.includes('paid') || k.includes('bill') || k.includes('due') || k.includes('penalty') || k.includes('rent')) {
       goToTab('Bills');

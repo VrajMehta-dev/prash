@@ -41,7 +41,7 @@ const handleNotification = remoteMessage => {
   } else if (actionType === 'sell_car') {
     navigationRef.current?.navigate('SellCar');
   } else {
-    navigationRef.current?.navigate('Home');
+    goToTab('Dashboard');
   }
 };
 /**
