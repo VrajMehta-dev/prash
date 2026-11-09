@@ -13,8 +13,8 @@ Same artwork is used for Google Play and the App Store (`screenshots/play`, `scr
 | 7 | Container charges | Pending and paid lists with Pay now, invoice and receipt. | ![](screenshots/play/07-container-charges.png) |
 | 8 | Security deposit | Invoice when due, payment, receipt once paid. Other payments unlock after it is paid. | ![](screenshots/play/08-security-deposit.png) |
 | 9 | Shop documents | Rental contracts and FSSAI licence with Active / Expiring / Expired labels and a View button. | ![](screenshots/play/09-shop-documents.png) |
-| 10 | Notifications | Categorised, tap to open the right page, older ones load as you scroll, white PRASH icon in the status bar. | ![](screenshots/play/10-notifications.png) |
-| 11 | Account | Details, bank, documents, help and sign out. | ![](screenshots/play/11-account.png) |
+| 10 | Notifications | Alerts for new bills, due dates and payments, grouped by type, with the PRASH icon in the status bar. | ![](screenshots/play/10-notifications.png) |
+| 11 | Account | Your details, bank, documents, help and sign out in one place. | ![](screenshots/play/11-account.png) |
 | 12 | More | Container charges, security deposit, shop documents and account one tap away. | ![](screenshots/play/12-more-sheet.png) |
 
 ## Also in this update (no screenshot)

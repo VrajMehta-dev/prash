@@ -7,11 +7,11 @@
 
 **What's New**:
 ```
-• Faster, safer checkout: review what you pay, slide to pay, and see a confirmed result.
+• Easy checkout: review what you pay, slide to pay and see a confirmed result.
 • One Pay screen lists everything due in the right order: security deposit, container charges, extra charges, then rent.
 • Security deposit and container charges now come with invoices and receipts.
 • Shop documents: rental contracts and FSSAI licence with expiry status.
-• Smarter notifications that open the right page, with older ones loading as you scroll.
+• Timely alerts for new bills, due dates and payments received.
 • Fresh new look, smoother navigation and festival logos.
 • Reset your password with a 4-digit code that fills in automatically.
 ```

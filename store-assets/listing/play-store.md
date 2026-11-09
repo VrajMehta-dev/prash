@@ -4,19 +4,19 @@
 
 **Short description** (75/80): Pay rent, charges and deposits for your outlet. Clear, secure and in order.
 
-**What's new** (382/500):
+**What's new** (378/500):
 ```
 New in this update:
-• Faster, safer checkout: review, slide to pay, instant confirmation
+• Easy checkout: review, slide to pay, instant confirmation
 • Pay in the right order: deposit, containers, extras, then rent
 • Security deposit and container charges, with invoices and receipts
 • Shop documents with expiry alerts
 • Sign in with Google
-• Smarter notifications that open the right page
+• Timely alerts for new bills, due dates and payments
 • Fresh look, festival logos and smoother navigation
 ```
 
-**Full description** (1802/4000):
+**Full description** (1733/4000):
 ```
 PRASH is the tenant app for Parul University food court outlets. See everything you owe, pay it in a few taps and keep every receipt in one place.
 
@@ -37,8 +37,7 @@ YOUR SHOP, ORGANISED
 • Switch between outlets from the home screen.
 
 STAY INFORMED
-• Notifications for new bills, due dates, payments received and failed payments. Tap one and it opens the right page.
-• Older notifications load as you scroll.
+• Alerts for new bills, due dates, payments received and failed payments, all in one list.
 
 SIGN IN YOUR WAY
 • Email and password, or Continue with Google.
