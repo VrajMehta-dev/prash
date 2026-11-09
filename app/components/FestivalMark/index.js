@@ -273,6 +273,21 @@ const cross = (
   </G>
 );
 
+const chariot = (
+  <G>
+    <Polygon points="32,2 44,14 20,14" fill={GOLD} />
+    <Rect x="18" y="14" width="28" height="22" rx="2" fill={W} />
+    <Path d="M24 20 H40 M24 26 H40 M24 32 H40" stroke={MAROON} strokeWidth="2" />
+    <Rect x="10" y="36" width="44" height="8" rx="2" fill={W} />
+    <Circle cx="20" cy="50" r="9" fill="none" stroke={W} strokeWidth="3" />
+    <Circle cx="44" cy="50" r="9" fill="none" stroke={W} strokeWidth="3" />
+    <Circle cx="20" cy="50" r="2.5" fill={GOLD} />
+    <Circle cx="44" cy="50" r="2.5" fill={GOLD} />
+    <Path d="M20 41 V59 M11 50 H29 M44 41 V59 M35 50 H53" stroke={W} strokeWidth="1.5" />
+    <Path d="M6 40 Q0 48 6 56 M58 40 Q64 48 58 56" stroke={GOLD} strokeWidth="2.5" fill="none" />
+  </G>
+);
+
 export const MOTIFS = {
   diwali: diya,
   holi: splash,
@@ -304,6 +319,7 @@ export const MOTIFS = {
   vasant_panchami: flower,
   good_friday: cross,
   durga_puja: lotus,
+  rath_yatra: chariot,
 };
 
 export default function FestivalMark({name, size = 48}) {
