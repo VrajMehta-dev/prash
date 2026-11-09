@@ -42,7 +42,7 @@ import ResetCode from '@screens/ResetCode';
 import ResetNewPassword from '@screens/ResetNewPassword';
 import SignUpMethods from '@screens/SignUpMethods';
 import CreatePost from '@screens/CreatePost';
-import SettingsScreen from '@screens/Setting';
+import CheckoutSheet from '@components/CheckoutSheet';
 import UserProfile from '@screens/UserProfile';
 import ChatMessage from '@screens/ChatMessage';
 import CreateTrip from '@screens/CreateTrip';
@@ -222,15 +222,6 @@ function App() {
             }}
           />
           <Stack.Screen
-            name="Settings"
-            component={SettingsScreen}
-            options={{
-              ...navOptions,
-              cardStyleInterpolator:
-                CardStyleInterpolators.forRevealFromBottomAndroid,
-            }}
-          />
-          <Stack.Screen
             name="TermsAndConditions"
             component={TermsAndConditions}
             options={{
@@ -323,6 +314,7 @@ function App() {
         <NoInternet />
         <RemotePushController />
       </NavigationContainer>
+      <CheckoutSheet />
       <Toast visibilityTime={3500} autoHide={true} topOffset={TOAST_TOP} config={toastConfig} />
     </>
   );

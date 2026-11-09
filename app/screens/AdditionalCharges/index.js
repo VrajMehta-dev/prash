@@ -25,6 +25,8 @@ import * as Animatable from 'react-native-animatable';
 import RBSheet from 'react-native-raw-bottom-sheet';
 import {isNull} from 'lodash';
 import {useIsFocused} from '@react-navigation/native';
+import {startCheckout} from '@utils/checkout';
+import {onPaymentChange} from '@utils/paymentEvents';
 
 const {width} = Dimensions.get('window');
 
@@ -331,14 +333,11 @@ const AdditionalCharges = ({navigation, route}) => {
   const [chargesList, setChargesList] = useState([]);
   const [selectedCharge, setSelectedCharge] = useState(null);
   console.log("🚀 ~ AdditionalCharges ~ selectedCharge:", selectedCharge)
-  const [paymentLink, setPaymentLink] = useState(null);
-  const [shouldNavigate, setShouldNavigate] = useState(false);
   const [animatePaymentButton, setAnimatePaymentButton] = useState(false);
   const {accessToken} = useSelector(state => state.auth);
   const {shopSelected} = useSelector(state => state.auth);
   const rbSheetRef = useRef();
   const isFocused = useIsFocused();
-  const [accessKey, setAccessKey] = useState(null);
 
   const fetchAdditionalCharges = useCallback(async () => {
     const url =
@@ -382,6 +381,7 @@ const AdditionalCharges = ({navigation, route}) => {
   useEffect(() => {
     fetchAdditionalCharges();
   }, [isFocused, fetchAdditionalCharges]);
+  useEffect(() => onPaymentChange(fetchAdditionalCharges), [fetchAdditionalCharges]);
 
   // Check for pending charge animation on component mount
   useEffect(() => {
@@ -397,18 +397,6 @@ const AdditionalCharges = ({navigation, route}) => {
     }
   }, [route.params?.additional_charge_id]);
 
-  useEffect(() => {
-    if (!isNull(accessKey || paymentLink) && shouldNavigate) {
-      // Payment link received - you can handle navigation here if needed
-      console.log('Payment link received:', paymentLink);
-      navigation.navigate('Settings', {
-        link: paymentLink,
-        accessKey: accessKey,
-        isCharge: true,
-      });
-      setShouldNavigate(false); // Reset the flag after navigation
-    }
-  }, [accessKey, shouldNavigate, navigation]);
 
   const filteredCharges = chargesList.filter(charge =>
     activeTab === 'pending'
@@ -424,45 +412,9 @@ const AdditionalCharges = ({navigation, route}) => {
     rbSheetRef.current?.open();
   };
 
-  const fetchPaymentLink = async id => {
-    const url =
-      BaseSetting.baseUrl +
-      BaseSetting.endpoints.getAdditionalChargesPaymentLink +
-      id;
-
-    console.log('url', url);
-    const headers = {
-      Accept: '*/*',
-      Authorization: 'Bearer ' + accessToken,
-    };
-
-    try {
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: headers,
-      });
-
-      const text = await response.text();
-      const data = text ? JSON.parse(text) : {};
-      console.log('Payment link response:', data);
-
-      if (response.ok) {
-        setPaymentLink(data?.payment_link || null);
-        setAccessKey(data?.access_key || null);
-
-        setShouldNavigate(true); // Only set navigation flag when payment link is successfully fetched
-      } else {
-        console.log('Error fetching payment link');
-        setPaymentLink(null);
-        setShouldNavigate(false);
-        if (data?.code === 'SECURITY_DEPOSIT_UNPAID') {
-          navigation.navigate('SecurityDeposit');
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching payment link:', error);
-      setPaymentLink(null);
-    }
+  const fetchPaymentLink = id => {
+    const c = chargesList.find(x => x.additional_charge_id === id);
+    startCheckout({kind: 'additional_charge', id, title: c?.title || 'Extra charge', subtitle: 'Extra charge', amount: c?.payment_amount});
   };
 
   const fetchInvoiceLink = id =>

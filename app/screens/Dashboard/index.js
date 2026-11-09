@@ -35,7 +35,7 @@ import FestivalMark, {MOTIFS} from '@components/FestivalMark';
 import {useFestival} from '@utils/useFestival';
 import {useHeaderTop} from '@components/ScreenHeader';
 import {usePaymentQueue, dueRowProps} from '@utils/usePaymentQueue';
-import {startPayment} from '@utils/startPayment';
+import {startCheckout} from '@utils/checkout';
 import {Brand} from '@config/brand';
 import {tap} from '@utils/haptics';
 const DashboardScreen = ({navigation}) => {
@@ -429,7 +429,7 @@ const DashboardScreen = ({navigation}) => {
                 activeOpacity={0.85}
                 onPress={() => {
                   tap();
-                  startPayment(navigation, dueRowProps(dues[0], queue.pr_id).payPath);
+                  startCheckout(dueRowProps(dues[0], queue.pr_id).checkout);
                 }}
                 style={styles.cta}>
                 <Text style={styles.ctaText} numberOfLines={1}>

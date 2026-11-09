@@ -18,7 +18,8 @@ import {Brand} from '@config/brand';
 import ScreenHeader from '@components/ScreenHeader';
 import {TAB_BAR_SPACE} from '@navigation/BottomTab';
 import {useSecurityDeposit} from '@utils/useSecurityDeposit';
-import {startPayment} from '@utils/startPayment';
+import {startCheckout} from '@utils/checkout';
+import {onPaymentChange} from '@utils/paymentEvents';
 import {downloadPdf} from '@utils/downloadPdf';
 
 const money = n => '₹' + Number(n || 0).toLocaleString('en-IN');
@@ -55,15 +56,10 @@ export default function SecurityDeposit({navigation}) {
     setRefreshing(false);
   };
 
-  const pay = useCallback(async () => {
-    setPaying(true);
-    const opened = await startPayment(
-      navigation,
-      `client/security-deposit/initiate-payment/${shop?.pr_id}`,
-    );
-    watching.current = opened;
-    setPaying(false);
-  }, [navigation, shop?.pr_id]);
+  useEffect(() => onPaymentChange(reload), [reload]);
+
+  const pay = () =>
+    startCheckout({kind: 'deposit', id: data?.id, prId: shop?.pr_id, title: 'Security deposit', subtitle: shop?.property_name, amount: data?.amount});
 
   return (
     <View style={styles.screen}>

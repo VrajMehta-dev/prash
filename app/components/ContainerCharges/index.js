@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useEffect, useCallback, useState} from 'react';
 import {View, Text, StyleSheet, ScrollView, RefreshControl} from 'react-native';
 import TouchableOpacity from '@components/PressableScale';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -7,7 +7,8 @@ import {useFocusEffect} from '@react-navigation/native';
 import moment from 'moment';
 import {Brand} from '@config/brand';
 import {apiGet} from '@utils/authedApi';
-import {startPayment} from '@utils/startPayment';
+import {startCheckout} from '@utils/checkout';
+import {onPaymentChange} from '@utils/paymentEvents';
 import {usePaymentQueue} from '@utils/usePaymentQueue';
 import {TabSelector} from '@components/BillBoard';
 import ScreenHeader from '@components/ScreenHeader';
@@ -71,13 +72,11 @@ function ChargeCard({charge, navigation, blockedBy}) {
       <View style={styles.actions}>
         {!paid && (
           <TouchableOpacity
-            disabled={busy || !!blockedBy}
+            disabled={!!blockedBy}
             style={[styles.btn, styles.btnPrimary, !!blockedBy && {backgroundColor: '#ECECF1'}]}
-            onPress={async () => {
-              setBusy(true);
-              await startPayment(navigation, `client/container-charges/initiate-payment/${id}`);
-              setBusy(false);
-            }}>
+            onPress={() =>
+              startCheckout({kind: 'container_charge', id, title: charge.title, subtitle: 'Container charge', amount: charge.payment_amount})
+            }>
             <Icon name={blockedBy ? 'lock-outline' : 'credit-card-outline'} size={18} color={blockedBy ? '#8A8A95' : '#fff'} />
             <Text style={[styles.btnPrimaryText, !!blockedBy && {color: '#8A8A95'}]}>{blockedBy ? 'Locked' : 'Pay now'}</Text>
           </TouchableOpacity>
@@ -121,6 +120,7 @@ export default function ContainerCharges({navigation}) {
   }, [prId]);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
+  useEffect(() => onPaymentChange(load), [load]);
 
   const [activeTab, setActiveTab] = useState('pending');
   const shop = useSelector(s => s.auth.shopSelected);

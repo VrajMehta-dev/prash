@@ -1,10 +1,10 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {View, Text, StyleSheet, ActivityIndicator, Platform, StatusBar} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {useSelector} from 'react-redux';
 import TouchableOpacity from '@components/PressableScale';
 import {Brand} from '@config/brand';
-import {startPayment} from '@utils/startPayment';
+import {startCheckout} from '@utils/checkout';
 import {tap} from '@utils/haptics';
 
 const money = n => '₹' + Number(n || 0).toLocaleString('en-IN');
@@ -13,15 +13,9 @@ const money = n => '₹' + Number(n || 0).toLocaleString('en-IN');
 // for the outlet until then, so one clear page replaces repeated banners and locked lists.
 export default function DepositGate({deposit, navigation}) {
   const shop = useSelector(s => s.auth.shopSelected);
-  const [busy, setBusy] = useState(false);
-  const pay = async () => {
+  const pay = () => {
     tap();
-    setBusy(true);
-    try {
-      await startPayment(navigation, `client/security-deposit/initiate-payment/${shop?.pr_id}`);
-    } finally {
-      setBusy(false);
-    }
+    startCheckout({kind: 'deposit', id: deposit?.id, prId: shop?.pr_id, title: 'Security deposit', subtitle: shop?.property_name, amount: deposit?.amount});
   };
   return (
     <View style={styles.screen}>
@@ -33,8 +27,8 @@ export default function DepositGate({deposit, navigation}) {
       <Text style={styles.text}>
         {`Rent, extra charges and container charges for ${shop?.property_name || 'this outlet'} unlock as soon as the deposit is paid.`}
       </Text>
-      <TouchableOpacity activeOpacity={0.85} onPress={pay} disabled={busy} style={styles.cta}>
-        {busy ? <ActivityIndicator color="#fff" /> : <Text style={styles.ctaText}>Pay security deposit</Text>}
+      <TouchableOpacity activeOpacity={0.85} onPress={pay} style={styles.cta}>
+        <Text style={styles.ctaText}>Pay security deposit</Text>
       </TouchableOpacity>
       <Text style={styles.hint}>Have another outlet? Switch it from Home.</Text>
     </View>

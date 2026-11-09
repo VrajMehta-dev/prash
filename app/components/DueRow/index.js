@@ -1,26 +1,20 @@
-import React, {useState} from 'react';
-import {View, Text, StyleSheet, ActivityIndicator} from 'react-native';
+import React from 'react';
+import {View, Text, StyleSheet} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import TouchableOpacity from '@components/PressableScale';
 import {Brand} from '@config/brand';
-import {startPayment} from '@utils/startPayment';
+import {startCheckout} from '@utils/checkout';
 import {tap} from '@utils/haptics';
 
 const money = n => '₹' + Number(n || 0).toLocaleString('en-IN');
 
 // One unpaid item with an inline Pay button: opens the payment sheet directly (no detour through
-// Rent/Extras/Containers). `payPath` is the initiate-payment API path for this item.
-export default function DueRow({navigation, icon, title, sub, amount, payPath, blockedBy, highlight, style}) {
-  const [busy, setBusy] = useState(false);
-  const pay = async () => {
-    if (busy || blockedBy) return;
+// Rent/Extras/Containers). `checkout` describes the item for the Review & pay sheet.
+export default function DueRow({icon, title, sub, amount, checkout, blockedBy, highlight, style}) {
+  const pay = () => {
+    if (blockedBy) return;
     tap();
-    setBusy(true);
-    try {
-      await startPayment(navigation, payPath);
-    } finally {
-      setBusy(false);
-    }
+    startCheckout(checkout);
   };
   return (
     <View style={[styles.row, highlight && styles.highlight, !!blockedBy && styles.blocked, style]}>
@@ -33,8 +27,8 @@ export default function DueRow({navigation, icon, title, sub, amount, payPath, b
         {!!blockedBy && <Text style={styles.blockedNote} numberOfLines={2}>{`Pay "${blockedBy}" first`}</Text>}
         <Text style={styles.amount}>{money(amount)}</Text>
       </View>
-      <TouchableOpacity activeOpacity={0.85} disabled={busy || !!blockedBy} onPress={pay} style={[styles.pay, !!blockedBy && styles.payLocked]}>
-        {busy ? <ActivityIndicator size="small" color="#fff" /> : blockedBy ? <Icon name="lock-closed-outline" size={18} color="#8A8A95" /> : <Text style={styles.payText}>Pay</Text>}
+      <TouchableOpacity activeOpacity={0.85} disabled={!!blockedBy} onPress={pay} style={[styles.pay, !!blockedBy && styles.payLocked]}>
+        {blockedBy ? <Icon name="lock-closed-outline" size={18} color="#8A8A95" /> : <Text style={styles.payText}>Pay</Text>}
       </TouchableOpacity>
     </View>
   );

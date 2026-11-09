@@ -1,7 +1,8 @@
-import {useCallback, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {useFocusEffect} from '@react-navigation/native';
 import {useSelector} from 'react-redux';
 import {apiGet} from '@utils/authedApi';
+import {onPaymentChange} from '@utils/paymentEvents';
 
 // Everything owed for the selected outlet, in the order the server requires it to be paid:
 // security deposit > container charges > extra charges > rent (oldest first). Only the first
@@ -24,16 +25,17 @@ export function usePaymentQueue() {
       reload();
     }, [reload]),
   );
+  useEffect(() => onPaymentChange(reload), [reload]);
   // Title of the item that must be paid before (type, id), or undefined when it can be paid now.
   const blockedOf = (type, id) => items?.find(i => i.type === type && i.id === Number(id))?.blocked_by?.title;
   return {items, pr_id, reload, blockedOf};
 }
 
 const KIND = {
-  deposit: {icon: 'lock-closed-outline', sub: 'Security deposit', path: (i, pr) => `client/security-deposit/initiate-payment/${pr}`},
-  container_charge: {icon: 'cube-outline', sub: 'Container charge', path: i => `client/container-charges/initiate-payment/${i.id}`},
-  additional_charge: {icon: 'layers-outline', sub: 'Extra charge', path: i => `client/additional-charges/initiate-payment/${i.id}`},
-  bill: {icon: 'receipt-outline', sub: 'Monthly rent', path: i => `client/bills/initiate-payment/${i.id}`},
+  deposit: {icon: 'lock-closed-outline', sub: 'Security deposit'},
+  container_charge: {icon: 'cube-outline', sub: 'Container charge'},
+  additional_charge: {icon: 'layers-outline', sub: 'Extra charge'},
+  bill: {icon: 'receipt-outline', sub: 'Monthly rent'},
 };
 
 // Props for <DueRow/> from a queue item.
@@ -42,7 +44,7 @@ export const dueRowProps = (item, pr_id) => ({
   title: item.title,
   sub: KIND[item.type].sub,
   amount: item.amount,
-  payPath: KIND[item.type].path(item, pr_id),
+  checkout: {kind: item.type, id: item.id, title: item.title, subtitle: KIND[item.type].sub, amount: item.amount, prId: pr_id},
   blockedBy: item.blocked_by?.title,
   highlight: item.type === 'deposit',
 });

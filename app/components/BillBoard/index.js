@@ -31,6 +31,8 @@ import * as Animatable from 'react-native-animatable';
 import Toast from 'react-native-toast-message';
 import SettleBillsModal from '@components/PendingModal';
 import moment from 'moment';
+import {startCheckout} from '@utils/checkout';
+import {onPaymentChange} from '@utils/paymentEvents';
 
 const TabSelector = ({activeTab, onTabChange}) => (
   <View style={styles.tabContainer}>
@@ -476,8 +478,6 @@ const BillsDashboard = ({navigation}) => {
   const queue = usePaymentQueue();
   const [activeTab, setActiveTab] = useState('pending');
   const [billsList, setBillsList] = useState([]);
-  const [paymentLink, setPaymentLink] = useState(null);
-  const [accessKey, setAccessKey] = useState(null);
   const [invoiceLink, setinvoiceLink] = useState(null);
   const {accessToken} = useSelector(state => state.auth);
   const {shopSelected} = useSelector(state => state.auth);
@@ -491,15 +491,8 @@ const BillsDashboard = ({navigation}) => {
     fetchData();
     checkAdditionalCharges();
   }, [fetchData, checkAdditionalCharges, isFocused]);
+  useEffect(() => onPaymentChange(fetchData), [fetchData]);
 
-  useEffect(() => {
-    if (!isNull(accessKey || paymentLink)) {
-      navigation.navigate('Settings', {
-        link: paymentLink,
-        accessKey: accessKey,
-      });
-    }
-  }, [accessKey, navigation]);
 
   // Manage modal visibility based on pending states
 
@@ -594,57 +587,9 @@ const BillsDashboard = ({navigation}) => {
       setIsAdditionalChargePending(false);
     }
   }, [shopSelected?.pr_id, accessToken]);
-  const fetchPaymentLink = async id => {
-    const url = BaseSetting.baseUrl + BaseSetting.endpoints.getPaymentLink + id;
-
-    console.log('url', url);
-    const headers = {
-      Accept: '*/*',
-      Authorization: 'Bearer ' + accessToken,
-    };
-
-    try {
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: headers,
-      });
-
-      const text = await response.text();
-      const data = text ? JSON.parse(text) : {};
-
-      if (response.ok) {
-        setPaymentLink(data?.payment_link || null);
-        setAccessKey(data?.access_key || null);
-      } else {
-        console.log('Error fetching bills');
-        setPaymentLink(null);
-        setAccessKey(data?.access_key || null);
-        if (data?.code === 'SECURITY_DEPOSIT_UNPAID') {
-          navigation.navigate('SecurityDeposit');
-        }
-        if (data?.is_prev_bill_pending) {
-          setIsPreviousBillPending(true);
-          setShowModal(true);
-        }
-        if (data?.is_additional_charge_pending) {
-          setIsAdditionalChargePending(true);
-          setShowModal(true);
-        }
-
-        // Show modal if either state is true
-        if (data?.is_prev_bill_pending || data?.is_additional_charge_pending) {
-          setShowModal(true);
-        }
-        Toast.show({
-          text1: 'Opps!',
-          text2: data?.msg || 'Something went wrong',
-          type: 'error',
-        });
-        // setBillsList([]);
-      }
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
+  const fetchPaymentLink = id => {
+    const b = billsList.find(x => x.bill_id === id);
+    startCheckout({kind: 'bill', id, title: b?.month ? `Rent for ${moment(b.month).format('MMM YYYY')}` : 'Monthly rent', subtitle: 'Monthly rent', amount: b?.payment_amount});
   };
 
   const fetchInvoiceLink = id =>
