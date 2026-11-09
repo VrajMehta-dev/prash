@@ -160,6 +160,12 @@ const Login = ({navigation}) => {
       const unique_id = await DeviceInfo.getUniqueId();
       const manufacturer = await DeviceInfo.getManufacturer();
       const is_emulator = await DeviceInfo.isEmulator();
+      // Android only exposes the model code (A069P); the name the phone calls itself (usually the
+      // marketing name, e.g. "Nothing Phone (4a) Pro") comes from the device-name setting.
+      let device_name = null;
+      try {
+        device_name = await DeviceInfo.getDeviceName();
+      } catch (e) {}
 
       setDeviceInfo({
         device_id,
@@ -172,6 +178,7 @@ const Login = ({navigation}) => {
         unique_id,
         manufacturer,
         is_emulator,
+        device_name,
       });
     };
 
