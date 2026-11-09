@@ -18,6 +18,11 @@ try {
   initializeEasebuzzCheckout = require('react-native-easebuzz-sdk').initializeEasebuzzCheckout;
 } catch (e) {}
 
+// Easebuzz often sends "NA" or a bank code instead of a reason: only show text a person can read.
+const cleanReason = r => {
+  const t = String(r || '').trim();
+  return !t || /^(na|n\/a|null|undefined|failed?)$/i.test(t) || t.length > 140 ? '' : t;
+};
 const money = n => '₹' + Number(n || 0).toLocaleString('en-IN');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const BUSY = ['starting', 'sdk', 'confirming']; // the sheet cannot be dismissed while one of these is running
@@ -161,7 +166,7 @@ export default function CheckoutSheet() {
         // Easebuzz told us it failed: the server unlocks the retry at once.
         await forward(k.failure, signed);
         tap('notificationError');
-        setMessage(signed.error_Message || signed.error || 'The payment did not go through.');
+        setMessage(cleanReason(signed.error_Message || signed.error));
         setStage('failed');
       } else if (res === 'user_cancelled' || res === 'bank_back_pressed') {
         setStage('cancelled');
@@ -261,9 +266,18 @@ export default function CheckoutSheet() {
         return (
           <View style={styles.center}>
             <Circle bg="#FBE4E1" icon="close" color="#C0392B" />
-            <Text style={styles.stateTitle}>Payment didn't go through</Text>
-            <Text style={styles.stateText}>{message}</Text>
-            <Button label="Try again" onPress={() => { setStage('review'); }} />
+            <Text style={styles.stateTitle}>Payment failed</Text>
+            <Text style={styles.stateAmount}>{money(item.amount)}</Text>
+            <Text style={styles.stateText}>
+              {message || 'Your bank or UPI app did not complete the payment.'}
+            </Text>
+            <View style={styles.note}>
+              <Icon name="shield-checkmark-outline" size={18} color="#1E7B4B" />
+              <Text style={styles.noteText}>
+                No money was taken. If your account was debited, it is refunded by your bank in 3 to 5 working days.
+              </Text>
+            </View>
+            <Button label="Try again" icon="refresh" onPress={() => setStage('review')} />
             <Ghost label="Close" onPress={close} />
           </View>
         );
@@ -432,9 +446,11 @@ const styles = StyleSheet.create({
   slide: {height: 56, borderRadius: 28, backgroundColor: Brand.primary, justifyContent: 'center', marginTop: 14, paddingLeft: 4},
   slideText: {color: '#fff', fontSize: 16, fontWeight: '700', textAlign: 'center', paddingLeft: KNOB},
   knob: {position: 'absolute', left: 4, width: KNOB, height: KNOB, borderRadius: KNOB / 2, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center'},
-  cta: {height: 54, borderRadius: 16, backgroundColor: Brand.primary, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, marginTop: 14},
+  note: {flexDirection: 'row', gap: 10, alignItems: 'flex-start', backgroundColor: '#EEF8F2', borderRadius: 14, padding: 12, marginTop: 6, alignSelf: 'stretch'},
+  noteText: {flex: 1, color: '#2F6B4B', fontSize: 13, lineHeight: 18},
+  cta: {alignSelf: 'stretch', height: 54, borderRadius: 16, backgroundColor: Brand.primary, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, marginTop: 14},
   ctaText: {color: '#fff', fontSize: 17, fontWeight: '700'},
-  ghost: {alignItems: 'center', paddingVertical: 14},
+  ghost: {alignSelf: 'stretch', alignItems: 'center', paddingVertical: 14},
   ghostText: {color: Brand.primary, fontSize: 15, fontWeight: '700'},
   center: {alignItems: 'center'},
   circle: {width: 84, height: 84, borderRadius: 42, alignItems: 'center', justifyContent: 'center', marginTop: 6},
