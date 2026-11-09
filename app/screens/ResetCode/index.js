@@ -1,10 +1,31 @@
-import React, {useRef, useState} from 'react';
-import {View, Text, StyleSheet, ActivityIndicator} from 'react-native';
+import React, {useEffect, useRef, useState} from 'react';
+import {View, Text, StyleSheet, ActivityIndicator, AppState} from 'react-native';
 import Toast from 'react-native-toast-message';
 import TouchableOpacity from '@components/PressableScale';
 import {ResetLayout, OtpBoxes, PrimaryButton, resetApi, fmtClock, useSecondsLeft, OTP_LENGTH} from '@components/ResetFlow';
 import {Brand} from '@config/brand';
 import {tap} from '@utils/haptics';
+
+// Clipboard fill: copy the code in the email (long-press, Copy), come back, and the boxes fill themselves. Works with
+// every mail app. The native module is loaded defensively: a build without it just skips this.
+let Clipboard = null;
+try {
+  Clipboard = require('@react-native-clipboard/clipboard').default;
+} catch (e) {}
+
+// The code if the clipboard is, or clearly contains, one 4-digit code. Anything else (a PIN inside other text, a
+// phone number) is ignored: a wrong auto-submit would burn one of only 3 tries.
+const codeFromClipboard = text => {
+  const t = String(text || '').trim();
+  if (/^\d{4}$/.test(t)) {
+    return t;
+  }
+  if (t.length <= 200 && /\b(otp|code)\b/i.test(t)) {
+    const m = t.match(/(?:^|\D)(\d{4})(?!\d)/);
+    return m ? m[1] : null;
+  }
+  return null;
+};
 
 // Step 2: enter the code. It is checked by the server right away (the old flow only found out at the last step).
 export default function ResetCode({navigation, route}) {
@@ -18,6 +39,9 @@ export default function ResetCode({navigation, route}) {
   const [busy, setBusy] = useState(false);
   const inFlight = useRef(false);
 
+  // codes already taken from the clipboard: a wrong one must not be re-applied every time the app comes back to front
+  const usedClip = useRef(new Set());
+  const stateRef = useRef({});
   const expiresLeft = useSecondsLeft(expireAt);
   const resendLeft = useSecondsLeft(resendAt);
   const expired = expiresLeft === 0 || locked;
@@ -64,6 +88,33 @@ export default function ResetCode({navigation, route}) {
       fail(r.data?.msg || 'Something went wrong. Please try again.');
     }
   };
+
+  stateRef.current = {code, busy, expired, verify};
+  useEffect(() => {
+    if (!Clipboard) {
+      return undefined;
+    }
+    const tryClipboard = async () => {
+      const s = stateRef.current;
+      if (s.busy || s.expired || s.code.length > 0 || inFlight.current) {
+        return;
+      }
+      try {
+        if (Clipboard.hasString && !(await Clipboard.hasString())) {
+          return; // nothing copied: avoids iOS's "pasted from" banner
+        }
+        const found = codeFromClipboard(await Clipboard.getString());
+        if (found && !usedClip.current.has(found)) {
+          usedClip.current.add(found);
+          setCode(found);
+          s.verify(found);
+        }
+      } catch (e) {}
+    };
+    tryClipboard();
+    const sub = AppState.addEventListener('change', st => st === 'active' && tryClipboard());
+    return () => sub.remove();
+  }, []);
 
   const resend = async () => {
     if (inFlight.current) {

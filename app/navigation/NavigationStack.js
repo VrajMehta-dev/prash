@@ -15,6 +15,7 @@ import Toast from 'react-native-toast-message';
 import _ from 'lodash';
 import NoInternet from '@components/NoInternet';
 import {lightColors, darkColors, ToastConfig} from '@config/theme';
+import {TOAST_TOP} from '@components/AppToast';
 import authActions from '@redux/reducers/auth/actions';
 import {store} from '@redux/store/configureStore';
 import CustomDrawer from './CustomDrawer';
@@ -302,7 +303,7 @@ function App() {
         <NoInternet />
         <RemotePushController />
       </NavigationContainer>
-      <Toast  visibilityTime={2000} autoHide={true} config={toastConfig} />
+      <Toast visibilityTime={3500} autoHide={true} topOffset={TOAST_TOP} config={toastConfig} />
     </>
   );
 }

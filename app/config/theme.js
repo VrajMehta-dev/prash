@@ -4,6 +4,7 @@ import {Appearance, StyleSheet} from 'react-native';
 import {useTheme} from '@react-navigation/native';
 import {useSelector} from 'react-redux';
 import {BaseToast} from 'react-native-toast-message';
+import {appToastConfig} from '@components/AppToast';
 
 export const BaseColors = {
   red: '#E94235',
@@ -210,89 +211,9 @@ export const ToastConfig = () => {
           Overwrite 'success' type,
           by modifying the existing `BaseToast` component
         */
-    success: props => (
-      <BaseToast
-        {...props}
-        text1="Success"
-        style={{borderLeftColor: themeColors.green, marginTop: 25}}
-        contentContainerStyle={{
-          paddingHorizontal: 15,
-          backgroundColor: `${themeColors.green}20`,
-          borderWidth: 1,
-          borderColor: `${themeColors.green}50`,
-          borderTopRightRadius: 5,
-          borderBottomRightRadius: 5,
-        }}
-        text1Style={{
-          fontSize: FontSize.F14,
-          fontWeight: null,
-          fontFamily: FontFamily.semiBold,
-        }}
-        text2NumberOfLines={2}
-        text2Style={{
-          fontSize: FontSize.F12,
-          fontFamily: FontFamily.regular,
-        }}
-      />
-    ),
-    /*
-      Overwrite 'inf' type,
-      by modifying the existing `BaseToast` component
-    */
-    info: props => (
-      <BaseToast
-        {...props}
-        text1="Information!"
-        style={{borderLeftColor: themeColors.primary, marginTop: 25}}
-        contentContainerStyle={{
-          paddingHorizontal: 15,
-          backgroundColor: `${themeColors.primary}20`,
-          borderWidth: 1,
-          borderColor: `${themeColors.primary}50`,
-          borderTopRightRadius: 5,
-          borderBottomRightRadius: 5,
-        }}
-        text1Style={{
-          fontSize: FontSize.F14,
-          fontWeight: null,
-          fontFamily: FontFamily.semiBold,
-        }}
-        text2NumberOfLines={2}
-        text2Style={{
-          fontSize: FontSize.F12,
-          fontFamily: FontFamily.bold,
-        }}
-      />
-    ),
-    /*
-      Overwrite 'error' type,
-      by modifying the existing `BaseToast` component
-    */
-    error: props => (
-      <BaseToast
-        {...props}
-        text1="Oops!"
-        style={{borderLeftColor: themeColors.red, marginTop: 25}}
-        contentContainerStyle={{
-          paddingHorizontal: 15,
-          backgroundColor: `${themeColors.red}20`,
-          borderWidth: 1,
-          borderColor: `${themeColors.red}50`,
-          borderTopRightRadius: 5,
-          borderBottomRightRadius: 5,
-        }}
-        text1Style={{
-          fontSize: FontSize.F14,
-          fontWeight: null,
-          fontFamily: FontFamily.semiBold,
-        }}
-        text2Style={{
-          fontSize: FontSize.F12,
-          fontFamily: FontFamily.regular,
-        }}
-        text2NumberOfLines={2}
-      />
-    ),
+    // success / error / info: the app's own card style (components/AppToast); the old BaseToast versions also
+    // overrode every title with a fixed word ("Oops!"), so the real title never showed.
+    ...appToastConfig,
     /*
       Create new type 'white',
       by modifying the existing `BaseToast` component
