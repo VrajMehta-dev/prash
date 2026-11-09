@@ -46,7 +46,7 @@ export default function ResetEmail({navigation, route}) {
     }
     setError('');
     setLoading(true);
-    const r = await resetApi('request-password-reset', {email: mail});
+    const r = await resetApi('request-password-reset', {email: mail, otp_length: 4});
     setLoading(false);
     if (r.offline) {
       Toast.show({type: 'error', text1: "You're offline", text2: 'Connect to the internet and try again.'});
@@ -69,7 +69,7 @@ export default function ResetEmail({navigation, route}) {
     <ResetLayout
       step={1}
       title="Reset your password"
-      subtitle="Enter the email linked to your PRASH account. We'll send you a 6-digit code."
+      subtitle="Enter the email linked to your PRASH account. We'll send you a 4-digit code."
       onBack={() => navigation.goBack()}>
       {!!notice && (
         <View style={styles.notice}>

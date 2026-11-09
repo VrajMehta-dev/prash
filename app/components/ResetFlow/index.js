@@ -20,6 +20,9 @@ import {tap} from '@utils/haptics';
 
 // Shared pieces of the 3-step password reset (ResetEmail -> ResetCode -> ResetNewPassword).
 
+// The reset code is 4 digits (the server is told so; the old app, which cannot, still gets 6).
+export const OTP_LENGTH = 4;
+
 export async function resetApi(path, body) {
   try {
     const res = await fetch(BaseSetting.baseUrl + 'client/' + path, {
@@ -108,9 +111,9 @@ export function OtpBoxes({value, onChange, onComplete, hasError, errorKey, edita
   }, [errorKey]);
 
   const set = text => {
-    const digits = text.replace(/\D/g, '').slice(0, 6);
+    const digits = text.replace(/\D/g, '').slice(0, OTP_LENGTH);
     onChange(digits);
-    if (digits.length === 6) {
+    if (digits.length === OTP_LENGTH) {
       onComplete?.(digits);
     }
   };
@@ -118,8 +121,8 @@ export function OtpBoxes({value, onChange, onComplete, hasError, errorKey, edita
   return (
     <Animated.View style={{transform: [{translateX: shake}]}}>
       <View style={styles.boxes}>
-        {Array.from({length: 6}, (_, i) => {
-          const active = focused && editable && (value.length === i || (value.length === 6 && i === 5));
+        {Array.from({length: OTP_LENGTH}, (_, i) => {
+          const active = focused && editable && (value.length === i || (value.length === OTP_LENGTH && i === OTP_LENGTH - 1));
           return (
             <View key={i} style={[styles.box, active && styles.boxActive, hasError && styles.boxError]}>
               <Text style={styles.boxText}>{value[i] || ''}</Text>
@@ -133,14 +136,14 @@ export function OtpBoxes({value, onChange, onComplete, hasError, errorKey, edita
           editable={editable}
           autoFocus={autoFocus}
           keyboardType="number-pad"
-          maxLength={6}
+          maxLength={OTP_LENGTH}
           textContentType="oneTimeCode"
           autoComplete="sms-otp"
           caretHidden
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           style={styles.hiddenInput}
-          accessibilityLabel="6-digit code"
+          accessibilityLabel="4-digit code"
         />
       </View>
     </Animated.View>
@@ -173,11 +176,11 @@ const styles = StyleSheet.create({
   stepText: {color: '#8A8A95', fontSize: 12, fontWeight: '600', marginTop: 8, marginBottom: 14},
   title: {color: '#1F1F24', fontSize: 25, fontWeight: '700'},
   subtitle: {color: '#7A7A85', fontSize: 14, lineHeight: 20, marginTop: 6, marginBottom: 20},
-  boxes: {flexDirection: 'row', justifyContent: 'space-between'},
-  box: {width: 46, height: 56, borderRadius: 12, backgroundColor: '#F6F6F9', borderWidth: 1.5, borderColor: '#ECECF1', alignItems: 'center', justifyContent: 'center'},
+  boxes: {flexDirection: 'row', justifyContent: 'center', gap: 14},
+  box: {width: 60, height: 64, borderRadius: 12, backgroundColor: '#F6F6F9', borderWidth: 1.5, borderColor: '#ECECF1', alignItems: 'center', justifyContent: 'center'},
   boxActive: {borderColor: Brand.primary, backgroundColor: '#fff'},
   boxError: {borderColor: '#C0392B', backgroundColor: '#FDF3F2'},
-  boxText: {fontSize: 24, fontWeight: '700', color: '#1F1F24'},
+  boxText: {fontSize: 28, fontWeight: '700', color: '#1F1F24'},
   hiddenInput: {...StyleSheet.absoluteFillObject, opacity: 0.02, color: 'transparent'},
   cta: {height: 54, borderRadius: 14, backgroundColor: Brand.primary, alignItems: 'center', justifyContent: 'center', marginTop: 8},
   ctaOff: {opacity: 0.5},
