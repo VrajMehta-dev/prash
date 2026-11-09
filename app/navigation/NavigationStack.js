@@ -36,8 +36,9 @@ import SignInScreen from '@screens/Login';
 import IntroScreen from '@screens/Intro';
 import RegisterScreen from '@screens/Register';
 import PoolDetailsScreen from '@screens/PoolDetails';
-import ForgotPassword from '@screens/ForgotPassword';
-import ResetPasswordScreen from '@screens/ResetPassword';
+import ResetEmail from '@screens/ResetEmail';
+import ResetCode from '@screens/ResetCode';
+import ResetNewPassword from '@screens/ResetNewPassword';
 import SignUpMethods from '@screens/SignUpMethods';
 import CreatePost from '@screens/CreatePost';
 import SettingsScreen from '@screens/Setting';
@@ -253,30 +254,39 @@ function App() {
             }}
           />
           <Stack.Screen
-            name="ForgotPassword"
-            component={ForgotPassword}
-            options={{
-              ...navOptions,
-              cardStyleInterpolator:
-                CardStyleInterpolators.forFadeFromBottomAndroid,
-            }}
-          />
-          <Stack.Screen
-            name="ResetPassword"
-            component={ResetPasswordScreen}
-            options={{
-              ...navOptions,
-              cardStyleInterpolator:
-                CardStyleInterpolators.forFadeFromBottomAndroid,
-            }}
-          />
-          <Stack.Screen
             name="Intro"
             component={IntroScreen}
             options={{
               ...navOptions,
               cardStyleInterpolator:
                 CardStyleInterpolators.forScaleFromCenterAndroid,
+            }}
+          />
+          <Stack.Screen
+            name="ResetEmail"
+            component={ResetEmail}
+            options={{
+              ...navOptions,
+              cardStyleInterpolator:
+                CardStyleInterpolators.forHorizontalIOS,
+            }}
+          />
+          <Stack.Screen
+            name="ResetCode"
+            component={ResetCode}
+            options={{
+              ...navOptions,
+              cardStyleInterpolator:
+                CardStyleInterpolators.forHorizontalIOS,
+            }}
+          />
+          <Stack.Screen
+            name="ResetNewPassword"
+            component={ResetNewPassword}
+            options={{
+              ...navOptions,
+              cardStyleInterpolator:
+                CardStyleInterpolators.forHorizontalIOS,
             }}
           />
           <Stack.Screen

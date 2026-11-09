@@ -48,8 +48,8 @@ const {width, height} = Dimensions.get('window');
 
 const STATUS_H = Platform.OS === 'ios' ? 50 : StatusBar.currentHeight || 24;
 
-const Login = ({navigation}) => {
-  const [email, setEmail] = useState('');
+const Login = ({navigation, route}) => {
+  const [email, setEmail] = useState(route?.params?.email || ''); // prefilled after a password reset
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
@@ -264,7 +264,10 @@ const Login = ({navigation}) => {
           });
         }
         if (data?.msg === 'Email not verified. Please reset your password.') {
-          navigation.replace('OTPVerification', {email: email, isForgot: true});
+          navigation.replace('ResetEmail', {
+            email: email,
+            notice: "Your email isn't verified yet. Reset your password to verify it.",
+          });
         }
       }
 
@@ -534,7 +537,7 @@ const Login = ({navigation}) => {
 
               <TouchableOpacity
                 onPress={() => {
-                  navigation.navigate('ForgotPassword', {email: email});
+                  navigation.navigate('ResetEmail', {email: email});
                 }}
                 style={styles.forgotPassword}>
                 <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
