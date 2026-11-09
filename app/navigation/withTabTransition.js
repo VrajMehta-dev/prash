@@ -1,4 +1,5 @@
 import React from 'react';
+import {Dimensions} from 'react-native';
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import Animated, {
   useSharedValue,
@@ -22,7 +23,7 @@ const ORDER = [
   'HelpAndSupport',
   'Profile',
 ];
-const SLIDE = 56; // px the screen travels; the old screen is already gone, so a short travel + fade reads as a slide
+const SLIDE = Dimensions.get('window').width; // a pure slide: the new screen travels the full width from its side, no fade
 let lastIndex = 0;
 
 export default function withTabTransition(Screen) {
@@ -37,14 +38,13 @@ export default function withTabTransition(Screen) {
         lastIndex = idx;
         cancelAnimation(p);
         p.value = 0;
-        p.value = withTiming(1, {duration: 280, easing: Easing.out(Easing.cubic)});
+        p.value = withTiming(1, {duration: 300, easing: Easing.out(Easing.cubic)});
       } else {
         p.value = 0;
       }
     }, [focused]);
     const style = useAnimatedStyle(() => ({
       flex: 1,
-      opacity: 0.3 + 0.7 * p.value,
       transform: [{translateX: dir.value * SLIDE * (1 - p.value)}],
     }));
     return (
