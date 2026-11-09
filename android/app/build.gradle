@@ -90,12 +90,10 @@ android {
 
     signingConfigs {
          debug {
-            // uat branch: sideload APK signed with the machine's standard debug key (villaVote.keystore is not available).
-            // ponytail: updates only install over a build signed on the same machine; share a keystore if several people build UAT.
-            storeFile file("${System.getProperty('user.home')}/.android/debug.keystore")
-            storePassword 'android'
-            keyAlias 'androiddebugkey'
-            keyPassword 'android'
+            storeFile file('villaVote.keystore')
+            storePassword '123456'
+            keyAlias 'villaVote'
+            keyPassword '123456'
         }
     }
     buildTypes {
