@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {Modal, PanResponder, View, Text, StyleSheet, Pressable, Animated, Easing, ActivityIndicator, Platform} from 'react-native';
+import {AppState, Linking, Modal, PanResponder, View, Text, StyleSheet, Pressable, Animated, Easing, ActivityIndicator, Platform} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {useSelector} from 'react-redux';
 import TouchableOpacity from '@components/PressableScale';
@@ -25,7 +25,7 @@ const cleanReason = r => {
 };
 const money = n => '₹' + Number(n || 0).toLocaleString('en-IN');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
-const BUSY = ['starting', 'sdk', 'confirming']; // the sheet cannot be dismissed while one of these is running
+const BUSY = ['starting', 'sdk', 'confirming', 'upi']; // the sheet cannot be dismissed while one of these is running
 
 // The SDK resolves with a JSON string: {"result":"payment_successfull","response":{...signed fields}}.
 const parseSdk = raw => {
@@ -134,7 +134,54 @@ export default function CheckoutSheet() {
     const k = KIND[it.kind];
     try {
       setStage('starting');
-      const r = await apiGet(k.initiate(it));
+      // Try the direct UPI-app flow first (no Easebuzz screen); if Seamless is not available, use the hosted checkout.
+      let r = await apiGet(k.initiate(it) + '?flow=seamless');
+      if (!r.ok && r.data?.code === 'SEAMLESS_UNAVAILABLE') {
+        r = await apiGet(k.initiate(it));
+      }
+      if (r.ok && r.data?.upi_link) {
+        let opened = true;
+        try {
+          await Linking.openURL(r.data.upi_link);
+        } catch (e) {
+          opened = false;
+        }
+        if (opened) {
+          setStage('upi');
+          // Back from the UPI app: ask the server (which asks Easebuzz) what happened.
+          await new Promise(resolve => {
+            let left = false;
+            const sub = AppState.addEventListener('change', st => {
+              if (st !== 'active') {
+                left = true;
+              } else if (left) {
+                sub.remove();
+                resolve();
+              }
+            });
+            // If the app never reports leaving (some devices), do not wait forever.
+            setTimeout(() => {
+              if (!left) {
+                sub.remove();
+                resolve();
+              }
+            }, 15000);
+          });
+          setStage('confirming');
+          const s = await waitForServer(it);
+          if (s.paid) {
+            await succeeded(it, s.ref_no);
+          } else if (s.failed) {
+            setMessage('');
+            setStage('failed');
+          } else {
+            setStage('unclear');
+          }
+          return;
+        }
+        setMessage('No UPI app found on this phone. Use card or net banking instead.');
+        r = await apiGet(k.initiate(it));
+      }
       if (!r.ok || !r.data?.access_key) {
         const code = r.data?.code;
         if (r.status === 403 && code === 'SECURITY_DEPOSIT_UNPAID') {
@@ -265,6 +312,8 @@ export default function CheckoutSheet() {
         );
       case 'starting':
         return <Busy text="Getting your payment ready..." />;
+      case 'upi':
+        return <Busy text="Complete the payment in your UPI app" sub="Come back here after paying. We'll confirm it automatically." />;
       case 'confirming':
         return <Busy text="Confirming your payment..." sub="This takes a few seconds. Please don't close the app." />;
       case 'success':
