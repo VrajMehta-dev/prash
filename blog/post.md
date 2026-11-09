@@ -60,8 +60,6 @@ For tenants, the property manager creates the account. You then install the PRAS
 
 If you manage a food court, market or other commercial property and would like to know whether PRASH fits, get in touch. [TODO: add sales contact or enquiry link here]
 
-Tenants who need help with their account can reach support at [+91 6202 781 773](tel:+916202781773) or [foodcourt.pu@paruluniversity.ac.in](mailto:foodcourt.pu@paruluniversity.ac.in), 9:30 am to 4:30 pm, Monday to Saturday. There is no support on University holidays.
-
 ## Frequently asked questions
 
 **How do I collect rent from many shop tenants?**
