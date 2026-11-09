@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {Modal, View, Text, StyleSheet, Pressable, Animated, Easing, ActivityIndicator, Platform} from 'react-native';
+import {Modal, PanResponder, View, Text, StyleSheet, Pressable, Animated, Easing, ActivityIndicator, Platform} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {useSelector} from 'react-redux';
 import TouchableOpacity from '@components/PressableScale';
@@ -235,7 +235,7 @@ export default function CheckoutSheet() {
             <Text style={styles.secure}>
               <Icon name="lock-closed-outline" size={13} color="#8A8A95" /> Secure payment by Easebuzz: UPI, cards and net banking.
             </Text>
-            <Button label={`Pay ${money(item.amount)}`} onPress={pay} />
+            <SlideToPay label={`Slide to pay | ${money(item.amount)}`} onDone={pay} />
           </>
         );
       case 'starting':
@@ -348,6 +348,45 @@ const Row = ({label, value}) => (
     <Text style={styles.rowValue} numberOfLines={1}>{value}</Text>
   </View>
 );
+const KNOB = 48;
+// Drag the knob across to confirm. Releasing early snaps back, so a stray tap can't start a payment.
+function SlideToPay({label, onDone}) {
+  const [w, setW] = useState(0);
+  const x = useRef(new Animated.Value(0)).current;
+  const max = Math.max(w - KNOB - 8, 1);
+  const done = useRef(onDone);
+  done.current = onDone;
+  const pan = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderTerminationRequest: () => false,
+      onPanResponderMove: (_, g) => x.setValue(Math.min(Math.max(g.dx, 0), maxRef.current)),
+      onPanResponderRelease: (_, g) => {
+        if (g.dx >= maxRef.current * 0.8) {
+          tap('notificationSuccess');
+          Animated.timing(x, {toValue: maxRef.current, duration: 80, useNativeDriver: true}).start(() => {
+            done.current();
+            setTimeout(() => x.setValue(0), 400);
+          });
+        } else {
+          Animated.spring(x, {toValue: 0, useNativeDriver: true}).start();
+        }
+      },
+    }),
+  ).current;
+  const maxRef = useRef(max);
+  maxRef.current = max;
+  const fade = x.interpolate({inputRange: [0, max * 0.6], outputRange: [1, 0], extrapolate: 'clamp'});
+  return (
+    <View style={styles.slide} onLayout={e => setW(e.nativeEvent.layout.width)}>
+      <Animated.Text style={[styles.slideText, {opacity: fade}]}>{label}</Animated.Text>
+      <Animated.View style={[styles.knob, {transform: [{translateX: x}]}]} {...pan.panHandlers}>
+        <Icon name="chevron-forward" size={26} color={Brand.primary} />
+      </Animated.View>
+    </View>
+  );
+}
 const Busy = ({text, sub}) => (
   <View style={[styles.center, {paddingVertical: 36}]}>
     <ActivityIndicator size="large" color={Brand.primary} />
@@ -390,6 +429,9 @@ const styles = StyleSheet.create({
   totalLabel: {color: '#17171C', fontSize: 16, fontWeight: '700'},
   total: {color: '#17171C', fontSize: 26, fontWeight: '800'},
   secure: {color: '#8A8A95', fontSize: 12, textAlign: 'center', marginTop: 12},
+  slide: {height: 56, borderRadius: 28, backgroundColor: Brand.primary, justifyContent: 'center', marginTop: 14, paddingLeft: 4},
+  slideText: {color: '#fff', fontSize: 16, fontWeight: '700', textAlign: 'center', paddingLeft: KNOB},
+  knob: {position: 'absolute', left: 4, width: KNOB, height: KNOB, borderRadius: KNOB / 2, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center'},
   cta: {height: 54, borderRadius: 16, backgroundColor: Brand.primary, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, marginTop: 14},
   ctaText: {color: '#fff', fontSize: 17, fontWeight: '700'},
   ghost: {alignItems: 'center', paddingVertical: 14},
