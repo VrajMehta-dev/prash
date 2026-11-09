@@ -5,9 +5,12 @@ import {standaloneRepository} from '@hot-updater/standalone';
 import {defineConfig} from 'hot-updater';
 import {apiKeys, insights} from 'hot-updater/plugins';
 
-// UAT publish target. Secrets live in .env.hotupdater (gitignored).
-if (existsSync('.env.hotupdater')) {
-  process.loadEnvFile('.env.hotupdater');
+// Publish target: UAT by default, production with OTA_ENV=prod (scripts/ota-prod.sh). Secrets live in
+// .env.hotupdater (UAT) / .env.hotupdater.prod (prod), both gitignored.
+const prod = process.env.OTA_ENV === 'prod';
+const envFile = prod ? '.env.hotupdater.prod' : '.env.hotupdater';
+if (existsSync(envFile)) {
+  process.loadEnvFile(envFile);
 }
 
 const adminToken = process.env.HOT_UPDATER_ADMIN_TOKEN;
@@ -24,10 +27,12 @@ export default defineConfig({
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
     },
     bucketName: process.env.BUCKET_NAME!,
-    basePath: 'mobile-ota/uat', // must match the server
+    basePath: prod ? 'mobile-ota/prod' : 'mobile-ota/uat', // must match the server
   }),
   database: standaloneRepository({
-    baseUrl: 'https://test-prash.aystera.com/ota/hot-updater/admin',
+    baseUrl: prod
+      ? 'https://prash.paruluniversity.ac.in/ota/hot-updater/admin'
+      : 'https://test-prash.aystera.com/ota/hot-updater/admin',
     commonHeaders: {Authorization: `Bearer ${adminToken}`},
   }),
   plugins: [insights(), apiKeys()],

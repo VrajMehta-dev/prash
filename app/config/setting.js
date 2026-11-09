@@ -19,14 +19,17 @@ const baseUrl = isUat
 // const webUrl = 'https://staging.letsgoplan.com/';
 const webUrl = 'https://letsgoplan.com/';
 
-// OTA update server (Hot Updater). UAT only for now; null disables OTA (prod until its server exists).
-// apiKey is a read-only client key, not the admin token.
+// OTA update server (Hot Updater). Read-only client keys (not the admin token); one server per environment.
+// Prod server: pm2 `prash-ota` on the prod VM, behind /ota/ of the PRASH domain.
 const ota = isUat
   ? {
       baseURL: 'https://test-prash.aystera.com/ota/hot-updater',
       apiKey: 'fSQ8LeD9UaDfIprfOMTQGval_WnYAijYjqT2TS9dvWc',
     }
-  : null;
+  : {
+      baseURL: 'https://prash.paruluniversity.ac.in/ota/hot-updater',
+      apiKey: 'XjRT0f3DVK0pmckB5E3rUt_4ZxUcerU8OJNHXAsJLW4',
+    };
 
 const BaseSetting = {
   ota,

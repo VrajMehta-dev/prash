@@ -74,7 +74,7 @@ yarn-error.log
 !.yarn/versions
 
 # Hot Updater secrets / output
-.env.hotupdater
+.env.hotupdater*
 .hot-updater/
 # hot-updater
 .hot-updater/output
