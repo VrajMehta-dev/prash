@@ -5,6 +5,7 @@ import {
   StyleSheet,
   ScrollView,
   ActivityIndicator,
+  Image,
   Linking,
   Platform,
   StatusBar,
@@ -124,6 +125,12 @@ const ProfileScreen = ({navigation}) => {
     }
   };
 
+  // Google sign-in keeps the tenant's Google photo up to date on the server; fall back to initials if it won't load.
+  const photoUrl = userData?.profile_photo_url;
+  const [photoFailed, setPhotoFailed] = useState(false);
+  useEffect(() => {
+    setPhotoFailed(false);
+  }, [photoUrl]);
   const initials = `${userData?.first_name?.charAt(0) || ''}${userData?.last_name?.charAt(0) || ''}`.toUpperCase();
 
   return (
@@ -132,7 +139,11 @@ const ProfileScreen = ({navigation}) => {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{paddingBottom: TAB_BAR_SPACE}}>
         <LinearGradient colors={[Brand.gradientTop, Brand.gradientBottom]} style={[styles.hero, {paddingTop: top}]}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{initials || '?'}</Text>
+            {photoUrl && !photoFailed ? (
+              <Image source={{uri: photoUrl}} style={styles.avatarImg} onError={() => setPhotoFailed(true)} />
+            ) : (
+              <Text style={styles.avatarText}>{initials || '?'}</Text>
+            )}
           </View>
           <Text style={styles.name} numberOfLines={1}>
             {`${userData?.first_name || ''} ${userData?.last_name || ''}`.trim() || 'Your account'}
@@ -236,6 +247,7 @@ const styles = StyleSheet.create({
   screen: {flex: 1, backgroundColor: '#F4F5FA'},
   hero: {alignItems: 'center', paddingTop: TOP, paddingBottom: 28, paddingHorizontal: 20, borderBottomLeftRadius: 30, borderBottomRightRadius: 30},
   avatar: {width: 76, height: 76, borderRadius: 38, backgroundColor: 'rgba(255,255,255,0.18)', borderWidth: 2, borderColor: 'rgba(255,255,255,0.5)', alignItems: 'center', justifyContent: 'center'},
+  avatarImg: {width: 72, height: 72, borderRadius: 36},
   avatarText: {color: '#fff', fontSize: 28, fontWeight: 'bold'},
   name: {color: '#fff', fontSize: 22, fontWeight: 'bold', marginTop: 12},
   email: {color: 'rgba(255,255,255,0.75)', fontSize: 13, marginTop: 2},
