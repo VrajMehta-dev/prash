@@ -211,7 +211,7 @@ export default function CheckoutSheet() {
       await sleep(Platform.OS === 'ios' ? 450 : 120);
       let outcome = {};
       try {
-        outcome = parseSdk(await initializeEasebuzzCheckout(r.data.access_key, BaseSetting.payMode));
+        outcome = parseSdk(await initializeEasebuzzCheckout(r.data.access_key, r.data.pay_mode || BaseSetting.payMode));
       } catch (e) {
         outcome = {};
       }
