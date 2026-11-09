@@ -96,7 +96,7 @@ export default function ResetCode({navigation, route}) {
       title="Check your email"
       subtitle={`We sent a 4-digit code to ${email}.`}
       onBack={() => navigation.goBack()}>
-      <OtpBoxes value={code} onChange={setCode} onComplete={verify} hasError={!!error} errorKey={errorKey} editable={!expired && !busy} />
+      <OtpBoxes value={code} onChange={setCode} onComplete={verify} hasError={!!error} errorKey={errorKey} editable={!expired} locked={busy} />
 
       <View style={styles.statusRow}>
         {busy ? (

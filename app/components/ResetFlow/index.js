@@ -95,7 +95,7 @@ export function ResetLayout({step, title, subtitle, onBack, children}) {
 }
 
 // Six boxes driven by ONE hidden input, so paste and the OS one-time-code autofill both just work.
-export function OtpBoxes({value, onChange, onComplete, hasError, errorKey, editable = true, autoFocus = true}) {
+export function OtpBoxes({value, onChange, onComplete, hasError, errorKey, editable = true, locked = false, autoFocus = true}) {
   const input = useRef(null);
   const shake = useRef(new Animated.Value(0)).current;
   const [focused, setFocused] = useState(false);
@@ -107,11 +107,29 @@ export function OtpBoxes({value, onChange, onComplete, hasError, errorKey, edita
     Animated.sequence(
       [10, -10, 8, -8, 4, 0].map(v => Animated.timing(shake, {toValue: v, duration: 55, useNativeDriver: true})),
     ).start();
-    input.current?.focus();
+    focusInput();
   }, [errorKey]);
 
+  // blur() then focus(): on Android a plain focus() on an input that lost focus (keyboard dismissed after a wrong
+  // code) can silently do nothing; the short delay lets the screen finish re-rendering first.
+  const focusInput = () => {
+    setTimeout(() => {
+      input.current?.blur();
+      input.current?.focus();
+    }, 120);
+  };
+
+  // Typing and pasting both land here. A pasted "Your OTP is 4827. Valid for 5 minutes" has more digits than the code:
+  // take the first standalone run of exactly OTP_LENGTH digits, else the first OTP_LENGTH digits.
   const set = text => {
-    const digits = text.replace(/\D/g, '').slice(0, OTP_LENGTH);
+    if (locked) {
+      return;
+    }
+    let digits = text.replace(/\D/g, '');
+    if (digits.length > OTP_LENGTH) {
+      const m = text.match(new RegExp(`(?:^|\\D)(\\d{${OTP_LENGTH}})(?!\\d)`));
+      digits = m ? m[1] : digits.slice(0, OTP_LENGTH);
+    }
     onChange(digits);
     if (digits.length === OTP_LENGTH) {
       onComplete?.(digits);
@@ -120,7 +138,7 @@ export function OtpBoxes({value, onChange, onComplete, hasError, errorKey, edita
 
   return (
     <Animated.View style={{transform: [{translateX: shake}]}}>
-      <View style={styles.boxes}>
+      <View style={styles.boxes} onStartShouldSetResponder={() => true} onResponderRelease={focusInput}>
         {Array.from({length: OTP_LENGTH}, (_, i) => {
           const active = focused && editable && (value.length === i || (value.length === OTP_LENGTH && i === OTP_LENGTH - 1));
           return (
@@ -136,7 +154,6 @@ export function OtpBoxes({value, onChange, onComplete, hasError, errorKey, edita
           editable={editable}
           autoFocus={autoFocus}
           keyboardType="number-pad"
-          maxLength={OTP_LENGTH}
           textContentType="oneTimeCode"
           autoComplete="sms-otp"
           caretHidden
