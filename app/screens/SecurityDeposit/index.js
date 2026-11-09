@@ -19,6 +19,7 @@ import ScreenHeader from '@components/ScreenHeader';
 import {TAB_BAR_SPACE} from '@navigation/BottomTab';
 import {useSecurityDeposit} from '@utils/useSecurityDeposit';
 import {startPayment} from '@utils/startPayment';
+import {downloadPdf} from '@utils/downloadPdf';
 
 const money = n => '₹' + Number(n || 0).toLocaleString('en-IN');
 const TOP = Platform.OS === 'ios' ? 56 : (StatusBar.currentHeight || 24) + 10;
@@ -114,6 +115,9 @@ export default function SecurityDeposit({navigation}) {
               <TouchableOpacity onPress={refresh} style={styles.linkBtn}>
                 <Text style={styles.link}>Already paid? Refresh status</Text>
               </TouchableOpacity>
+              <TouchableOpacity onPress={() => downloadPdf(`client/security-deposit/invoice/${shop?.pr_id}`, `security-deposit-invoice.pdf`)} style={styles.linkBtn}>
+                <Text style={styles.link}>Download invoice</Text>
+              </TouchableOpacity>
             </View>
           ) : status === 'paid' ? (
             <View style={[styles.card, styles.center]}>
@@ -130,6 +134,22 @@ export default function SecurityDeposit({navigation}) {
                   : 'Your deposit is on record.'}
                 {data.ref_no ? `\nRef: ${data.ref_no}` : ''}
               </Text>
+              <View style={styles.docRow}>
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  style={[styles.docBtn, {backgroundColor: Brand.primary}]}
+                  onPress={() => downloadPdf(`client/security-deposit/receipt/${shop?.pr_id}`, `security-deposit-receipt.pdf`)}>
+                  <Icon name="download" size={18} color="#fff" />
+                  <Text style={styles.docBtnText}>Receipt</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  style={[styles.docBtn, {borderWidth: 1, borderColor: Brand.primary}]}
+                  onPress={() => downloadPdf(`client/security-deposit/invoice/${shop?.pr_id}`, `security-deposit-invoice.pdf`)}>
+                  <Icon name="file-document-outline" size={18} color={Brand.primary} />
+                  <Text style={[styles.docBtnText, {color: Brand.primary}]}>Invoice</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           ) : (
             <View style={[styles.card, styles.center]}>
@@ -167,6 +187,9 @@ const styles = StyleSheet.create({
   lockText: {color: '#8A5A12', fontSize: 12, lineHeight: 18, marginTop: 2},
   cta: {marginTop: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 15, borderRadius: 16, backgroundColor: Brand.primary},
   ctaText: {color: '#fff', fontSize: 16, fontWeight: 'bold'},
+  docRow: {flexDirection: 'row', gap: 10, alignSelf: 'stretch', marginTop: 18},
+  docBtn: {flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 13, borderRadius: 14},
+  docBtnText: {color: '#fff', fontSize: 15, fontWeight: '700'},
   linkBtn: {alignItems: 'center', marginTop: 14},
   link: {color: Brand.primary, fontSize: 13, fontWeight: '600'},
   circle: {width: 84, height: 84, borderRadius: 42, alignItems: 'center', justifyContent: 'center', marginTop: 4},

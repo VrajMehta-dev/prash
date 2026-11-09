@@ -133,6 +133,7 @@ const ProfileScreen = ({navigation}) => {
   }, [photoUrl]);
   // Is the installed app the newest release? (null until the server answers, or if it can't be reached)
   const [isLatest, setIsLatest] = useState(null);
+  const [latestBuild, setLatestBuild] = useState('');
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -149,6 +150,7 @@ const ProfileScreen = ({navigation}) => {
         }
         const build = parseInt(DeviceInfo.getBuildNumber(), 10) || 0;
         setIsLatest(d > 0 || (d === 0 && build >= l.latest_build));
+        setLatestBuild(`${l.latest_version} (${l.latest_build})`);
       } catch (e) {}
     })();
     return () => {
@@ -251,7 +253,7 @@ const ProfileScreen = ({navigation}) => {
             <Text style={styles.footerLogo}>PRASH</Text>
             <Text style={styles.footerVersion}>
               v{DeviceInfo.getVersion()} ({DeviceInfo.getBuildNumber()})
-              {isLatest === true ? ' \u00B7 Latest' : isLatest === false ? ' \u00B7 Update available' : ''}
+              {isLatest === true ? ' \u00B7 Latest' : isLatest === false ? ` \u00B7 Update available (${latestBuild})` : ''}
             </Text>
             <Text style={styles.footerLine}>Built and managed by</Text>
             <Text
