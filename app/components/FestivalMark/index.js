@@ -211,6 +211,68 @@ const gudi = (
   </G>
 );
 
+const sparkle = (
+  <G>
+    <Polygon points="32,2 37,24 60,32 37,40 32,62 27,40 4,32 27,24" fill={W} />
+    <Polygon points="50,6 52,13 59,15 52,17 50,24 48,17 41,15 48,13" fill={GOLD} />
+    <Polygon points="14,40 16,46 22,48 16,50 14,56 12,50 6,48 12,46" fill={GOLD} />
+  </G>
+);
+const charkha = (
+  <G>
+    <Circle cx="24" cy="36" r="17" fill="none" stroke={W} strokeWidth="3" />
+    {Array.from({length: 8}, (_, i) => (
+      <Line key={i} x1="24" y1="36" x2="24" y2="19" stroke={W} strokeWidth="2" transform={rot(i * 45, 24, 36)} />
+    ))}
+    <Circle cx="24" cy="36" r="3.5" fill={GOLD} />
+    <Rect x="42" y="30" width="14" height="22" rx="3" fill={W} />
+    <Path d="M41 36 Q33 34 28 28" stroke={GOLD} strokeWidth="2" fill="none" />
+    <Path d="M8 56 H58" stroke={W} strokeWidth="3" strokeLinecap="round" />
+  </G>
+);
+const book = (
+  <G>
+    <Path d="M8 14 Q20 10 32 16 Q44 10 56 14 V50 Q44 46 32 52 Q20 46 8 50 Z" fill={W} />
+    <Path d="M32 16 V52" stroke={MAROON} strokeWidth="2" />
+    <Path d="M14 24 Q22 22 27 26 M14 32 Q22 30 27 34 M37 26 Q42 22 50 24 M37 34 Q42 30 50 32" stroke={MAROON} strokeWidth="2" fill="none" />
+    <Polygon points="32,2 34,8 40,8 35,12 37,18 32,14 27,18 29,12 24,8 30,8" fill={GOLD} />
+  </G>
+);
+const dhol = (
+  <G>
+    <Path d="M10 22 H54 L48 46 H16 Z" fill={W} />
+    <Ellipse cx="32" cy="22" rx="22" ry="7" fill={GOLD} />
+    <Ellipse cx="32" cy="46" rx="16" ry="5" fill={W} />
+    <Path d="M14 26 L20 44 M26 28 L28 46 M38 28 L36 46 M50 26 L44 44" stroke={MAROON} strokeWidth="2" />
+    <Line x1="50" y1="6" x2="42" y2="18" stroke={W} strokeWidth="3" strokeLinecap="round" />
+    <Line x1="58" y1="12" x2="48" y2="20" stroke={W} strokeWidth="3" strokeLinecap="round" />
+  </G>
+);
+const sun = (
+  <G>
+    {Array.from({length: 12}, (_, i) => (
+      <Line key={i} x1="32" y1="6" x2="32" y2="15" stroke={GOLD} strokeWidth="3.5" strokeLinecap="round" transform={rot(i * 30)} />
+    ))}
+    <Circle cx="32" cy="32" r="13" fill={W} />
+    <Path d="M6 50 Q32 62 58 50" stroke={W} strokeWidth="3" fill="none" strokeLinecap="round" />
+  </G>
+);
+const flower = (
+  <G>
+    {Array.from({length: 6}, (_, i) => (
+      <Ellipse key={i} cx="32" cy="16" rx="8" ry="13" fill={i % 2 ? GOLD : W} transform={rot(i * 60)} />
+    ))}
+    <Circle cx="32" cy="32" r="7" fill="#FF9933" />
+  </G>
+);
+const cross = (
+  <G>
+    <Circle cx="32" cy="32" r="26" fill={GOLD} opacity="0.2" />
+    <Rect x="27" y="6" width="10" height="52" rx="3" fill={W} />
+    <Rect x="12" y="20" width="40" height="10" rx="3" fill={W} />
+  </G>
+);
+
 export const MOTIFS = {
   diwali: diya,
   holi: splash,
@@ -234,6 +296,14 @@ export const MOTIFS = {
   gurpurab: khanda,
   buddha_purnima: moon,
   gudi_padwa: gudi,
+  new_year: sparkle,
+  gandhi_jayanti: charkha,
+  ambedkar_jayanti: book,
+  bihu: dhol,
+  chhath: sun,
+  vasant_panchami: flower,
+  good_friday: cross,
+  durga_puja: lotus,
 };
 
 export default function FestivalMark({name, size = 48}) {
