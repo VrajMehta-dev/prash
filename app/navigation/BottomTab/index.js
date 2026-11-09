@@ -7,6 +7,7 @@ import {tap} from '@utils/haptics';
 import {Brand} from '@config/brand';
 import {navigationRef} from '../NavigationService';
 import MoreSheet from './MoreSheet';
+import {useSafeAreaInsets, initialWindowMetrics} from 'react-native-safe-area-context';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -16,7 +17,10 @@ import Animated, {
 } from 'react-native-reanimated';
 
 // Space screens must leave at the bottom so content isn't hidden behind the floating bar.
-export const TAB_BAR_SPACE = 104;
+// Space screens must leave at the bottom. On Android, phones with the 3-button navigation bar draw it over
+// the app (edge-to-edge), so its height is added: the floating bar sits above it instead of under it.
+const ANDROID_NAV = Platform.OS === 'android' ? initialWindowMetrics?.insets?.bottom || 0 : 0;
+export const TAB_BAR_SPACE = 104 + ANDROID_NAV;
 
 // Icon pops (squash then springy overshoot) when its tab becomes active.
 const TabIcon = ({icon, focused, color}) => {
@@ -59,6 +63,7 @@ const TINT = Brand.primary + '1F'; // selector fill behind the active item
 const BAR_PAD = 4;
 
 export default function BottomTabBar({state, navigation}) {
+  const insets = useSafeAreaInsets();
   const [moreOpen, setMoreOpen] = useState(false);
   const [barW, setBarW] = useState(0);
   const current = state.routes[state.index]?.name;
@@ -80,7 +85,7 @@ export default function BottomTabBar({state, navigation}) {
   };
 
   return (
-    <View style={styles.wrap}>
+    <View style={[styles.wrap, {paddingBottom: Platform.OS === 'ios' ? Math.max(insets.bottom, 24) : 14 + insets.bottom}]}>
       <View style={styles.row}>
         <TouchableOpacity
           accessibilityRole="button"

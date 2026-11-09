@@ -1,6 +1,7 @@
 import React, {useEffect, useRef} from 'react';
 import {View, Text, StyleSheet, Platform} from 'react-native';
 import RBSheet from 'react-native-raw-bottom-sheet';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import TouchableOpacity from '@components/PressableScale';
 import {Brand} from '@config/brand';
@@ -15,6 +16,7 @@ const ITEMS = [
 
 export default function MoreSheet({visible, onClose, onGo}) {
   const ref = useRef();
+  const insets = useSafeAreaInsets();
   useEffect(() => {
     if (visible) ref.current?.open();
     else ref.current?.close();
@@ -25,9 +27,9 @@ export default function MoreSheet({visible, onClose, onGo}) {
       draggable
       dragOnContent
       onClose={onClose}
-      height={ITEMS.length * 68 + 90}
+      height={ITEMS.length * 68 + 90 + insets.bottom}
       customStyles={{
-        container: styles.sheet,
+        container: [styles.sheet, {paddingBottom: (Platform.OS === 'ios' ? 36 : 24) + insets.bottom}],
         wrapper: {backgroundColor: 'rgba(20,10,30,0.4)'},
         draggableIcon: styles.grab,
       }}>
