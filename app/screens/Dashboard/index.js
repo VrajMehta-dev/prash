@@ -17,6 +17,7 @@ import {
 } from 'react-native';
 import TouchableOpacity from '@components/PressableScale';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import IonIcon from 'react-native-vector-icons/Ionicons';
 import {BarChart} from 'react-native-gifted-charts';
 
 import {useSelector} from 'react-redux';
@@ -287,9 +288,9 @@ const DashboardScreen = ({navigation}) => {
     navigation.navigate(screen, params);
   };
   const actions = [
-    {label: 'Rent', icon: 'receipt', onPress: () => go('Bills')},
+    {label: 'Rent', icon: 'receipt-outline', onPress: () => go('Bills')},
     {label: 'Extras', icon: 'layers-outline', onPress: () => go('Charges')},
-    {label: 'Deposit', icon: 'shield-lock-outline', badge: deposit?.locked ? 1 : 0, onPress: () => go('SecurityDeposit')},
+    {label: 'Deposit', icon: 'shield-checkmark-outline', badge: deposit?.locked ? 1 : 0, onPress: () => go('SecurityDeposit')},
     {label: 'Pay', icon: 'wallet-outline', onPress: () => go('Pay')},
   ];
 
@@ -455,7 +456,7 @@ const DashboardScreen = ({navigation}) => {
                 onPress={a.onPress}
                 style={styles.action}>
                 <View style={styles.actionIcon}>
-                  <Icon name={a.icon} size={24} color={Brand.primary} />
+                  <IonIcon name={a.icon} size={24} color={Brand.primary} />
                   {a.badge > 0 && (
                     <View style={styles.actionBadge}>
                       <Text style={styles.actionBadgeText}>{a.badge > 9 ? '9+' : a.badge}</Text>

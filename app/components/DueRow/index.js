@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {View, Text, StyleSheet, ActivityIndicator} from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Icon from 'react-native-vector-icons/Ionicons';
 import TouchableOpacity from '@components/PressableScale';
 import {Brand} from '@config/brand';
 import {startPayment} from '@utils/startPayment';
@@ -34,7 +34,7 @@ export default function DueRow({navigation, icon, title, sub, amount, payPath, b
         <Text style={styles.amount}>{money(amount)}</Text>
       </View>
       <TouchableOpacity activeOpacity={0.85} disabled={busy || !!blockedBy} onPress={pay} style={[styles.pay, !!blockedBy && styles.payLocked]}>
-        {busy ? <ActivityIndicator size="small" color="#fff" /> : blockedBy ? <Icon name="lock-outline" size={18} color="#8A8A95" /> : <Text style={styles.payText}>Pay</Text>}
+        {busy ? <ActivityIndicator size="small" color="#fff" /> : blockedBy ? <Icon name="lock-closed-outline" size={18} color="#8A8A95" /> : <Text style={styles.payText}>Pay</Text>}
       </TouchableOpacity>
     </View>
   );

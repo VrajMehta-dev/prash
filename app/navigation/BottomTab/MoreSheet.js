@@ -2,16 +2,16 @@ import React, {useEffect, useRef} from 'react';
 import {View, Text, StyleSheet, Platform} from 'react-native';
 import RBSheet from 'react-native-raw-bottom-sheet';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Icon from 'react-native-vector-icons/Ionicons';
 import TouchableOpacity from '@components/PressableScale';
 import {Brand} from '@config/brand';
 import {tap} from '@utils/haptics';
 
 const ITEMS = [
-  {name: 'Containers', icon: 'package-variant-closed', title: 'Container Charges', sub: 'Containers and their charges'},
-  {name: 'SecurityDeposit', icon: 'shield-check-outline', title: 'Security Deposit', sub: 'Status and payment'},
-  {name: 'PropertyDocuments', icon: 'file-sign', title: 'Shop Documents', sub: 'Rental contract and FSSAI licence'},
-  {name: 'Profile', icon: 'account-outline', title: 'Account', sub: 'Details, bank, documents, help'},
+  {name: 'Containers', icon: 'cube-outline', title: 'Container Charges', sub: 'Containers and their charges'},
+  {name: 'SecurityDeposit', icon: 'shield-checkmark-outline', title: 'Security Deposit', sub: 'Status and payment'},
+  {name: 'PropertyDocuments', icon: 'document-text-outline', title: 'Shop Documents', sub: 'Rental contract and FSSAI licence'},
+  {name: 'Profile', icon: 'person-outline', title: 'Account', sub: 'Details, bank, documents, help'},
 ];
 
 export default function MoreSheet({visible, onClose, onGo}) {
@@ -43,7 +43,7 @@ export default function MoreSheet({visible, onClose, onGo}) {
             <Text style={styles.rowTitle}>{it.title}</Text>
             <Text style={styles.rowSub}>{it.sub}</Text>
           </View>
-          <Icon name="chevron-right" size={22} color="#B5B5BD" />
+          <Icon name="chevron-forward" size={22} color="#B5B5BD" />
         </TouchableOpacity>
       ))}
     </RBSheet>

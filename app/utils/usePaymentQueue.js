@@ -30,10 +30,10 @@ export function usePaymentQueue() {
 }
 
 const KIND = {
-  deposit: {icon: 'lock-outline', sub: 'Security deposit', path: (i, pr) => `client/security-deposit/initiate-payment/${pr}`},
-  container_charge: {icon: 'package-variant-closed', sub: 'Container charge', path: i => `client/container-charges/initiate-payment/${i.id}`},
-  additional_charge: {icon: 'plus-circle-outline', sub: 'Extra charge', path: i => `client/additional-charges/initiate-payment/${i.id}`},
-  bill: {icon: 'calendar-month-outline', sub: 'Monthly rent', path: i => `client/bills/initiate-payment/${i.id}`},
+  deposit: {icon: 'lock-closed-outline', sub: 'Security deposit', path: (i, pr) => `client/security-deposit/initiate-payment/${pr}`},
+  container_charge: {icon: 'cube-outline', sub: 'Container charge', path: i => `client/container-charges/initiate-payment/${i.id}`},
+  additional_charge: {icon: 'layers-outline', sub: 'Extra charge', path: i => `client/additional-charges/initiate-payment/${i.id}`},
+  bill: {icon: 'receipt-outline', sub: 'Monthly rent', path: i => `client/bills/initiate-payment/${i.id}`},
 };
 
 // Props for <DueRow/> from a queue item.
