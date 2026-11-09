@@ -1,3 +1,4 @@
+import DeviceInfo from 'react-native-device-info';
 /* eslint-disable react-hooks/rules-of-hooks */
 import {Platform} from 'react-native';
 import PushNotification from 'react-native-push-notification';
@@ -37,7 +38,10 @@ const sendLocalNotification = (title, body, data, time) => {
     PushNotification.localNotification({
       channelId: 'default-channel-id',
       largeIcon: 'ic_launcher', // (optional) default: "ic_launcher"
-      smallIcon: 'ic_launcher_round', // (optional) default: "ic_notification" with fallback for "ic_launcher"
+      // Status-bar icon must be a white-on-transparent glyph; a coloured launcher icon is drawn as a plain circle.
+      // ic_stat_prash ships from APK build 21; older builds keep the old icon (a missing drawable would drop the notification).
+      smallIcon: Number(DeviceInfo.getBuildNumber()) >= 21 ? 'ic_stat_prash' : 'ic_launcher_round',
+      color: '#721C3F',
       title: title,
       message: body,
       bigPictureUrl: data?.imageUrl || '',
