@@ -8,7 +8,8 @@ import {
   SafeAreaView,
   StatusBar,
   Animated,
-  RefreshControl
+  RefreshControl,
+  ActivityIndicator,
 } from 'react-native';
 import TouchableOpacity from '@components/PressableScale';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -27,6 +28,8 @@ const safeIcon = name => (name && ionGlyphs[name] ? name : FALLBACK_ICON);
 const NotificationScreen = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const {accessToken} = useSelector(state => state.auth);
   const navigation = useNavigation();
   const fadeAnim = new Animated.Value(1);
@@ -57,6 +60,7 @@ const NotificationScreen = () => {
 
       if (response.ok) {
         setNotifications(data?.data);
+        setHasMore(!!data?.has_more);
       } else {
         console.log('Error fetching notifications:', data);
       }
@@ -64,6 +68,32 @@ const NotificationScreen = () => {
       console.error('Error fetching notifications:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Next page (30 at a time) when the list is scrolled to the end.
+  const loadMore = async () => {
+    if (loadingMore || loading || !hasMore) {
+      return;
+    }
+    setLoadingMore(true);
+    try {
+      const url = `${BaseSetting.baseUrl}${BaseSetting.endpoints.notiList}${BaseSetting.endpoints.notiList.includes('?') ? '&' : '?'}offset=${notifications.length}`;
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {Accept: '*/*', Authorization: 'Bearer ' + accessToken},
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setNotifications(prev => {
+          const seen = new Set(prev.map(n => n.notify_id));
+          return [...prev, ...(data?.data || []).filter(n => !seen.has(n.notify_id))];
+        });
+        setHasMore(!!data?.has_more);
+      }
+    } catch (e) {
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -290,6 +320,11 @@ const NotificationScreen = () => {
           />
         }
         ListEmptyComponent={renderEmptyComponent}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.4}
+        ListFooterComponent={
+          loadingMore ? <ActivityIndicator style={{marginVertical: 16}} color="#632240" /> : null
+        }
       />
     </View>
   );
