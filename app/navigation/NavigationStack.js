@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, {useEffect} from 'react';
-import {Appearance} from 'react-native';
+import {Appearance, Animated, Easing} from 'react-native';
 import {
   NavigationContainer,
   DefaultTheme,
@@ -48,6 +48,20 @@ import ChatMessage from '@screens/ChatMessage';
 import CreateTrip from '@screens/CreateTrip';
 import RemotePushController from '@components/NotificationConfig/RemotePushController';
 import NotificationScreen from '@screens/Notification';
+
+// Slides the card down from the top edge; the screen underneath is nudged down a little for depth.
+const slideFromTop = ({current, next, layouts}) => ({
+  cardStyle: {
+    transform: [
+      {
+        translateY: Animated.add(
+          current.progress.interpolate({inputRange: [0, 1], outputRange: [-layouts.screen.height, 0]}),
+          next ? next.progress.interpolate({inputRange: [0, 1], outputRange: [0, layouts.screen.height * 0.12]}) : 0,
+        ),
+      },
+    ],
+  },
+});
 
 function App() {
   const Stack = createStackNavigator();
@@ -197,8 +211,14 @@ function App() {
             component={NotificationScreen}
             options={{
               ...navOptions,
-              cardStyleInterpolator:
-                CardStyleInterpolators.forRevealFromBottomAndroid,
+              // The bell is at the top, so the screen drops down from there (and goes back up). The default
+              // "reveal from bottom" also faded the card in, which looked off for a top-anchored entry.
+              gestureDirection: 'vertical-inverted',
+              cardStyleInterpolator: slideFromTop,
+              transitionSpec: {
+                open: {animation: 'timing', config: {duration: 320, easing: Easing.out(Easing.cubic)}},
+                close: {animation: 'timing', config: {duration: 260, easing: Easing.in(Easing.cubic)}},
+              },
             }}
           />
           <Stack.Screen
