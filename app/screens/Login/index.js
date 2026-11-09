@@ -451,7 +451,8 @@ const Login = ({navigation}) => {
               },
             ]}>
             <Animated.View style={[styles.card, getCardShadowStyle()]}>
-              <Text style={styles.welcomeText}>Welcome Back</Text>
+              <Text style={styles.welcomeText}>Welcome back</Text>
+              <Text style={styles.welcomeSub}>Sign in to manage your rent, deposits and documents.</Text>
 
               <View
                 style={[
@@ -484,11 +485,12 @@ const Login = ({navigation}) => {
                 <Text style={styles.errorText}>{errors.email}</Text>
               )}
               {isGmail && !errors.email && (
-                <TouchableOpacity style={styles.googleHint} onPress={handleGoogleLogin} activeOpacity={0.8}>
-                  <IconFA name="google" brand size={14} color="#632240" />
-                  <Text style={styles.googleHintText}>Gmail account? Sign in with Google instead</Text>
-                  <Icon name="chevron-right" size={18} color="#632240" />
-                </TouchableOpacity>
+                <Text style={styles.googleHint}>
+                  Gmail account?{' '}
+                  <Text style={styles.googleHintLink} onPress={handleGoogleLogin}>
+                    Use Google instead
+                  </Text>
+                </Text>
               )}
 
               <View
@@ -604,12 +606,13 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: height * 0.4,
+    bottom: 0,
     backgroundColor: '#632240',
   },
   contentContainer: {
     flex: 1,
     paddingHorizontal: 20,
+    paddingBottom: 36,
   },
   headerContainer: {
     alignItems: 'center',
@@ -652,14 +655,21 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 25,
+    borderRadius: 26,
+    paddingHorizontal: 22,
+    paddingVertical: 26,
   },
   welcomeText: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 25,
+    fontSize: 26,
+    fontWeight: '700',
+    color: '#1F1F24',
+  },
+  welcomeSub: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: '#7A7A85',
+    marginTop: 4,
+    marginBottom: 22,
   },
   inputContainer: {
     flexDirection: 'row',
@@ -712,8 +722,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  googleHint: {flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8, paddingVertical: 9, paddingHorizontal: 12, borderRadius: 10, backgroundColor: '#F6EEF2'},
-  googleHintText: {flex: 1, color: '#632240', fontSize: 13, fontWeight: '600'},
+  googleHint: {marginTop: -6, marginBottom: 14, marginLeft: 4, fontSize: 13, color: '#8A8A95'},
+  googleHintLink: {color: '#632240', fontWeight: '700', textDecorationLine: 'underline'},
   orRow: {flexDirection: 'row', alignItems: 'center', marginVertical: 16},
   orLine: {flex: 1, height: 1, backgroundColor: '#E5E5EA'},
   orText: {marginHorizontal: 12, color: '#8A8A95', fontSize: 14},
