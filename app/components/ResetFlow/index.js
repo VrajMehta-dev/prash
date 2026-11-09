@@ -37,11 +37,6 @@ export async function resetApi(path, body) {
   }
 }
 
-export const maskEmail = email => {
-  const [name = '', domain = ''] = String(email).split('@');
-  return `${name.slice(0, 1)}${'*'.repeat(Math.max(name.length - 1, 2))}@${domain}`;
-};
-
 export const fmtClock = s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 
 // Seconds left until `deadline` (ms timestamp), ticking every second.

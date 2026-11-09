@@ -2,7 +2,7 @@ import React, {useRef, useState} from 'react';
 import {View, Text, StyleSheet, ActivityIndicator} from 'react-native';
 import Toast from 'react-native-toast-message';
 import TouchableOpacity from '@components/PressableScale';
-import {ResetLayout, OtpBoxes, PrimaryButton, resetApi, maskEmail, fmtClock, useSecondsLeft} from '@components/ResetFlow';
+import {ResetLayout, OtpBoxes, PrimaryButton, resetApi, fmtClock, useSecondsLeft} from '@components/ResetFlow';
 import {Brand} from '@config/brand';
 import {tap} from '@utils/haptics';
 
@@ -94,7 +94,7 @@ export default function ResetCode({navigation, route}) {
     <ResetLayout
       step={2}
       title="Check your email"
-      subtitle={`We sent a 6-digit code to ${maskEmail(email)}.`}
+      subtitle={`We sent a 6-digit code to ${email}.`}
       onBack={() => navigation.goBack()}>
       <OtpBoxes value={code} onChange={setCode} onComplete={verify} hasError={!!error} errorKey={errorKey} editable={!expired && !busy} />
 
