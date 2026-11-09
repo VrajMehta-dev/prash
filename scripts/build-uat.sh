@@ -33,6 +33,10 @@ curl -s -o /tmp/uat-check.apk https://test-prash.aystera.com/mobile/PRASH-UAT.ap
 [ "$(shasum -a 256 < $APK)" = "$(shasum -a 256 < /tmp/uat-check.apk)" ] && echo "LIVE: https://test-prash.aystera.com/mobile/PRASH-UAT.apk (hash verified)"
 git tag -f "uat-apk-$VER" HEAD >/dev/null && echo "tagged uat-apk-$VER"
 
+# Record this as the newest release, so the admin dashboard / app can mark installed versions "latest".
+BUILD=$(grep -oE 'versionCode [0-9]+' android/app/build.gradle | grep -oE '[0-9]+')
+ssh -i "$KEY" $HOST "sudo -u postgres psql phpl_uat -q -c \"INSERT INTO app_release (platform, latest_version, latest_build) VALUES ('android', '$VER', $BUILD) ON CONFLICT (platform) DO UPDATE SET latest_version = EXCLUDED.latest_version, latest_build = EXCLUDED.latest_build, updated_at = now()\"" && echo "latest release recorded: android $VER ($BUILD)"
+
 if [ "$MODE" = "mandatory" ]; then
   # Builds below $VER now show the full-screen "Update required" until they install this one.
   ssh -i "$KEY" $HOST "echo '{\"android\":{\"min\":\"$VER\"},\"ios\":{\"min\":\"1.0.0\"}}' > $DEST/app-version.json"

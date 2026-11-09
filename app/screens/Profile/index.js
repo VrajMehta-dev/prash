@@ -131,6 +131,30 @@ const ProfileScreen = ({navigation}) => {
   useEffect(() => {
     setPhotoFailed(false);
   }, [photoUrl]);
+  // Is the installed app the newest release? (null until the server answers, or if it can't be reached)
+  const [isLatest, setIsLatest] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const res = await fetch(BaseSetting.baseUrl + 'client/app-version');
+        const j = await res.json();
+        const l = j?.[Platform.OS === 'ios' ? 'ios' : 'android'];
+        if (!alive || !l) return;
+        const mine = String(DeviceInfo.getVersion()).split('.').map(n => parseInt(n, 10) || 0);
+        const theirs = String(l.latest_version).split('.').map(n => parseInt(n, 10) || 0);
+        let d = 0;
+        for (let i = 0; i < Math.max(mine.length, theirs.length) && !d; i++) {
+          d = (mine[i] || 0) - (theirs[i] || 0);
+        }
+        const build = parseInt(DeviceInfo.getBuildNumber(), 10) || 0;
+        setIsLatest(d > 0 || (d === 0 && build >= l.latest_build));
+      } catch (e) {}
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
   const initials = `${userData?.first_name?.charAt(0) || ''}${userData?.last_name?.charAt(0) || ''}`.toUpperCase();
 
   return (
@@ -227,6 +251,7 @@ const ProfileScreen = ({navigation}) => {
             <Text style={styles.footerLogo}>PRASH</Text>
             <Text style={styles.footerVersion}>
               v{DeviceInfo.getVersion()} ({DeviceInfo.getBuildNumber()})
+              {isLatest === true ? ' \u00B7 Latest' : isLatest === false ? ' \u00B7 Update available' : ''}
             </Text>
             <Text style={styles.footerLine}>Built and managed by</Text>
             <Text
