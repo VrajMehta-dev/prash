@@ -3,6 +3,7 @@
 #import <UserNotifications/UserNotifications.h>
 #import <React/RCTBundleURLProvider.h>
 #import <RNCPushNotificationIOS.h>
+#import <GoogleSignIn/GoogleSignIn.h>
 
 @implementation AppDelegate
 
@@ -48,6 +49,12 @@
 - (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken
 {
   [FIRMessaging messaging].APNSToken = deviceToken;
+}
+
+// Google sign-in returns to the app through its URL scheme (the REVERSED_CLIENT_ID in Info.plist).
+- (BOOL)application:(UIApplication *)application openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey, id> *)options
+{
+  return [GIDSignIn.sharedInstance handleURL:url];
 }
 
 // Handle incoming push notifications

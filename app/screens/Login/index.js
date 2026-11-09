@@ -39,7 +39,7 @@ try {
   const g = require('@react-native-google-signin/google-signin');
   GoogleSignin = g.GoogleSignin;
   googleStatus = g.statusCodes || {};
-  GoogleSignin.configure({webClientId: BaseSetting.googleWebClientId});
+  GoogleSignin.configure({webClientId: BaseSetting.googleWebClientId, iosClientId: BaseSetting.googleIosClientId});
 } catch (e) {
   GoogleSignin = null;
 }
