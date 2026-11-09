@@ -94,7 +94,9 @@ global.fetch = async (input, init = {}) => {
       .json()
       .then(j => j?.msg || '')
       .catch(() => '');
-    if (/token/i.test(msg) && (await refreshSession())) {
+    // 'Invalid or expired token' and 'Session has been revoked' (password changed elsewhere): try the refresh token; if
+    // the server rejects that too, refreshSession() logs the user out instead of leaving empty error screens.
+    if (/token|revoked|expired/i.test(msg) && (await refreshSession())) {
       res = await rawFetch(input, withToken());
     }
   }
