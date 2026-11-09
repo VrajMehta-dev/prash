@@ -25,6 +25,7 @@ import IconFA from 'react-native-vector-icons/FontAwesome5';
 import axios from 'axios';
 import Toast from 'react-native-toast-message';
 import BaseSetting from '@config/setting';
+import {IS_UAT} from '@config/env';
 import {useDispatch, useSelector} from 'react-redux';
 import authActions from '@redux/reducers/auth/actions';
 import {store} from '@redux/store/configureStore';
@@ -310,7 +311,7 @@ const Login = ({navigation}) => {
         text2:
           error?.code === googleStatus.PLAY_SERVICES_NOT_AVAILABLE
             ? 'Google Play services are not available on this phone.'
-            : 'Could not sign in with Google. Please try again.',
+            : `Could not sign in with Google. Please try again.${IS_UAT ? ` (code ${error?.code ?? 'unknown'})` : ''}`,
       });
     } finally {
       setGoogleLoader(false);
