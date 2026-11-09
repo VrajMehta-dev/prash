@@ -79,3 +79,4 @@ yarn-error.log
 # hot-updater
 .hot-updater/output
 dist/
+RELEASE-SECRETS*.md

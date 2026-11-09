@@ -12,6 +12,8 @@ pnpm install --frozen-lockfile      # do not use npm/yarn: it resolves different
 ```
 
 ## 1. Things that are NOT in git (get them first)
+Every secret and file below is collected in **`RELEASE-SECRETS.local.md`** (git-ignored on purpose: do not put secrets in this tracked file). Ask the project owner to share it with you securely, along with `villaVote.keystore`, `.env.hotupdater.prod` and your Apple signing access.
+
 | What | Used for | Where from |
 |---|---|---|
 | `villaVote.keystore` (+ passwords already in `android/app/build.gradle`) | Signs the Android release. Must be the SAME key as the live Play app. | team password manager / previous release machine. Put it at `android/app/villaVote.keystore` (git-ignored). |
