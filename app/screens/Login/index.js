@@ -644,6 +644,8 @@ const styles = StyleSheet.create({
     color: '#fff',
     opacity: 0.8,
     letterSpacing: 0.5,
+    textAlign: 'center',
+    lineHeight: 22,
   },
   formContainer: {
     flex: 1,
