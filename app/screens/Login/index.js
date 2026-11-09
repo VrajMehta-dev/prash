@@ -55,6 +55,8 @@ const Login = ({navigation}) => {
   const [showPassword, setShowPassword] = useState(false);
   const [loader, setLoader] = useState(false);
   const [googleLoader, setGoogleLoader] = useState(false);
+  // A Gmail address can sign in with Google, so suggest it (only when the Google module is in this build).
+  const isGmail = !!GoogleSignin && /^[^\s@]+@(gmail|googlemail)\.com$/i.test(email.trim());
   const [isFocused, setIsFocused] = useState({email: false, password: false});
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [shadowActive, setShadowActive] = useState(false);
@@ -243,11 +245,24 @@ const Login = ({navigation}) => {
           routes: [{name: 'Dashboard'}],
         });
       } else {
-        Toast.show({
-          type: 'error',
-          text1: 'Error',
-          text2: data?.msg || 'Something went wrong!',
-        });
+        if (isGmail && response.status === 401 && /password/i.test(data?.msg || '')) {
+          Toast.show({
+            type: 'info',
+            text1: data?.msg,
+            text2: 'Gmail account? Tap here to sign in with Google instead.',
+            visibilityTime: 6000,
+            onPress: () => {
+              Toast.hide();
+              handleGoogleLogin();
+            },
+          });
+        } else {
+          Toast.show({
+            type: 'error',
+            text1: 'Error',
+            text2: data?.msg || 'Something went wrong!',
+          });
+        }
         if (data?.msg === 'Email not verified. Please reset your password.') {
           navigation.replace('OTPVerification', {email: email, isForgot: true});
         }
@@ -467,6 +482,13 @@ const Login = ({navigation}) => {
               </View>
               {errors.email && (
                 <Text style={styles.errorText}>{errors.email}</Text>
+              )}
+              {isGmail && !errors.email && (
+                <TouchableOpacity style={styles.googleHint} onPress={handleGoogleLogin} activeOpacity={0.8}>
+                  <IconFA name="google" brand size={14} color="#632240" />
+                  <Text style={styles.googleHintText}>Gmail account? Sign in with Google instead</Text>
+                  <Icon name="chevron-right" size={18} color="#632240" />
+                </TouchableOpacity>
               )}
 
               <View
@@ -688,6 +710,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  googleHint: {flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8, paddingVertical: 9, paddingHorizontal: 12, borderRadius: 10, backgroundColor: '#F6EEF2'},
+  googleHintText: {flex: 1, color: '#632240', fontSize: 13, fontWeight: '600'},
   orRow: {flexDirection: 'row', alignItems: 'center', marginVertical: 16},
   orLine: {flex: 1, height: 1, backgroundColor: '#E5E5EA'},
   orText: {marginHorizontal: 12, color: '#8A8A95', fontSize: 14},
