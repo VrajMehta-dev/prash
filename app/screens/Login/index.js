@@ -31,6 +31,18 @@ import {store} from '@redux/store/configureStore';
 import DeviceInfo from 'react-native-device-info';
 import {useFocusEffect} from '@react-navigation/native';
 
+// Loaded defensively: a build without the native module just hides the Google button instead of crashing.
+let GoogleSignin = null;
+let googleStatus = {};
+try {
+  const g = require('@react-native-google-signin/google-signin');
+  GoogleSignin = g.GoogleSignin;
+  googleStatus = g.statusCodes || {};
+  GoogleSignin.configure({webClientId: BaseSetting.googleWebClientId});
+} catch (e) {
+  GoogleSignin = null;
+}
+
 const {width, height} = Dimensions.get('window');
 
 const STATUS_H = Platform.OS === 'ios' ? 50 : StatusBar.currentHeight || 24;
@@ -41,6 +53,7 @@ const Login = ({navigation}) => {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [loader, setLoader] = useState(false);
+  const [googleLoader, setGoogleLoader] = useState(false);
   const [isFocused, setIsFocused] = useState({email: false, password: false});
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [shadowActive, setShadowActive] = useState(false);
@@ -249,6 +262,58 @@ const Login = ({navigation}) => {
       });
     } finally {
       setLoader(false);
+    }
+  };
+
+  // "Continue with Google": the backend only signs in a tenant whose email is this Google account's verified
+  // email (tenants are created by admins; there is no self sign-up).
+  const handleGoogleLogin = async () => {
+    if (googleLoader || loader) {
+      return;
+    }
+    setGoogleLoader(true);
+    try {
+      await GoogleSignin.hasPlayServices({showPlayServicesUpdateDialog: true});
+      try {
+        await GoogleSignin.signOut(); // always show the account chooser
+      } catch (e) {}
+      const result = await GoogleSignin.signIn();
+      if (result?.type === 'cancelled') {
+        return;
+      }
+      const idToken = result?.data?.idToken || result?.idToken;
+      if (!idToken) {
+        throw new Error('no idToken');
+      }
+      const response = await fetch(BaseSetting.baseUrl + 'client/google-login', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', Accept: 'application/json'},
+        body: JSON.stringify({id_token: idToken, fcm_token: fcmToken, device_info: deviceInfo}),
+      });
+      const text = await response.text();
+      const data = text ? JSON.parse(text) : {};
+      if (response.ok) {
+        dispatch(setAccessToken(data?.accessToken));
+        dispatch(setRefreshToken(data?.refreshToken || ''));
+        navigation.reset({routes: [{name: 'Dashboard'}]});
+      } else {
+        Toast.show({type: 'error', text1: 'Google sign-in', text2: data?.msg || 'Something went wrong!'});
+      }
+    } catch (error) {
+      if (error?.code === googleStatus.SIGN_IN_CANCELLED || error?.code === googleStatus.IN_PROGRESS) {
+        return;
+      }
+      console.log('Google sign-in error:', error?.code, error?.message);
+      Toast.show({
+        type: 'error',
+        text1: 'Google sign-in',
+        text2:
+          error?.code === googleStatus.PLAY_SERVICES_NOT_AVAILABLE
+            ? 'Google Play services are not available on this phone.'
+            : 'Could not sign in with Google. Please try again.',
+      });
+    } finally {
+      setGoogleLoader(false);
     }
   };
 
@@ -473,6 +538,26 @@ const Login = ({navigation}) => {
                   <Text style={styles.loginButtonText}>Sign In</Text>
                 )}
               </TouchableOpacity>
+
+              {!!GoogleSignin && (
+                <>
+                  <View style={styles.orRow}>
+                    <View style={styles.orLine} />
+                    <Text style={styles.orText}>or</Text>
+                    <View style={styles.orLine} />
+                  </View>
+                  <TouchableOpacity style={styles.googleButton} onPress={handleGoogleLogin} activeOpacity={0.85}>
+                    {googleLoader ? (
+                      <ActivityIndicator color={'#632240'} />
+                    ) : (
+                      <>
+                        <IconFA name="google" brand size={18} color="#632240" />
+                        <Text style={styles.googleButtonText}>Continue with Google</Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                </>
+              )}
             </Animated.View>
           </Animated.View>
         </View>
@@ -602,6 +687,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  orRow: {flexDirection: 'row', alignItems: 'center', marginVertical: 16},
+  orLine: {flex: 1, height: 1, backgroundColor: '#E5E5EA'},
+  orText: {marginHorizontal: 12, color: '#8A8A95', fontSize: 14},
+  googleButton: {
+    height: 55,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: '#632240',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+  },
+  googleButtonText: {color: '#632240', fontSize: 17, fontWeight: '600'},
   loginButtonText: {
     color: '#fff',
     fontSize: 18,

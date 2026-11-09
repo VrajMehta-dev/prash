@@ -35,6 +35,8 @@ const BaseSetting = {
   baseUrl: baseUrl,
   api: baseUrl,
   payMode: isUat ? 'test' : 'production',
+  // Web OAuth client of the Firebase project; the Google ID token is issued for it and the backend checks it.
+  googleWebClientId: '204197144339-net2b77rf6d4jndu7nv6r2uj1fmrd1cq.apps.googleusercontent.com',
   api2: baseUrl,
   webUrl: webUrl,
   phoneCode: '+1',
