@@ -11,9 +11,9 @@ name: UAT Android build
 #   UAT_KEYSTORE_B64  base64 of the keystore used to sign UAT builds (keeps the signing key
 #                     stable so each build installs over the last one): base64 -i ~/.android/debug.keystore
 
+# Automatic runs are OFF: the repo secrets listed above were never created, so every push failed at the signing step.
+# UAT APKs are built locally with ./scripts/build-uat.sh. Add the secrets, then restore `push: branches: [uat]` to re-enable.
 on:
-  push:
-    branches: [uat]
   workflow_dispatch:
 
 concurrency:
