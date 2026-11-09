@@ -59,6 +59,8 @@ export default function CheckoutSheet() {
   const slide = useRef(new Animated.Value(0)).current;
   const lock = useRef(false);
   const itemRef = useRef(null);
+  const drag = useRef(new Animated.Value(0)).current;
+  const closeRef = useRef(() => {});
 
   const show = useCallback(
     it => {
@@ -70,11 +72,27 @@ export default function CheckoutSheet() {
       lock.current = false;
       setOpen(true);
       slide.setValue(0);
+      drag.setValue(0);
       Animated.timing(slide, {toValue: 1, duration: 280, easing: Easing.out(Easing.cubic), useNativeDriver: true}).start();
     },
-    [slide],
+    [slide, drag],
   );
   useEffect(() => subscribeCheckout(show), [show]);
+
+  const sheetPan = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderMove: (_, g) => drag.setValue(Math.max(g.dy, 0)),
+      onPanResponderRelease: (_, g) => {
+        if (g.dy > 90 || g.vy > 0.8) {
+          closeRef.current();
+        }
+        Animated.spring(drag, {toValue: 0, useNativeDriver: true}).start();
+      },
+      onPanResponderTerminate: () => Animated.spring(drag, {toValue: 0, useNativeDriver: true}).start(),
+    }),
+  ).current;
 
   const close = () => {
     if (BUSY.includes(stage)) {
@@ -82,6 +100,8 @@ export default function CheckoutSheet() {
     }
     Animated.timing(slide, {toValue: 0, duration: 200, easing: Easing.in(Easing.cubic), useNativeDriver: true}).start(() => setOpen(false));
   };
+
+  closeRef.current = close;
 
   // Ask the server whether the item is paid; true = settled, false = still unknown after ~30 s.
   const waitForServer = async it => {
@@ -341,8 +361,10 @@ export default function CheckoutSheet() {
   return (
     <Modal visible={open} transparent animationType="none" statusBarTranslucent onRequestClose={close}>
       <Pressable style={styles.backdrop} onPress={close} />
-      <Animated.View style={[styles.sheet, {transform: [{translateY}]}]}>
-        <View style={styles.grab} />
+      <Animated.View style={[styles.sheet, {transform: [{translateY: Animated.add(translateY, drag)}]}]}>
+        <View style={styles.grabZone} {...sheetPan.panHandlers} accessibilityRole="adjustable" accessibilityLabel="Drag down to close">
+          <View style={styles.grab} />
+        </View>
         {canClose && (
           <TouchableOpacity style={styles.x} onPress={close} hitSlop={10}>
             <Icon name="close" size={22} color="#6B6B76" />
@@ -428,7 +450,8 @@ const Ghost = ({label, onPress}) => (
 const styles = StyleSheet.create({
   backdrop: {...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(20,10,30,0.45)'},
   sheet: {position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: '#fff', borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 20, paddingTop: 10, paddingBottom: 28},
-  grab: {alignSelf: 'center', width: 40, height: 4, borderRadius: 2, backgroundColor: '#DDD', marginBottom: 12},
+  grabZone: {height: 36, marginTop: -10, justifyContent: 'center'},
+  grab: {alignSelf: 'center', width: 40, height: 4, borderRadius: 2, backgroundColor: '#DDD'},
   x: {position: 'absolute', right: 16, top: 16, width: 32, height: 32, alignItems: 'center', justifyContent: 'center'},
   title: {fontSize: 20, fontWeight: '800', color: '#17171C', marginBottom: 14},
   summary: {flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#F6EEF2', borderRadius: 18, padding: 14},
