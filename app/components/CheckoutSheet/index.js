@@ -119,10 +119,10 @@ export default function CheckoutSheet() {
   closeRef.current = close;
 
   // Ask the server whether the item is paid; true = settled, false = still unknown after ~30 s.
-  // Asks the server (which asks Easebuzz) whether the item is paid. Bounded: 25 s in total and 6 s per request, so the
+  // Asks the server (which asks Easebuzz) whether the item is paid. Bounded: 15 s in total and 6 s per request, so the
   // spinner can never run on forever; no answer by then means "still being confirmed" (the pending state).
   const waitForServer = async it => {
-    const deadline = Date.now() + 25000;
+    const deadline = Date.now() + 15000;
     while (Date.now() < deadline) {
       const r = await apiGet(`client/payments/status/${it.kind}/${it.id}`, 6000);
       if (r.ok && r.data?.paid) {
@@ -385,11 +385,8 @@ export default function CheckoutSheet() {
           <View style={styles.center}>
             <Circle bg="#FFF1D6" icon="arrow-undo" color="#9A5B00" />
             <Text style={styles.stateTitle}>Payment cancelled</Text>
-            <Text style={styles.stateText}>
-              If money was taken from your account, we'll confirm it shortly. You can try again in about 10 minutes,
-              or sooner if your bank tells us it failed.
-            </Text>
-            <Button label="Check status" onPress={recheck} />
+            <Text style={styles.stateText}>No payment was completed. You can try again.</Text>
+            <Button label="Try again" icon="refresh" onPress={() => setStage('review')} />
             <Ghost label="Close" onPress={close} />
           </View>
         );
@@ -398,13 +395,13 @@ export default function CheckoutSheet() {
         return (
           <View style={styles.center}>
             <Circle bg="#FFF1D6" icon="time-outline" color="#9A5B00" />
-            <Text style={styles.stateTitle}>We're still confirming</Text>
+            <Text style={styles.stateTitle}>Not confirmed yet</Text>
             <Text style={styles.stateText}>
-              {stage === 'pending'
-                ? 'Your bank has accepted the payment and we are waiting for the final confirmation. This can take a few minutes. Please do not pay again.'
-                : 'We could not confirm the payment yet. If money was taken it will show here shortly. Please do not pay again.'}
+              We could not confirm this payment yet. If money was taken from your account it will be matched to this
+              item as soon as your bank confirms, and anything extra is refunded after verification.
             </Text>
             <Button label="Check status" onPress={recheck} />
+            <Ghost label="Pay again" onPress={() => setStage('review')} />
             <Ghost label="Close" onPress={close} />
           </View>
         );
@@ -412,7 +409,7 @@ export default function CheckoutSheet() {
         return (
           <View style={styles.center}>
             <Circle bg="#FFF1D6" icon="time-outline" color="#9A5B00" />
-            <Text style={styles.stateTitle}>Last payment still being confirmed</Text>
+            <Text style={styles.stateTitle}>Payment just started</Text>
             <Text style={styles.stateText}>{message}</Text>
             <Button label="Check status" onPress={recheck} />
             <Ghost label="Close" onPress={close} />

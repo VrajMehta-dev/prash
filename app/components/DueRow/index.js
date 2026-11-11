@@ -29,7 +29,7 @@ export default function DueRow({icon, title, sub, amount, checkout, blockedBy, p
     } else if (state === 'failed') {
       Toast.show({type: 'info', text1: 'Payment did not go through', text2: 'You can pay again.'});
     } else {
-      Toast.show({type: 'info', text1: 'Still being confirmed', text2: 'We will keep checking. Please do not pay again yet.'});
+      Toast.show({type: 'info', text1: 'Still being confirmed', text2: 'Check again in a moment.'});
     }
   };
   return (
