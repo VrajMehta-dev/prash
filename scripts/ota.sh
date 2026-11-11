@@ -1,5 +1,5 @@
 #!/bin/bash
-# Publish a JS-only OTA update to UAT:  ./scripts/ota.sh "what changed"
+# Publish a JS-only OTA update to UAT:  ./scripts/ota.sh "what changed"   (OTA_FORCE=1 makes it mandatory)
 # Refuses when native code changed since the last APK build: an OTA bundle that needs a native module
 # missing from an installed build crashes it. Native changes ship as a new APK (./scripts/build-uat.sh),
 # which also makes the update mandatory.
@@ -22,4 +22,4 @@ if [ -n "$CHANGED" ]; then
   echo "commit, and run ./scripts/build-uat.sh (it forces the update on older builds)."
   exit 1
 fi
-npx hot-updater deploy -p android -t "$VER" -m "${1:-OTA update}"
+npx hot-updater deploy -p android -t "$VER" ${OTA_FORCE:+-f} -m "${1:-OTA update}"

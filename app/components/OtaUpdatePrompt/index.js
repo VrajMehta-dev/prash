@@ -31,7 +31,7 @@ export default function OtaUpdatePrompt() {
   const [phase, setPhase] = useState('idle'); // idle | available | downloading | ready | error
   const [info, setInfo] = useState(null);
   const {progress} = useHotUpdaterStore();
-  const dismissed = useRef(new Set()); // updates the user said "Later" to this session
+  const dismissed = useRef(new Set()); // optional updates the user said "Later" to this session
   const busy = useRef(false);
   const [splashDone, setSplashDone] = useState(false);
 
@@ -123,6 +123,7 @@ export default function OtaUpdatePrompt() {
     return null;
   }
 
+  // A mandatory update (published with the force flag) cannot be dismissed; an optional one can.
   const forced = !!info?.shouldForceUpdate;
   const pct = Math.max(0, Math.min(100, Math.round((progress || 0) * 100)));
 
@@ -146,7 +147,7 @@ export default function OtaUpdatePrompt() {
             <>
               <Text style={styles.title}>Update available</Text>
               <Text style={styles.text}>
-                {info?.message ? `What's new: ${info.message}` : 'A new version of PRASH is ready to download.'}
+                {forced ? 'Please update PRASH to continue.' : 'A new version of PRASH is ready.'}
               </Text>
               <TouchableOpacity style={styles.primary} onPress={download}>
                 <Text style={styles.primaryText}>Download update</Text>
