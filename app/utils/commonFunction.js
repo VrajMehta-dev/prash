@@ -16,6 +16,7 @@ import {store} from '@redux/store/configureStore';
 import AuthAction from '@redux/reducers/auth/actions';
 import NotificationAction from '@redux/reducers/notification/actions';
 import messaging from '@react-native-firebase/messaging';
+import {trackedUrl} from '@utils/openWebsite';
 
 export const IOS = Platform.OS === 'ios';
 
@@ -180,7 +181,9 @@ export const handleNotification = (nData, enableTimeOut = true) => {
   }, timeOut);
 };
 
-export const openUrl = async url => {
+export const openUrl = async rawUrl => {
+  // our own website: tag it so Google Analytics there attributes the visit to the app
+  const url = /^https?:\/\/(www\.)?aystera\.com/i.test(rawUrl) ? trackedUrl(rawUrl, 'in_app') : rawUrl;
   try {
     const supported = await Linking.canOpenURL(url);
     if (supported) {

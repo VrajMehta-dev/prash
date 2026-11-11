@@ -8,6 +8,7 @@ import {Brand} from '@config/brand';
 import ScreenHeader from '@components/ScreenHeader';
 import {TAB_BAR_SPACE} from '@navigation/BottomTab';
 import {tap} from '@utils/haptics';
+import {openWebsite} from '@utils/openWebsite';
 
 const TOP = Platform.OS === 'ios' ? 56 : (StatusBar.currentHeight || 24) + 10;
 const CONTACT = {
@@ -83,7 +84,7 @@ export default function HelpAndSupport({navigation}) {
             title="About PRASH"
             value="Learn more about the product"
             action="Open"
-            onPress={() => Linking.openURL('https://aystera.com/products/prash-rent-management')}
+            onPress={() => openWebsite('https://aystera.com/products/prash-rent-management', 'help_about_prash')}
           />
         </View>
       </ScrollView>
