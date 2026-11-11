@@ -128,7 +128,8 @@ export default function OtaUpdatePrompt() {
   const pct = Math.max(0, Math.min(100, Math.round((progress || 0) * 100)));
 
   return (
-    <View style={styles.overlay}>   {/* plain overlay, not a native Modal: a dismissed Modal can swallow touches on Android 15/16 */}
+    // plain overlay, not a native Modal: a dismissed Modal can swallow touches on Android 15/16
+    <View style={styles.overlay}>
       <View style={styles.backdrop}>
         <View style={styles.card}>
           <View style={[styles.badge, phase === 'error' && {backgroundColor: '#FBE4E1'}]}>

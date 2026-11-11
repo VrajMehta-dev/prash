@@ -10,6 +10,7 @@ import {persistor, store} from '@redux/store/configureStore';
 import ForceUpdateModal from '@components/ForceUpdateModal';
 import OtaUpdatePrompt from '@components/OtaUpdatePrompt';
 import OfflineScreen from '@components/OfflineScreen';
+import ErrorBoundary from '@components/ErrorBoundary';
 import '@utils/session'; // installs token refresh + 401 retry on fetch
 
 // import TrackPlayer from 'react-native-track-player';
@@ -32,10 +33,12 @@ const App = () => {
           loading={<ActivityIndicator />}
           persistor={persistor}
           onBeforeLift={onBeforeLift}>
-          {loading ? <ActivityIndicator /> : <Navigator />}
-      <ForceUpdateModal />
-      <OfflineScreen />
-      <OtaUpdatePrompt />
+          <ErrorBoundary>{loading ? <ActivityIndicator /> : <Navigator />}</ErrorBoundary>
+          <ErrorBoundary silent>
+            <ForceUpdateModal />
+            <OfflineScreen />
+            <OtaUpdatePrompt />
+          </ErrorBoundary>
         </PersistGate>
       </Provider>
     </ThemeProvider>
