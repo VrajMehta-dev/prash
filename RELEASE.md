@@ -69,7 +69,7 @@ Disable a bad bundle: `OTA_ENV=prod npx hot-updater bundle disable <bundle-id> -
 ## 8. Backend / admin / ops facts
 - Prod VM: `40.81.237.58` (key `Credentials/Azure/pu_key_prod.pem`), services `phpl-backend`, `phpl-web`, `prash-ota` (pm2). DB `phpl`. See `INFRA_NOTES.md`.
 - Easebuzz direct-UPI is OFF (`EASEBUZZ_SEAMLESS_ENABLED` unset in the backend `.env`); enabling it needs Easebuzz to enable Seamless on the account first.
-- Reviewer account = outlet flagged `is_demo`, pays on the Easebuzz TEST gateway. If reviewers pay all three sample dues, ask the backend owner to re-seed them.
+- Reviewer account lives in its OWN database (`phpl_demo`) and backend process (pm2 `phpl-backend-demo`, port 4010, no cron, Redis db 5, Easebuzz TEST gateway). The real backend forwards only that account's requests to it (`middlewares/client/demoRoute.js`, `DEMO_BACKEND_URL` in the prod `.env`). It is never in the real DB, counts, reports or the admin dashboard. If reviewers pay all three sample dues, re-seed `phpl_demo` (bills / additional_charges / container_charges rows for pr_id 160) or ask the backend owner.
 - Full context of what shipped and why: `../CLAUDE.md` sections "PROD ROLLOUT", "Demo / app-store review account", "OTA on PRODUCTION".
 
 ## 9. Rollback
