@@ -10,7 +10,7 @@ PRASH is a rent and payments app for tenants of commercial properties (shops and
 
 Sign in with the demo account above (email and password; "Continue with Google" is only for existing tenants).
 
-The demo outlet "The Demo Kitchen" has three sample dues: a container charge (Rs 250), an extra charge (Rs 500) and a monthly rent bill (Rs 1,000). Open the Pay tab, tap Pay on the first item, review and slide to pay. Payments for this demo account run on the payment gateway's TEST mode, so no real money is charged. Use the gateway test credentials shown on its checkout page (for UPI: success@easebuzz; test card 4111 1111 1111 1111, expiry 07/28, CVV 123).
+The demo outlet "The Demo Kitchen" has three sample dues: a container charge (Rs 250), an extra charge (Rs 500) and a monthly rent bill (Rs 1,000). Open the Pay tab to see them listed in payment order. **Payments are turned off for this demo account**: tapping Pay shows "Payments are turned off for this demo account", and nothing is ever charged. (Newer builds run the demo checkout on the payment gateway's TEST mode instead: test UPI success@easebuzz; test card 4111 1111 1111 1111, expiry 07/28, CVV 123.)
 
 Other screens to look at: Rent, Extras, More > Container Charges, More > Shop Documents, Notifications, Account.
 Support: see the contact in the store listing.
