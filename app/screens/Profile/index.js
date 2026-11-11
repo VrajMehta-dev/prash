@@ -230,8 +230,7 @@ const ProfileScreen = ({navigation}) => {
           </Group>
 
           <Group title="Help">
-            <Row icon="lifebuoy" title="Help & Support" onPress={() => navigation.navigate('HelpAndSupport')} />
-            <Row icon="information-outline" title="About PRASH" onPress={() => Linking.openURL('https://aystera.com/products/prash-rent-management')} last />
+            <Row icon="lifebuoy" title="Help & Support" onPress={() => navigation.navigate('HelpAndSupport')} last />
           </Group>
 
           <Group>
