@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {Modal, View, Text, StyleSheet, AppState, ActivityIndicator} from 'react-native';
+import {View, Text, StyleSheet, AppState, ActivityIndicator} from 'react-native';
 import {useHotUpdaterStore} from '@hot-updater/react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import TouchableOpacity from '@components/PressableScale';
@@ -128,7 +128,7 @@ export default function OtaUpdatePrompt() {
   const pct = Math.max(0, Math.min(100, Math.round((progress || 0) * 100)));
 
   return (
-    <Modal transparent visible statusBarTranslucent animationType="fade" onRequestClose={() => {}}>
+    <View style={styles.overlay}>   {/* plain overlay, not a native Modal: a dismissed Modal can swallow touches on Android 15/16 */}
       <View style={styles.backdrop}>
         <View style={styles.card}>
           <View style={[styles.badge, phase === 'error' && {backgroundColor: '#FBE4E1'}]}>
@@ -204,11 +204,12 @@ export default function OtaUpdatePrompt() {
           )}
         </View>
       </View>
-    </Modal>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  overlay: {...StyleSheet.absoluteFillObject, zIndex: 9999, elevation: 100},
   backdrop: {flex: 1, backgroundColor: 'rgba(20,10,25,0.55)', alignItems: 'center', justifyContent: 'center', padding: 28},
   card: {width: '100%', backgroundColor: '#fff', borderRadius: 26, padding: 24, alignItems: 'center'},
   badge: {width: 64, height: 64, borderRadius: 32, backgroundColor: '#F6EEF2', alignItems: 'center', justifyContent: 'center'},
