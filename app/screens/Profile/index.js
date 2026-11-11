@@ -231,7 +231,8 @@ const ProfileScreen = ({navigation}) => {
           </Group>
 
           <Group title="Help">
-            <Row icon="lifebuoy" title="Help & Support" onPress={() => navigation.navigate('HelpAndSupport')} last />
+            <Row icon="lifebuoy" title="Help & Support" onPress={() => navigation.navigate('HelpAndSupport')} />
+            <Row icon="information-outline" title="About PRASH" onPress={() => openWebsite('https://aystera.com/work/prash-rent-management/', 'profile_about')} last />
           </Group>
 
           <Group>
