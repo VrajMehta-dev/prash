@@ -21,4 +21,4 @@ if [ -n "$CHANGED" ]; then
   echo "Native-affecting files changed since the $VER store build:"; echo "$CHANGED" | sed 's/^/  /'
   echo; echo "Ship a new store build instead (bump versionName/versionCode)."; exit 1
 fi
-OTA_ENV=prod npx hot-updater deploy -p android -t "$VER" -m "${1:-OTA update}"
+OTA_ENV=prod npx hot-updater deploy -p android -t "$VER" ${OTA_FORCE:+-f} -m "${1:-OTA update}"

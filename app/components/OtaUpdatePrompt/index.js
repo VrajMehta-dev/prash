@@ -31,7 +31,6 @@ export default function OtaUpdatePrompt() {
   const [phase, setPhase] = useState('idle'); // idle | available | downloading | ready | error
   const [info, setInfo] = useState(null);
   const {progress} = useHotUpdaterStore();
-  const dismissed = useRef(new Set()); // updates the user said "Later" to this session
   const busy = useRef(false);
   const [splashDone, setSplashDone] = useState(false);
 
@@ -61,7 +60,7 @@ export default function OtaUpdatePrompt() {
       // Wait for the SDK to finish verifying this launch (capped, in case it never reports).
       await Promise.race([launchSettled, new Promise(r => setTimeout(r, 15000))]);
       const found = await hotUpdater.checkForUpdate({updateStrategy: 'appVersion'});
-      if (!found || dismissed.current.has(found.id)) {
+      if (!found) {
         return;
       }
       // Only a genuinely new bundle (INSTALL) is worth interrupting the user for. A rollback, a switch
@@ -112,18 +111,10 @@ export default function OtaUpdatePrompt() {
     }
   };
 
-  const later = () => {
-    if (info) {
-      dismissed.current.add(info.id);
-    }
-    setPhase('idle');
-  };
-
   if (phase === 'idle' || !splashDone) {
     return null;
   }
 
-  const forced = !!info?.shouldForceUpdate;
   const pct = Math.max(0, Math.min(100, Math.round((progress || 0) * 100)));
 
   return (
@@ -145,17 +136,10 @@ export default function OtaUpdatePrompt() {
           {phase === 'available' && (
             <>
               <Text style={styles.title}>Update available</Text>
-              <Text style={styles.text}>
-                {info?.message ? `What's new: ${info.message}` : 'A new version of PRASH is ready to download.'}
-              </Text>
+              <Text style={styles.text}>Please update PRASH to continue.</Text>
               <TouchableOpacity style={styles.primary} onPress={download}>
                 <Text style={styles.primaryText}>Download update</Text>
               </TouchableOpacity>
-              {!forced && (
-                <TouchableOpacity style={styles.ghost} onPress={later}>
-                  <Text style={styles.ghostText}>Later</Text>
-                </TouchableOpacity>
-              )}
             </>
           )}
 
@@ -179,11 +163,6 @@ export default function OtaUpdatePrompt() {
               <TouchableOpacity style={styles.primary} onPress={() => hotUpdater.reload()}>
                 <Text style={styles.primaryText}>Restart now</Text>
               </TouchableOpacity>
-              {!forced && (
-                <TouchableOpacity style={styles.ghost} onPress={later}>
-                  <Text style={styles.ghostText}>Later (applies next launch)</Text>
-                </TouchableOpacity>
-              )}
             </>
           )}
 
@@ -194,11 +173,6 @@ export default function OtaUpdatePrompt() {
               <TouchableOpacity style={styles.primary} onPress={download}>
                 <Text style={styles.primaryText}>Try again</Text>
               </TouchableOpacity>
-              {!forced && (
-                <TouchableOpacity style={styles.ghost} onPress={later}>
-                  <Text style={styles.ghostText}>Not now</Text>
-                </TouchableOpacity>
-              )}
             </>
           )}
         </View>
