@@ -1,3 +1,5 @@
+import {apiGet} from '@utils/authedApi';
+import {emitPaymentChange} from '@utils/paymentEvents';
 // One entry point for paying anything: startCheckout({kind, id, title, amount, ...}) opens the Review & pay sheet
 // (components/CheckoutSheet, mounted once in the navigation stack).
 const subs = new Set();
@@ -37,6 +39,15 @@ export const KIND = {
     failure: 'client/security-deposit/easebuzz/failure',
     receipt: i => `client/security-deposit/receipt/${i.prId}`,
   },
+};
+
+// "Check" on a card whose payment is still being confirmed: ask the server (which asks Easebuzz) once, then refresh every list.
+// Returns 'paid' | 'failed' | 'pending'.
+export const checkPaymentStatus = async item => {
+  const r = await apiGet(`client/payments/status/${item.kind}/${item.id}`, 8000);
+  const state = r.ok && r.data?.paid ? 'paid' : r.ok && r.data?.last_attempt === 'failed' ? 'failed' : 'pending';
+  emitPaymentChange();
+  return state;
 };
 
 export const startCheckout = item => {
