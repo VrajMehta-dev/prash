@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {AppState, Linking, Modal, PanResponder, View, Text, StyleSheet, Pressable, Animated, Easing, ActivityIndicator, Platform} from 'react-native';
+import {AppState, BackHandler, Linking, PanResponder, View, Text, StyleSheet, Pressable, Animated, Easing, ActivityIndicator} from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {useSelector} from 'react-redux';
 import TouchableOpacity from '@components/PressableScale';
@@ -78,6 +78,14 @@ export default function CheckoutSheet() {
     [slide, drag],
   );
   useEffect(() => subscribeCheckout(show), [show]);
+  useEffect(() => {
+    if (!open) return undefined;
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      closeRef.current();   // ignored while a payment step is running
+      return true;
+    });
+    return () => sub.remove();
+  }, [open]);
 
   const sheetPan = useRef(
     PanResponder.create({
@@ -205,18 +213,13 @@ export default function CheckoutSheet() {
         return;
       }
 
-      // Hide our sheet while Easebuzz is on screen (iOS cannot present a second layer over a Modal).
       setStage('sdk');
-      setOpen(false);
-      await sleep(Platform.OS === 'ios' ? 450 : 120);
       let outcome = {};
       try {
         outcome = parseSdk(await initializeEasebuzzCheckout(r.data.access_key, r.data.pay_mode || BaseSetting.payMode));
       } catch (e) {
         outcome = {};
       }
-      setOpen(true);
-      slide.setValue(1);
 
       const res = outcome?.result;
       const signed = outcome?.response;
@@ -274,7 +277,7 @@ export default function CheckoutSheet() {
     }
   };
 
-  if (!item) {
+  if (!item || !open) {
     return null;
   }
   const k = KIND[item.kind];
@@ -408,7 +411,9 @@ export default function CheckoutSheet() {
   };
 
   return (
-    <Modal visible={open} transparent animationType="none" statusBarTranslucent onRequestClose={close}>
+    // A plain overlay, NOT a native <Modal>: on Android 15/16 (edge-to-edge, targetSdk 36) a dismissed Modal can leave its
+    // dialog window swallowing every touch, which froze the whole app after closing the sheet.
+    <View style={styles.overlay} pointerEvents="box-none">
       <Pressable style={styles.backdrop} onPress={close} />
       <Animated.View style={[styles.sheet, {transform: [{translateY: Animated.add(translateY, drag)}]}]}>
         <View style={styles.grabZone} {...sheetPan.panHandlers} accessibilityRole="adjustable" accessibilityLabel="Drag down to close">
@@ -421,7 +426,7 @@ export default function CheckoutSheet() {
         )}
         {body()}
       </Animated.View>
-    </Modal>
+    </View>
   );
 }
 
@@ -497,6 +502,7 @@ const Ghost = ({label, onPress}) => (
 );
 
 const styles = StyleSheet.create({
+  overlay: {...StyleSheet.absoluteFillObject, zIndex: 9999, elevation: 100},
   backdrop: {...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(20,10,30,0.45)'},
   sheet: {position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: '#fff', borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 20, paddingTop: 10, paddingBottom: 28},
   grabZone: {height: 36, marginTop: -10, justifyContent: 'center'},
