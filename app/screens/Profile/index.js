@@ -11,6 +11,7 @@ import {
   StatusBar,
 } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
+import {openWebsite} from '@utils/openWebsite';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import moment from 'moment';
@@ -257,7 +258,7 @@ const ProfileScreen = ({navigation}) => {
             <Text style={styles.footerLine}>Built and managed by</Text>
             <Text
               accessibilityRole="link"
-              onPress={() => Linking.openURL('https://aystera.com/')}
+              onPress={() => openWebsite('https://aystera.com/', 'profile_footer')}
               style={styles.footerBrand}>
               Aystera Software Solutions LLP
             </Text>
