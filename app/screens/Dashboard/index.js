@@ -35,7 +35,7 @@ import FestivalMark, {MOTIFS} from '@components/FestivalMark';
 import {useFestival} from '@utils/useFestival';
 import {useHeaderTop} from '@components/ScreenHeader';
 import {usePaymentQueue, dueRowProps} from '@utils/usePaymentQueue';
-import {startCheckout} from '@utils/checkout';
+import {startCheckout, checkPaymentStatus} from '@utils/checkout';
 import {Brand} from '@config/brand';
 import {tap} from '@utils/haptics';
 const DashboardScreen = ({navigation}) => {
@@ -429,11 +429,16 @@ const DashboardScreen = ({navigation}) => {
                 activeOpacity={0.85}
                 onPress={() => {
                   tap();
-                  startCheckout(dueRowProps(dues[0], queue.pr_id).checkout);
+                  const props = dueRowProps(dues[0], queue.pr_id);
+                  if (props.pending) {
+                    checkPaymentStatus(props.checkout);   // a payment is still being confirmed: re-check, never start a second one
+                  } else {
+                    startCheckout(props.checkout);
+                  }
                 }}
                 style={styles.cta}>
                 <Text style={styles.ctaText} numberOfLines={1}>
-                  {dues[0] ? `Pay ${dues[0].title}` : 'Pay now'}
+                  {dues[0]?.payment_pending ? 'Payment being confirmed: tap to check' : dues[0] ? `Pay ${dues[0].title}` : 'Pay now'}
                 </Text>
                 <Icon name="arrow-right" size={20} color="#fff" />
               </TouchableOpacity>

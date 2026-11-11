@@ -25,7 +25,9 @@ const cleanReason = r => {
 };
 const money = n => '₹' + Number(n || 0).toLocaleString('en-IN');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
-const BUSY = ['starting', 'sdk', 'confirming', 'upi']; // the sheet cannot be dismissed while one of these is running
+// The sheet cannot be dismissed only while the payment is being STARTED or the Easebuzz screen is up. While we are waiting for
+// the server's answer ('confirming' / 'upi') it can be hidden: the server confirms the payment regardless and the lists refresh.
+const BUSY = ['starting', 'sdk'];
 
 // The SDK resolves with a JSON string: {"result":"payment_successfull","response":{...signed fields}}.
 const parseSdk = raw => {
@@ -58,6 +60,7 @@ export default function CheckoutSheet() {
   const [open, setOpen] = useState(false);
   const slide = useRef(new Animated.Value(0)).current;
   const lock = useRef(false);
+  const session = useRef(0); // bumped each time the sheet opens: results of an older, hidden session are ignored
   const itemRef = useRef(null);
   const drag = useRef(new Animated.Value(0)).current;
   const closeRef = useRef(() => {});
@@ -70,6 +73,7 @@ export default function CheckoutSheet() {
       setMessage('');
       setResult({});
       lock.current = false;
+      session.current += 1;
       setOpen(true);
       slide.setValue(0);
       drag.setValue(0);
@@ -106,15 +110,21 @@ export default function CheckoutSheet() {
     if (BUSY.includes(stage)) {
       return;
     }
-    Animated.timing(slide, {toValue: 0, duration: 200, easing: Easing.in(Easing.cubic), useNativeDriver: true}).start(() => setOpen(false));
+    Animated.timing(slide, {toValue: 0, duration: 200, easing: Easing.in(Easing.cubic), useNativeDriver: true}).start(() => {
+      setOpen(false);
+      emitPaymentChange();   // the item's card now shows "Payment being confirmed" (or paid / failed)
+    });
   };
 
   closeRef.current = close;
 
   // Ask the server whether the item is paid; true = settled, false = still unknown after ~30 s.
+  // Asks the server (which asks Easebuzz) whether the item is paid. Bounded: 25 s in total and 6 s per request, so the
+  // spinner can never run on forever; no answer by then means "still being confirmed" (the pending state).
   const waitForServer = async it => {
-    for (let i = 0; i < 12; i++) {
-      const r = await apiGet(`client/payments/status/${it.kind}/${it.id}`);
+    const deadline = Date.now() + 25000;
+    while (Date.now() < deadline) {
+      const r = await apiGet(`client/payments/status/${it.kind}/${it.id}`, 6000);
       if (r.ok && r.data?.paid) {
         return {paid: true, ref_no: r.data.ref_no};
       }
@@ -134,6 +144,12 @@ export default function CheckoutSheet() {
   };
 
   const pay = async () => {
+    const sid = session.current;
+    const go = st => {
+      if (session.current === sid) {
+        setStage(st);
+      }
+    };
     if (lock.current || !item) {
       return;
     }
@@ -141,7 +157,7 @@ export default function CheckoutSheet() {
     const it = itemRef.current;
     const k = KIND[it.kind];
     try {
-      setStage('starting');
+      go('starting');
       // Try the direct UPI-app flow first (no Easebuzz screen); if Seamless is not available, use the hosted checkout.
       let r = await apiGet(k.initiate(it) + '?flow=seamless');
       if (!r.ok && r.data?.code === 'SEAMLESS_UNAVAILABLE') {
@@ -155,7 +171,7 @@ export default function CheckoutSheet() {
           opened = false;
         }
         if (opened) {
-          setStage('upi');
+          go('upi');
           // Back from the UPI app: ask the server (which asks Easebuzz) what happened.
           await new Promise(resolve => {
             let left = false;
@@ -175,15 +191,15 @@ export default function CheckoutSheet() {
               }
             }, 15000);
           });
-          setStage('confirming');
+          go('confirming');
           const s = await waitForServer(it);
           if (s.paid) {
             await succeeded(it, s.ref_no);
           } else if (s.failed) {
             setMessage('');
-            setStage('failed');
+            go('failed');
           } else {
-            setStage('unclear');
+            go('unclear');
           }
           return;
         }
@@ -194,26 +210,26 @@ export default function CheckoutSheet() {
         const code = r.data?.code;
         if (r.status === 403 && code === 'SECURITY_DEPOSIT_UNPAID') {
           setMessage('Pay the security deposit first. Rent and charges for this outlet unlock once it is paid.');
-          setStage('blocked');
+          go('blocked');
         } else if (code === 'PAYMENT_BLOCKED') {
           setMessage(r.data.msg || 'Something else has to be paid first.');
-          setStage('blocked');
+          go('blocked');
         } else if (code === 'PAYMENT_IN_PROGRESS') {
           setMessage(r.data.msg);
-          setStage('inprogress');
+          go('inprogress');
         } else {
           setMessage(r.data?.msg || 'We could not start the payment. Please try again.');
-          setStage('failed');
+          go('failed');
         }
         return;
       }
       if (!initializeEasebuzzCheckout) {
         setMessage('Payments need the latest version of the app. Please update it.');
-        setStage('failed');
+        go('failed');
         return;
       }
 
-      setStage('sdk');
+      go('sdk');
       let outcome = {};
       try {
         outcome = parseSdk(await initializeEasebuzzCheckout(r.data.access_key, r.data.pay_mode || BaseSetting.payMode));
@@ -224,33 +240,33 @@ export default function CheckoutSheet() {
       const res = outcome?.result;
       const signed = outcome?.response;
       if (res === 'payment_successfull' && signed?.status === 'success') {
-        setStage('confirming');
+        go('confirming');
         await forward(k.success, signed);
         const s = await waitForServer(it);
         if (s.paid) {
           await succeeded(it, s.ref_no || signed.easepayid);
         } else {
-          setStage('pending');
+          go('pending');
         }
       } else if (signed && signed.status && signed.status !== 'success' && signed.hash) {
         // Easebuzz told us it failed: the server unlocks the retry at once.
         await forward(k.failure, signed);
         tap('notificationError');
         setMessage(cleanReason(signed.error_Message || signed.error));
-        setStage('failed');
+        go('failed');
       } else if (res === 'user_cancelled' || res === 'bank_back_pressed') {
-        setStage('cancelled');
+        go('cancelled');
       } else {
         // No definite answer from the SDK: do not assume anything, ask the server.
-        setStage('confirming');
+        go('confirming');
         const s = await waitForServer(it);
         if (s.paid) {
           await succeeded(it, s.ref_no);
         } else if (s.failed) {
           setMessage('The payment did not go through.');
-          setStage('failed');
+          go('failed');
         } else {
-          setStage('unclear');
+          go('unclear');
         }
       }
     } finally {
@@ -260,20 +276,26 @@ export default function CheckoutSheet() {
 
   // "Check status" for payments we could not confirm yet.
   const recheck = async () => {
+    const sid = session.current;
+    const go = st => {
+      if (session.current === sid) {
+        setStage(st);
+      }
+    };
     if (lock.current || !item) {
       return;
     }
     lock.current = true;
-    setStage('confirming');
+    go('confirming');
     const s = await waitForServer(item);
     lock.current = false;
     if (s.paid) {
       await succeeded(item, s.ref_no);
     } else if (s.failed) {
       setMessage('The payment did not go through. You can try again.');
-      setStage('failed');
+      go('failed');
     } else {
-      setStage('pending');
+      go('pending');
     }
   };
 
@@ -318,7 +340,12 @@ export default function CheckoutSheet() {
       case 'upi':
         return <Busy text="Complete the payment in your UPI app" sub="Come back here after paying. We'll confirm it automatically." />;
       case 'confirming':
-        return <Busy text="Confirming your payment..." sub="This takes a few seconds. Please don't close the app." />;
+        return (
+          <View style={styles.center}>
+            <Busy text="Confirming your payment..." sub="This takes a few seconds." />
+            <Ghost label="Hide (we keep checking)" onPress={close} />
+          </View>
+        );
       case 'success':
         return (
           <View style={styles.center}>

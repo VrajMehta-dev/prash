@@ -46,5 +46,6 @@ export const dueRowProps = (item, pr_id) => ({
   amount: item.amount,
   checkout: {kind: item.type, id: item.id, title: item.title, subtitle: KIND[item.type].sub, amount: item.amount, prId: pr_id},
   blockedBy: item.blocked_by?.title,
+  pending: item.payment_pending,
   highlight: item.type === 'deposit',
 });
