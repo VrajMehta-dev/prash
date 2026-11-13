@@ -85,7 +85,7 @@ export default function SecurityDeposit({navigation}) {
               </View>
               <Text style={styles.amount}>{money(data.amount)}</Text>
               <Text style={styles.text}>
-                A refundable security deposit is required for this outlet.
+                A security deposit is required for this outlet.
               </Text>
 
               <View style={styles.lockBox}>
