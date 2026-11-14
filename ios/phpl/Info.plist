@@ -36,10 +36,6 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>FirebaseAppDelegateProxyEnabled</key>
 	<false/>
-	<key>LSApplicationQueriesSchemes</key>
-	<array>
-		<string>com.googleusercontent.apps.478218184444-0ahm36ath7oq8jt5ob4ghs77obh182h2</string>
-	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
@@ -87,12 +83,13 @@
 		<string>Poppins-Black.ttf</string>
 	</array>
 	<key>LSApplicationQueriesSchemes</key>
-<array>
-  <string>tez</string>
-  <string>phonepe</string>
-  <string>paytm</string>
-  <string>gpay</string>
-</array>
+	<array>
+		<string>tez</string>
+		<string>phonepe</string>
+		<string>paytm</string>
+		<string>gpay</string>
+		<string>com.googleusercontent.apps.204197144339-ja46a381qlvr5n2bk0kr5up5fsg5d8hl</string>
+	</array>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>

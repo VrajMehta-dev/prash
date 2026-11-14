@@ -40,16 +40,17 @@ Check the output is signed with the right key: `keytool -printcert -jarfile app-
 ```bash
 cd ios
 bundle install
-bundle exec pod install        # NEVER run on the previous Mac: Podfile.lock is missing the clipboard pod. Commit the updated Podfile.lock.
+bundle exec pod install        # Podfile.lock is missing the pods HotUpdater (OTA), RNCClipboard and RNReactNativeHapticFeedback: this adds them. Commit the updated Podfile.lock.
 open phpl.xcworkspace
 ```
 In Xcode: select the release scheme, set Version/Build, Signing with team `6AZ63MW8MQ`, Product > Archive > Distribute (App Store Connect), then TestFlight and submit. Text from `store-assets/listing/app-store.md`, screenshots from `store-assets/screenshots/appstore-6.9` and `appstore-6.5`, icon `store-assets/graphics/appstore-icon-1024.png`.
-Known gaps on iOS: Google sign-in is prepared (URL scheme in `Info.plist`) but never built/tested; if it does not work, hide the line "Continue with Google" in the listing text. OTA is Android-only.
+Known gaps on iOS: Google sign-in is prepared (URL scheme in `Info.plist`) but never built/tested; if it does not work, hide the line "Continue with Google" in the listing text. OTA on iOS works only for builds made from the commit that has `[HotUpdater bundleURL]` in `AppDelegate.mm` (older iOS builds can never receive OTA).
 
 ## 5. After the builds are uploaded
 ```bash
-git tag prod-release-<versionName> <commit that was built>   # e.g. prod-release-1.2.5
-git push origin prod-release-<versionName>
+git tag prod-release-<versionName> <commit that was built>   # Android, e.g. prod-release-1.2.6
+git tag prod-release-ios-<MARKETING_VERSION> <commit that was built>   # iOS, e.g. prod-release-ios-1.6
+git push origin --tags
 ```
 This tag is the baseline the OTA script uses to decide whether a change needs a store release.
 
@@ -58,12 +59,13 @@ This tag is the baseline the OTA script uses to decide whether a change needs a 
 2. Log in with a real tenant (or ask one): dues, receipts, notifications open the right page. Do NOT pay with a real account unless you mean to.
 3. Old tenants must still be able to sign in (password and Google).
 
-## 7. Publishing JS-only fixes later (Android only, no store review)
+## 7. Publishing JS-only fixes later (Android and iOS, no store review)
 From `main`, after the store build above is live and tagged:
 ```bash
-./scripts/ota-prod.sh "what changed"
+./scripts/ota-prod.sh "what changed"                    # Android
+OTA_PLATFORM=ios ./scripts/ota-prod.sh "what changed"   # iOS (bundles are per platform: publish both for a change that affects both)
 ```
-The script refuses if native files (android/, ios/, package.json, lockfile) changed since the `prod-release-<version>` tag: then ship a new store build instead. Only builds made from `main` after the OTA commit (`d7885f2`) can receive prod OTA.
+The script refuses if native files of that platform (android/ or ios/, plus package.json and the lockfile) changed since its `prod-release-<version>` / `prod-release-ios-<version>` tag: then ship a new store build instead. Only builds made from `main` after the OTA commit (`d7885f2`) can receive prod OTA.
 Disable a bad bundle: `OTA_ENV=prod npx hot-updater bundle disable <bundle-id> -y` (app rolls back on next launch).
 
 ## 8. Backend / admin / ops facts

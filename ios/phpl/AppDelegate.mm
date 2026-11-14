@@ -4,6 +4,7 @@
 #import <React/RCTBundleURLProvider.h>
 #import <RNCPushNotificationIOS.h>
 #import <GoogleSignIn/GoogleSignIn.h>
+#import <HotUpdater/HotUpdater.h>
 
 @implementation AppDelegate
 
@@ -41,7 +42,8 @@
 #if DEBUG
   return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index"];
 #else
-  return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
+  // OTA: the newest downloaded JS bundle, else the one built into the app (Hot Updater decides, rolls back a crashing bundle)
+  return [HotUpdater bundleURL];
 #endif
 }
 

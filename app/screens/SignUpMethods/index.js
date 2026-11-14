@@ -39,10 +39,8 @@ const SignUpMethods = ({navigation}) => {
   };
 
   GoogleSignin.configure({
-    webClientId:
-      '478218184444-oglhlk1bv2m3abjg5op89f9ca4nqpduh.apps.googleusercontent.com', // Web Client ID
-    iosClientId:
-      '478218184444-0ahm36ath7oq8jt5ob4ghs77obh182h2.apps.googleusercontent.com', // iOS Client ID
+    webClientId: BaseSetting.googleWebClientId, // same project as the Login screen: a different one here would change the token audience for Login too
+    iosClientId: BaseSetting.googleIosClientId,
     offlineAccess: true, // For server-side access
     forceConsentPrompt: true, // To show consent screen every time
   });
