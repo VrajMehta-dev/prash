@@ -1,5 +1,7 @@
 # Releasing PRASH (Android + iOS)
 
+> **IMPORTANT: Android OTA is paused until the next Android store release.** `main` now contains a native Android change (`android:enableOnBackInvokedCallback="false"` in the manifest, versionCode 16: fixes the back gesture closing the app on Android 16+). `./scripts/ota-prod.sh` refuses to publish Android OTA while native files differ from the `prod-release-1.2.6` tag. To resume: build the Android release from `main` (versionCode 16, optional update in Play), upload it, then move the tag to the built commit: `git tag -f prod-release-1.2.6 <built commit> && git push -f origin prod-release-1.2.6`. Until then only iOS OTA (after the iOS release below) and server-side fixes are possible. If the OTA flexibility matters more than this fix right now, revert the merge commit `f70d992`.
+
 > **IMPORTANT: next iOS release — what the iOS developer must do (all of this is already on `main`)**
 > **You MUST run the two iOS tests below before archiving. If either fails, do NOT submit to the App Store: fix it or tell us.**
 > `main` makes iOS able to receive OTA updates (`AppDelegate.mm` loads the Hot Updater bundle). Only iOS builds made from it can ever get OTA; the 1.3 to 1.5 builds in the field cannot.
@@ -10,6 +12,7 @@
 >    b. `pnpm test` — unit tests, including the payment logic (`__tests__/paymentLogic.test.js`). `App.test.tsx` was already failing before this work: ignore that one.
 >    c. `./scripts/ios-smoke.sh` — builds Release for the simulator, checks OTA/clipboard/haptics are linked in, launches it and watches it 30 s.
 >    d. `pnpm test:ios-ota` (`./scripts/ios-ota-e2e.sh`, run after c; needs Maestro and `.env.hotupdater.prod`) — **the OTA test**: gives that build a private OTA channel, publishes a test bundle, and checks on the simulator that the update is offered, downloaded, applied and not offered again. Real users cannot receive it.
+> d2. `pnpm test:ios-google` (`./scripts/ios-google-e2e.sh`, after c) — Google sign-in, automated part: the built app has the right Google URL scheme and client ID, the Google sheet opens and Google's page loads without a client-ID / redirect error, and the app survives Google's redirect URL. Google blocks automated logins, so **finishing a real sign-in is a manual check, see "Google sign-in, manual check" below**.
 >    e. `pnpm e2e` (Maestro, app already installed by c): logs in with the demo account and walks Home, tabs, Pay and the checkout screen. Run as `maestro test -e E2E_EMAIL=reviewer@demo.prash.invalid -e E2E_PASSWORD=<demo password> e2e/app-flow.yaml`. Ask us for the demo password. Test gateway only, it never pays.
 >    The simulator scripts and the Maestro flows were written without a simulator: fix small things (simulator name, labels) the first time and commit them.
 > 4. Archive and submit to the App Store.
@@ -61,6 +64,13 @@ open phpl.xcworkspace
 ```
 Before archiving run `pnpm test:ios-release` and `./scripts/ios-smoke.sh` (see the IMPORTANT note at the top). In Xcode: select the release scheme, set Version/Build, Signing with team `6AZ63MW8MQ`, Product > Archive > Distribute (App Store Connect), then TestFlight and submit. Text from `store-assets/listing/app-store.md`, screenshots from `store-assets/screenshots/appstore-6.9` and `appstore-6.5`, icon `store-assets/graphics/appstore-icon-1024.png`.
 Known gaps on iOS: Google sign-in is prepared (URL scheme in `Info.plist`) but never built/tested; if it does not work, hide the line "Continue with Google" in the listing text. OTA on iOS works only for builds made from the commit that has `[HotUpdater bundleURL]` in `AppDelegate.mm` (older iOS builds can never receive OTA).
+
+### Google sign-in, manual check (iOS, once per release, 2 minutes)
+Automation cannot type a Google password (Google blocks it), so after `pnpm test:ios-google` passes do this on the simulator or a phone with the release build:
+1. Login screen > "Continue with Google" > allow the "wants to use google.com" prompt > choose the Google account of a **test tenant whose email matches a tenant** (e.g. `parmardhruv800@gmail.com`, the demo tenant; ask us).
+2. Expected: you land on Home with that tenant's outlets, no error toast. A Google account that is not a tenant must show "ask your property manager" and stay on the login screen.
+3. Also kill the app and reopen: still signed in. Log out and sign in again once.
+If step 1 fails with DEVELOPER_ERROR / invalid_client, the iOS client ID or bundle ID `com.app.phpl` is wrong in Google Cloud / Firebase (project `phpl-c97dc`); with "audience" errors, `authConfig.js` on the backend does not list the client ID.
 
 ## 5. After the builds are uploaded
 ```bash

@@ -1,0 +1,29 @@
+# Google sign-in, automated part (iOS simulator). Run by scripts/ios-google-e2e.sh or:  maestro test e2e/google-signin.yaml
+# It proves everything up to the Google account page: the button works, the Google SDK is configured with a valid client ID,
+# the system "wants to use google.com to sign in" prompt appears and Google's own page loads (no invalid_client / redirect error).
+# It does NOT type a Google account: Google blocks automated logins. Finishing the sign-in is the manual check in RELEASE.md.
+appId: com.app.phpl
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: "Sign in to manage your rent, deposits and documents."
+    timeout: 30000
+- tapOn: "Continue with Google"
+# iOS asks once whether the app may use google.com to sign in
+- tapOn:
+    text: "Continue"
+    optional: true
+- extendedWaitUntil:
+    visible: ".*(Sign in|Choose an account|Use your Google Account|Google).*"
+    timeout: 30000
+- assertNotVisible: ".*(invalid_client|redirect_uri_mismatch|Error 400|Access blocked|DEVELOPER_ERROR).*"
+- takeScreenshot: google-signin-page
+# leave without signing in: back on the login screen and no error toast
+- tapOn:
+    text: "Cancel"
+    optional: true
+- extendedWaitUntil:
+    visible: "Sign in to manage your rent, deposits and documents."
+    timeout: 20000
+- assertNotVisible: ".*(not available|failed|error).*"
