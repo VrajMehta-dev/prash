@@ -1,13 +1,14 @@
 # Releasing PRASH (Android + iOS)
 
-> **IMPORTANT: next iOS release (branch `ios-ota`) — what the iOS developer must do**
-> This branch makes iOS able to receive OTA updates (`AppDelegate.mm` loads the Hot Updater bundle). Only iOS builds made from it can ever get OTA; the 1.3 to 1.5 builds in the field cannot.
-> 1. Check out `ios-ota` and run `pod install` on a Mac with **full Xcode**. This adds the three missing pods (HotUpdater, clipboard, haptics) and updates `ios/Podfile.lock`. **Commit that file.**
+> **IMPORTANT: next iOS release — what the iOS developer must do (all of this is already on `main`)**
+> **You MUST run the two iOS tests below before archiving. If either fails, do NOT submit to the App Store: fix it or tell us.**
+> `main` makes iOS able to receive OTA updates (`AppDelegate.mm` loads the Hot Updater bundle). Only iOS builds made from it can ever get OTA; the 1.3 to 1.5 builds in the field cannot.
+> 1. Check out `main` (latest) and run `pod install` on a Mac with **full Xcode**. This adds the three missing pods (HotUpdater, clipboard, haptics) and updates `ios/Podfile.lock`. **Commit that file.**
 > 2. Set the iOS version above the current **1.5 (build 2)** (`MARKETING_VERSION` / `CURRENT_PROJECT_VERSION`). No version was picked on the branch.
-> 3. **Run the tests, both must pass:** `pnpm test:ios-release` (static gate, 2 s) and `./scripts/ios-smoke.sh` (builds Release for the simulator, checks OTA/clipboard/haptics are linked in, launches it and watches it 30 s). The static gate fails today on purpose (pods missing, version not bumped); it turns green after steps 1 and 2. After each App Store release, update `LAST_RELEASED` at the top of `ios-release-tests/ios-release.check.js`.
+> 3. **Run the tests (required), both must pass:** `pnpm test:ios-release` (static gate, 2 s) and `./scripts/ios-smoke.sh` (builds Release for the simulator, checks OTA/clipboard/haptics are linked in, launches it and watches it 30 s). The static gate fails today on purpose (pods missing, version not bumped); it turns green after steps 1 and 2. After each App Store release, update `LAST_RELEASED` at the top of `ios-release-tests/ios-release.check.js`.
 > 4. Archive and submit to the App Store.
 > 5. Tag the built commit as `prod-release-ios-<version>` and push the tag. OTA for iOS (`OTA_PLATFORM=ios ./scripts/ota-prod.sh "msg"`) only works after this tag exists.
-> Also: merge `ios-ota` into `main` only together with that build (or `main` OTA checks for iOS will refuse until the tag exists). Not yet verified on a device: iOS OTA publish (try a harmless test bundle first) and Google sign-in on iOS. Apple may ask for Sign in with Apple (guideline 4.8) because Google login is offered.
+> Not yet verified on a device: iOS OTA publish (try a harmless test bundle first) and Google sign-in on iOS. Apple may ask for Sign in with Apple (guideline 4.8) because Google login is offered.
 
 Branches: **`main` = production** (store releases). **`uat` = UAT only** (test server, debug signing, `IS_UAT = true`). Never merge `main` into `uat`, never change `IS_UAT` on `main`.
 Backend and admin dashboard for this release are already live on prod; this document covers the mobile apps.
