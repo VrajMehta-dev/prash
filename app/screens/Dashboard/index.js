@@ -280,7 +280,7 @@ const DashboardScreen = ({navigation}) => {
               activeOpacity={0.8}
               onPress={() => go('HelpAndSupport', {from: 'Dashboard'})}
               style={styles.bell}>
-              <Icon name="lifebuoy" size={24} color="#fff" />
+              <Icon name="headset" size={24} color="#fff" />
             </TouchableOpacity>
           </View>
           <View style={styles.chipsRow}>
