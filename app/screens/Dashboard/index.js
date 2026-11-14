@@ -48,7 +48,6 @@ const DashboardScreen = ({navigation}) => {
 
   const [shopList, setShopList] = useState([]);
   const [dashboardList, setDashboardList] = useState([]);
-  const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [shopsLoaded, setShopsLoaded] = useState(false);
@@ -61,7 +60,6 @@ const DashboardScreen = ({navigation}) => {
 
   useFocusEffect(
     React.useCallback(() => {
-      fetchNotifications();
       fetchData();
       fetchDashboardData();
     }, [shopSelected]),
@@ -138,34 +136,6 @@ const DashboardScreen = ({navigation}) => {
       console.log('Response Data:', data);
     } catch (error) {
       console.error('Error fetching data:', error);
-    }
-  };
-  const fetchNotifications = async () => {
-    console.log('fetchNotifications');
-
-    // setLoading(true);
-    const url = BaseSetting.baseUrl + BaseSetting.endpoints.notiList;
-    const headers = {
-      Accept: '*/*',
-      Authorization: 'Bearer ' + accessToken,
-    };
-
-    try {
-      const response = await fetch(url, {method: 'GET', headers});
-      const text = await response.text();
-      const data = text ? JSON.parse(text) : {};
-      console.log('data============', data);
-
-      if (response.ok) {
-        setNotifications(data?.data);
-      } else {
-        console.log('Error fetching notifications:', data);
-        setNotifications([]);
-      }
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-    } finally {
-      // setLoading(false);
     }
   };
   const allMonths = [
@@ -250,24 +220,6 @@ const DashboardScreen = ({navigation}) => {
       setLoading(false);
     }
   };
-  const hasUnread = notifications.some(
-    notification => notification.read === false,
-  );
-  const iconRef = useRef(null);
-
-  useEffect(() => {
-    console.log('hasUnread', hasUnread);
-    if (hasUnread) {
-      const interval = setInterval(() => {
-        if (iconRef.current) {
-          iconRef.current.swing(800);
-        }
-      }, 3500);
-
-      return () => clearInterval(interval); // Cleanup on unmount
-    }
-  }, [hasUnread]);
-
   const dues = queue.items || [];
   const totalDue = dues.reduce((sum, d) => sum + Number(d?.amount || 0), 0);
   const yearTotal = barData.reduce((sum, b) => sum + (b.value || 0), 0);
@@ -279,14 +231,12 @@ const DashboardScreen = ({navigation}) => {
     tap();
     setRefreshing(true);
     await Promise.all([
-      fetchNotifications(),
       fetchData(),
       fetchDashboardData(),
       queue.reload(),
     ]);
     setRefreshing(false);
   };
-  const unreadCount = notifications.filter(n => n.read === false).length;
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
   const money = n => '\u20B9' + Number(n || 0).toLocaleString('en-IN');
@@ -350,17 +300,6 @@ const DashboardScreen = ({navigation}) => {
                 {userData?.first_name || 'there'}
               </Text>
             </View>
-            <TouchableOpacity
-              accessibilityRole="button"
-              accessibilityLabel="Notifications"
-              activeOpacity={0.8}
-              onPress={() => go('NotificationScreen')}
-              style={styles.bell}>
-              <Animatable.View ref={iconRef}>
-                <Icon name="bell-outline" size={24} color="#fff" />
-              </Animatable.View>
-              {hasUnread && <View style={styles.bellDot} />}
-            </TouchableOpacity>
           </View>
           <View style={styles.chipsRow}>
             <TouchableOpacity

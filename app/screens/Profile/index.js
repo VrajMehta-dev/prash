@@ -24,7 +24,6 @@ import {Brand} from '@config/brand';
 import {useHeaderTop} from '@components/ScreenHeader';
 import {logout} from '@utils/commonFunction';
 import {useSecurityDeposit} from '@utils/useSecurityDeposit';
-import {useUnreadCount} from '@utils/useUnreadCount';
 import authActions from '@redux/reducers/auth/actions';
 import {store} from '@redux/store/configureStore';
 
@@ -94,7 +93,6 @@ const ProfileScreen = ({navigation}) => {
   const [loggingOut, setLoggingOut] = useState(false);
   const isFocused = useIsFocused();
   const {data: deposit} = useSecurityDeposit();
-  const unread = useUnreadCount();
   const {setUserData} = authActions;
 
   useEffect(() => {
@@ -194,20 +192,13 @@ const ProfileScreen = ({navigation}) => {
         </LinearGradient>
 
         <View style={styles.body}>
-          <Group title="Payments & alerts">
+          <Group title="Payments">
             <Row
               icon={deposit?.locked ? 'lock-outline' : 'shield-check-outline'}
               title="Security Deposit"
               value={deposit?.locked ? 'Payment due' : deposit?.has_deposit ? 'Paid' : 'Not required'}
               chip={deposit?.locked ? {text: 'DUE', warn: true} : deposit?.has_deposit ? {text: 'PAID'} : null}
               onPress={() => navigation.navigate('SecurityDeposit')}
-            />
-            <Row
-              icon="bell-outline"
-              title="Notifications"
-              value={unread > 0 ? `${unread} unread` : 'All caught up'}
-              badge={unread}
-              onPress={() => navigation.navigate('NotificationScreen')}
               last
             />
           </Group>
