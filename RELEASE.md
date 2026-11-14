@@ -4,8 +4,9 @@
 > This branch makes iOS able to receive OTA updates (`AppDelegate.mm` loads the Hot Updater bundle). Only iOS builds made from it can ever get OTA; the 1.3 to 1.5 builds in the field cannot.
 > 1. Check out `ios-ota` and run `pod install` on a Mac with **full Xcode**. This adds the three missing pods (HotUpdater, clipboard, haptics) and updates `ios/Podfile.lock`. **Commit that file.**
 > 2. Set the iOS version above the current **1.5 (build 2)** (`MARKETING_VERSION` / `CURRENT_PROJECT_VERSION`). No version was picked on the branch.
-> 3. Archive and submit to the App Store.
-> 4. Tag the built commit as `prod-release-ios-<version>` and push the tag. OTA for iOS (`OTA_PLATFORM=ios ./scripts/ota-prod.sh "msg"`) only works after this tag exists.
+> 3. **Run the tests, both must pass:** `pnpm test:ios-release` (static gate, 2 s) and `./scripts/ios-smoke.sh` (builds Release for the simulator, checks OTA/clipboard/haptics are linked in, launches it and watches it 30 s). The static gate fails today on purpose (pods missing, version not bumped); it turns green after steps 1 and 2. After each App Store release, update `LAST_RELEASED` at the top of `ios-release-tests/ios-release.check.js`.
+> 4. Archive and submit to the App Store.
+> 5. Tag the built commit as `prod-release-ios-<version>` and push the tag. OTA for iOS (`OTA_PLATFORM=ios ./scripts/ota-prod.sh "msg"`) only works after this tag exists.
 > Also: merge `ios-ota` into `main` only together with that build (or `main` OTA checks for iOS will refuse until the tag exists). Not yet verified on a device: iOS OTA publish (try a harmless test bundle first) and Google sign-in on iOS. Apple may ask for Sign in with Apple (guideline 4.8) because Google login is offered.
 
 Branches: **`main` = production** (store releases). **`uat` = UAT only** (test server, debug signing, `IS_UAT = true`). Never merge `main` into `uat`, never change `IS_UAT` on `main`.
@@ -51,7 +52,7 @@ bundle install
 bundle exec pod install        # Podfile.lock is missing the pods HotUpdater (OTA), RNCClipboard and RNReactNativeHapticFeedback: this adds them. Commit the updated Podfile.lock.
 open phpl.xcworkspace
 ```
-In Xcode: select the release scheme, set Version/Build, Signing with team `6AZ63MW8MQ`, Product > Archive > Distribute (App Store Connect), then TestFlight and submit. Text from `store-assets/listing/app-store.md`, screenshots from `store-assets/screenshots/appstore-6.9` and `appstore-6.5`, icon `store-assets/graphics/appstore-icon-1024.png`.
+Before archiving run `pnpm test:ios-release` and `./scripts/ios-smoke.sh` (see the IMPORTANT note at the top). In Xcode: select the release scheme, set Version/Build, Signing with team `6AZ63MW8MQ`, Product > Archive > Distribute (App Store Connect), then TestFlight and submit. Text from `store-assets/listing/app-store.md`, screenshots from `store-assets/screenshots/appstore-6.9` and `appstore-6.5`, icon `store-assets/graphics/appstore-icon-1024.png`.
 Known gaps on iOS: Google sign-in is prepared (URL scheme in `Info.plist`) but never built/tested; if it does not work, hide the line "Continue with Google" in the listing text. OTA on iOS works only for builds made from the commit that has `[HotUpdater bundleURL]` in `AppDelegate.mm` (older iOS builds can never receive OTA).
 
 ## 5. After the builds are uploaded

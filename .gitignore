@@ -80,3 +80,8 @@ yarn-error.log
 .hot-updater/output
 dist/
 RELEASE-SECRETS*.md
+
+# iOS smoke test output
+ios/build/
+ios/build.log
+ios-smoke.png

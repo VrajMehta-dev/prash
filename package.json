@@ -8,6 +8,7 @@
     "lint": "eslint .",
     "start": "react-native start --reset-cache",
     "test": "jest",
+    "test:ios-release": "jest --rootDir . --testMatch '**/ios-release-tests/*.check.js'",
     "release": "cd ./android && ./gradlew clean && ./gradlew app:assemblerelease",
     "debug": "cd ./android && ./gradlew clean && ./gradlew assembledebug",
     "bundle": "cd ./android && ./gradlew clean &&./gradlew bundleRelease"
