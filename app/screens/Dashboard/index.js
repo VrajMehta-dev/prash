@@ -70,6 +70,11 @@ const DashboardScreen = ({navigation}) => {
   // Keep the outlet the client is in. Only when the saved outlet is no longer theirs do we
   // reselect: a single outlet is chosen silently, several ask once.
   useEffect(() => {
+    // Signed out (logout clears the saved outlet while this screen is still mounted underneath Profile): never ask to pick one.
+    if (!accessToken) {
+      setIsBottomSheetVisible(false);
+      return;
+    }
     if (!shopsLoaded || !Array.isArray(shopList)) {
       return;
     }
@@ -86,11 +91,12 @@ const DashboardScreen = ({navigation}) => {
       if (!isEmpty(shopSelected)) {
         store.dispatch(setShopSelected({}));
       }
-      setIsBottomSheetVisible(true);
+      // only while Home is the screen in front: the picker must not pop up over Profile or another tab
+      setIsBottomSheetVisible(isFocused);
     } else if (!isEmpty(shopSelected)) {
       store.dispatch(setShopSelected({}));
     }
-  }, [shopList, shopSelected, shopsLoaded]);
+  }, [shopList, shopSelected, shopsLoaded, accessToken, isFocused]);
 
   const fetchData = async () => {
     const url = BaseSetting.baseUrl + BaseSetting.endpoints.getAllShops;
