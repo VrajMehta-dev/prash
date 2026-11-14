@@ -1,6 +1,7 @@
 import React from 'react';
 import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
 import {Brand} from '@config/brand';
+import {reportError} from '@utils/errorReporter';
 
 // A render error anywhere below unmounts the whole React tree and leaves a blank screen. Contain it:
 // `silent` (overlays like the update prompt) renders nothing; otherwise show a retry screen.
@@ -11,8 +12,9 @@ export default class ErrorBoundary extends React.Component {
     return {failed: true};
   }
 
-  componentDidCatch(error) {
+  componentDidCatch(error, info) {
     console.warn('ErrorBoundary caught:', error?.message);
+    reportError(this.props.silent ? 'render_error_overlay' : 'render_error', error, {componentStack: String(info?.componentStack || '').slice(0, 1500)});
   }
 
   render() {
