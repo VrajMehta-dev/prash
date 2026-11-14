@@ -50,8 +50,8 @@ const Card = ({icon, title, value, sub, action, onPress}) => (
 export default function HelpAndSupport({navigation}) {
   return (
     <View style={styles.screen}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{paddingBottom: TAB_BAR_SPACE}}>
-        <ScreenHeader title="Help & Support" subtitle="Questions about rent, bills or payments? Reach us here." overlap />
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{paddingBottom: 32}}>
+        <ScreenHeader title="Help & Support" subtitle="Questions about rent, bills or payments? Reach us here." overlap onBack={() => navigation.navigate('Profile')} />
 
         <View style={styles.body}>
           <View style={styles.card}>

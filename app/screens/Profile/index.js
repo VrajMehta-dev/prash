@@ -23,7 +23,6 @@ import BaseSetting from '@config/setting';
 import {Brand} from '@config/brand';
 import {useHeaderTop} from '@components/ScreenHeader';
 import {logout} from '@utils/commonFunction';
-import {useSecurityDeposit} from '@utils/useSecurityDeposit';
 import authActions from '@redux/reducers/auth/actions';
 import {store} from '@redux/store/configureStore';
 
@@ -92,7 +91,6 @@ const ProfileScreen = ({navigation}) => {
   }));
   const [loggingOut, setLoggingOut] = useState(false);
   const isFocused = useIsFocused();
-  const {data: deposit} = useSecurityDeposit();
   const {setUserData} = authActions;
 
   useEffect(() => {
@@ -192,28 +190,13 @@ const ProfileScreen = ({navigation}) => {
         </LinearGradient>
 
         <View style={styles.body}>
-          <Group title="Payments">
-            <Row
-              icon={deposit?.locked ? 'lock-outline' : 'shield-check-outline'}
-              title="Security Deposit"
-              value={deposit?.locked ? 'Payment due' : deposit?.has_deposit ? 'Paid' : 'Not required'}
-              chip={deposit?.locked ? {text: 'DUE', warn: true} : deposit?.has_deposit ? {text: 'PAID'} : null}
-              onPress={() => navigation.navigate('SecurityDeposit')}
-              last
-            />
-          </Group>
-
-          <Group title="Shop">
-            <Row icon="file-sign" title="Shop documents" value="Rental contract, FSSAI licence" onPress={() => navigation.navigate('PropertyDocuments')} last />
-          </Group>
-
           <Group title="Personal details">
             <Row icon="phone-outline" title="Phone" value={userData?.phone ? String(userData.phone) : 'Not added'} />
             <Row icon="email-outline" title="Email" value={userData?.email || 'Not added'} />
             <Row
               icon="calendar-check-outline"
               title="Member since"
-              value={userData?.created_at ? moment(userData.created_at).format('MMMM YYYY') : '-'}
+              value={userData?.created_at ? moment(userData.created_at).format('DD MMM YYYY') : '-'}
               last
             />
           </Group>
