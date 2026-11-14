@@ -181,12 +181,6 @@ const ProfileScreen = ({navigation}) => {
             {`${userData?.first_name || ''} ${userData?.last_name || ''}`.trim() || 'Your account'}
           </Text>
           <Text style={styles.email} numberOfLines={1}>{userData?.email || ''}</Text>
-          {!!shopSelected?.property_name && (
-            <View style={styles.outletChip}>
-              <Icon name="storefront-outline" size={14} color="#fff" />
-              <Text style={styles.outletText} numberOfLines={1}>{shopSelected.property_name}</Text>
-            </View>
-          )}
         </LinearGradient>
 
         <View style={styles.body}>
