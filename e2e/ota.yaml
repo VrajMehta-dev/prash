@@ -1,0 +1,31 @@
+# OTA check, UI part. Run by scripts/ios-ota-e2e.sh (it builds the channel, publishes a test bundle and verifies the files):
+# the app must OFFER the test bundle, download it, apply it on restart, and then NOT offer it again.
+appId: com.app.phpl
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: "Update available"
+    timeout: 60000
+- tapOn: "Download update"
+- extendedWaitUntil:
+    visible: "Update ready"
+    timeout: 120000
+- tapOn: "Restart now"
+# the app restarts on the new bundle and comes back to the login screen
+- extendedWaitUntil:
+    visible: "Sign in to manage your rent, deposits and documents."
+    timeout: 60000
+- takeScreenshot: ota-applied
+# second launch: the bundle that is now active must not be offered again
+- launchApp
+- extendedWaitUntil:
+    visible: "Sign in to manage your rent, deposits and documents."
+    timeout: 30000
+- runFlow:
+    when:
+      visible: "Update available"
+    commands:
+      - assertTrue:
+          condition: ${false}
+          label: "the same OTA bundle was offered again after it was applied"

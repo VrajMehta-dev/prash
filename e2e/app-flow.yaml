@@ -1,0 +1,41 @@
+# End-to-end smoke of the real app on the simulator (iOS or Android emulator), logged in as a DEMO account.
+#   maestro test -e E2E_EMAIL=reviewer@demo.prash.invalid -e E2E_PASSWORD=<demo password> e2e/app-flow.yaml
+# The demo account pays through the Easebuzz TEST gateway, so nothing here moves real money. We open the checkout but never slide to pay.
+# Texts below are the labels in the app; if a label changes in the app, change it here too.
+appId: com.app.phpl
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: "Sign in to manage your rent, deposits and documents."
+    timeout: 30000
+- tapOn: "Email"
+- inputText: ${E2E_EMAIL}
+- tapOn: "Password"
+- inputText: ${E2E_PASSWORD}
+- hideKeyboard
+- tapOn: "Sign In"
+# a system notification-permission dialog may appear after login
+- tapOn:
+    text: "Allow"
+    optional: true
+# Home: dues are listed in the order they must be paid
+- extendedWaitUntil:
+    visible: "Pay in this order"
+    timeout: 30000
+- assertVisible: "Home"
+# bottom tabs open without crashing
+- tapOn: "Rent"
+- assertVisible: "Rent"
+- tapOn: "Extras"
+- tapOn: "Pay"
+- assertVisible: "Total to pay"
+# checkout opens for the first due (test gateway; we do not slide to pay)
+- tapOn:
+    text: "Pay"
+    index: 1
+    optional: true
+- assertVisible:
+    text: "Review & pay"
+    optional: true
+- takeScreenshot: e2e-app-flow

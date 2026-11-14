@@ -5,7 +5,13 @@
 > `main` makes iOS able to receive OTA updates (`AppDelegate.mm` loads the Hot Updater bundle). Only iOS builds made from it can ever get OTA; the 1.3 to 1.5 builds in the field cannot.
 > 1. Check out `main` (latest) and run `pod install` on a Mac with **full Xcode**. This adds the three missing pods (HotUpdater, clipboard, haptics) and updates `ios/Podfile.lock`. **Commit that file.**
 > 2. Set the iOS version above the current **1.5 (build 2)** (`MARKETING_VERSION` / `CURRENT_PROJECT_VERSION`). No version was picked on the branch.
-> 3. **Run the tests (required), both must pass:** `pnpm test:ios-release` (static gate, 2 s) and `./scripts/ios-smoke.sh` (builds Release for the simulator, checks OTA/clipboard/haptics are linked in, launches it and watches it 30 s). The static gate fails today on purpose (pods missing, version not bumped); it turns green after steps 1 and 2. After each App Store release, update `LAST_RELEASED` at the top of `ios-release-tests/ios-release.check.js`.
+> 3. **Run the tests (required), ALL must pass, in this order:**
+>    a. `pnpm test:ios-release` — static gate (2 s). It fails today on purpose (pods missing, version not bumped) and turns green after steps 1 and 2. After each App Store release update `LAST_RELEASED` at the top of `ios-release-tests/ios-release.check.js`.
+>    b. `pnpm test` — unit tests, including the payment logic (`__tests__/paymentLogic.test.js`). `App.test.tsx` was already failing before this work: ignore that one.
+>    c. `./scripts/ios-smoke.sh` — builds Release for the simulator, checks OTA/clipboard/haptics are linked in, launches it and watches it 30 s.
+>    d. `pnpm test:ios-ota` (`./scripts/ios-ota-e2e.sh`, run after c; needs Maestro and `.env.hotupdater.prod`) — **the OTA test**: gives that build a private OTA channel, publishes a test bundle, and checks on the simulator that the update is offered, downloaded, applied and not offered again. Real users cannot receive it.
+>    e. `pnpm e2e` (Maestro, app already installed by c): logs in with the demo account and walks Home, tabs, Pay and the checkout screen. Run as `maestro test -e E2E_EMAIL=reviewer@demo.prash.invalid -e E2E_PASSWORD=<demo password> e2e/app-flow.yaml`. Ask us for the demo password. Test gateway only, it never pays.
+>    The simulator scripts and the Maestro flows were written without a simulator: fix small things (simulator name, labels) the first time and commit them.
 > 4. Archive and submit to the App Store.
 > 5. Tag the built commit as `prod-release-ios-<version>` and push the tag. OTA for iOS (`OTA_PLATFORM=ios ./scripts/ota-prod.sh "msg"`) only works after this tag exists.
 > Not yet verified on a device: iOS OTA publish (try a harmless test bundle first) and Google sign-in on iOS. Apple may ask for Sign in with Apple (guideline 4.8) because Google login is offered.

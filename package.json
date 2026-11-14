@@ -9,6 +9,8 @@
     "start": "react-native start --reset-cache",
     "test": "jest",
     "test:ios-release": "jest --rootDir . --testMatch '**/ios-release-tests/*.check.js'",
+    "e2e": "maestro test e2e/app-flow.yaml",
+    "test:ios-ota": "./scripts/ios-ota-e2e.sh",
     "release": "cd ./android && ./gradlew clean && ./gradlew app:assemblerelease",
     "debug": "cd ./android && ./gradlew clean && ./gradlew assembledebug",
     "bundle": "cd ./android && ./gradlew clean &&./gradlew bundleRelease"
