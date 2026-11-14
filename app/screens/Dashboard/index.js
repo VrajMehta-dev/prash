@@ -429,14 +429,14 @@ const DashboardScreen = ({navigation}) => {
           <Animatable.View animation="fadeInUp" delay={260} duration={450} style={styles.card}>
             <View style={styles.cardHead}>
               <View>
-                <Text style={styles.cardTitle}>Billed this financial year</Text>
-                {!!fyLabel && <Text style={styles.cardSub}>FY {fyLabel}</Text>}
+                <Text style={styles.cardTitle}>{fyLabel ? `FY ${fyLabel}` : 'This financial year'}</Text>
+                <Text style={styles.cardSub}>Total billed</Text>
               </View>
               <Text style={styles.cardFigure}>{money(yearTotal)}</Text>
             </View>
             {yearTotal > 0 ? (
-              // a plain picture: no taps, no tooltips
-              <View pointerEvents="none">
+              // tap a point to see that month in a toast (the figure at the top stays the whole financial year)
+              <View>
                 <LineChart
                   data={lineData}
                   height={150}
@@ -453,7 +453,13 @@ const DashboardScreen = ({navigation}) => {
                   startOpacity={0.18}
                   endOpacity={0.02}
                   dataPointsColor="#632240"
-                  dataPointsRadius={3}
+                  dataPointsRadius={5}
+                  onPress={(item) => {
+                    tap();
+                    if (item?.value > 0) {
+                      Toast.show({text2: item.month + ' : ' + money(item.value), type: 'info'});
+                    }
+                  }}
                   noOfSections={4}
                   yAxisThickness={0}
                   xAxisColor="#E6E6EC"
