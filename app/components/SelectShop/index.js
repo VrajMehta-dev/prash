@@ -47,7 +47,7 @@ const ShopRow = ({shop, selected, onPress}) => {
             {shop?.property_name}
           </Text>
           <Text style={styles.meta} numberOfLines={1}>
-            {[shop?.zone_name, shop?.property_uid].filter(Boolean).join('  •  ')}
+            {shop?.zone_name || ''}
           </Text>
         </View>
         {selected ? (
