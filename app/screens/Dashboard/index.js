@@ -166,11 +166,14 @@ const DashboardScreen = ({navigation}) => {
     ],
   };
 
+  // Tapping a bar shows that month inside the chart card (the old pop-up toast covered the Total due at the top and looked like it
+  // had changed). Tap the same bar again to go back to the year total.
+  const [selBar, setSelBar] = useState(null);
   const barData = monthlyData.labels.map((month, index) => ({
     value: monthlyData.datasets[0].data[index],
     label: month.charAt(0), // one letter per bar so 12 labels never collide
     month,
-    frontColor: '#632240',
+    frontColor: selBar === null || selBar === index ? '#632240' : '#D9C3CE',
   }));
   console.log('barData', barData);
 
@@ -454,8 +457,8 @@ const DashboardScreen = ({navigation}) => {
           {!noOutlet && !showError && !loading && !deposit?.locked && (
           <Animatable.View animation="fadeInUp" delay={260} duration={450} style={styles.card}>
             <View style={styles.cardHead}>
-              <Text style={styles.cardTitle}>Billed this year</Text>
-              <Text style={styles.cardFigure}>{money(yearTotal)}</Text>
+              <Text style={styles.cardTitle}>{selBar === null ? 'Billed this year' : `Billed in ${barData[selBar]?.month}`}</Text>
+              <Text style={styles.cardFigure}>{money(selBar === null ? yearTotal : barData[selBar]?.value || 0)}</Text>
             </View>
             {yearTotal > 0 ? (
               <BarChart
@@ -479,14 +482,9 @@ const DashboardScreen = ({navigation}) => {
                 }}
                 yAxisLabelWidth={34}
                 isAnimated
-                onPress={data => {
+                onPress={(item, index) => {
                   tap();
-                  if (data?.value > 0) {
-                    Toast.show({
-                      text2: data?.month + ' : ' + money(data?.value),
-                      type: 'info',
-                    });
-                  }
+                  setSelBar(prev => (prev === index ? null : index));
                 }}
               />
             ) : (
