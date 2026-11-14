@@ -200,7 +200,7 @@ export default function SecurityDeposit({navigation}) {
 }
 
 const styles = StyleSheet.create({
-  list: {paddingHorizontal: 0, paddingBottom: 8},
+  list: {paddingHorizontal: 0, paddingTop: 16, paddingBottom: 8},
   summary: {flexDirection: 'row', gap: 12, marginHorizontal: 16, marginTop: 4, marginBottom: 16},
   sumCol: {flex: 1},
   sumLabel: {color: '#7A7A85', fontSize: 12, fontWeight: '600'},
