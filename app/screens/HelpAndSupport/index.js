@@ -8,7 +8,6 @@ import {Brand} from '@config/brand';
 import ScreenHeader from '@components/ScreenHeader';
 import {TAB_BAR_SPACE} from '@navigation/BottomTab';
 import {tap} from '@utils/haptics';
-import {openWebsite} from '@utils/openWebsite';
 
 const TOP = Platform.OS === 'ios' ? 56 : (StatusBar.currentHeight || 24) + 10;
 const CONTACT = {
@@ -47,11 +46,11 @@ const Card = ({icon, title, value, sub, action, onPress}) => (
   </TouchableOpacity>
 );
 
-export default function HelpAndSupport({navigation}) {
+export default function HelpAndSupport({navigation, route}) {
   return (
     <View style={styles.screen}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{paddingBottom: 32}}>
-        <ScreenHeader title="Help & Support" subtitle="Questions about rent, bills or payments? Reach us here." overlap onBack={() => navigation.navigate('Profile')} />
+        <ScreenHeader title="Help & Support" subtitle="Questions about rent, bills or payments? Reach us here." overlap onBack={() => navigation.navigate(route?.params?.from || 'Profile')} />
 
         <View style={styles.body}>
           <View style={styles.card}>
@@ -78,13 +77,6 @@ export default function HelpAndSupport({navigation}) {
             value={CONTACT.email}
                         action="Email"
             onPress={() => open(`mailto:${CONTACT.email}?subject=PRASH%20support`, 'email')}
-          />
-          <Card
-            icon="information-outline"
-            title="About PRASH"
-            value="Learn more about the product"
-            action="Open"
-            onPress={() => openWebsite('https://aystera.com/products/prash-rent-management', 'help_about_prash')}
           />
         </View>
       </ScrollView>

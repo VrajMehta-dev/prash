@@ -19,7 +19,7 @@ import {
 import TouchableOpacity from '@components/PressableScale';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import IonIcon from 'react-native-vector-icons/Ionicons';
-import {LineChart} from 'react-native-gifted-charts';
+import {BarChart} from 'react-native-gifted-charts';
 
 import {useSelector} from 'react-redux';
 import * as Animatable from 'react-native-animatable';
@@ -144,7 +144,7 @@ const DashboardScreen = ({navigation}) => {
   const fyRows = dashboardList?.graph_fy || dashboardList?.graph || [];
   const lineData = FY_MONTHS.map(month => {
     const found = fyRows.find(entry => entry.month?.startsWith(month));
-    return {value: found ? parseFloat(found.payment_amount) : 0, label: month.charAt(0), month};
+    return {value: found ? parseFloat(found.payment_amount) : 0, label: month.charAt(0), month, frontColor: '#632240'};
   });
   const fyLabel = dashboardList?.fy_label || '';
 
@@ -274,6 +274,14 @@ const DashboardScreen = ({navigation}) => {
                 {userData?.first_name || 'there'}
               </Text>
             </View>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Help and support"
+              activeOpacity={0.8}
+              onPress={() => go('HelpAndSupport', {from: 'Dashboard'})}
+              style={styles.bell}>
+              <Icon name="lifebuoy" size={24} color="#fff" />
+            </TouchableOpacity>
           </View>
           <View style={styles.chipsRow}>
             <TouchableOpacity
@@ -435,45 +443,37 @@ const DashboardScreen = ({navigation}) => {
               <Text style={styles.cardFigure}>{money(yearTotal)}</Text>
             </View>
             {yearTotal > 0 ? (
-              // tap a point to see that month in a toast (the figure at the top stays the whole financial year)
-              <View>
-                <LineChart
-                  data={lineData}
-                  height={150}
-                  spacing={CHART_SLOT}
-                  initialSpacing={8}
-                  endSpacing={4}
-                  disableScroll
-                  curved
-                  areaChart
-                  color="#632240"
-                  thickness={3}
-                  startFillColor="#632240"
-                  endFillColor="#632240"
-                  startOpacity={0.18}
-                  endOpacity={0.02}
-                  dataPointsColor="#632240"
-                  dataPointsRadius={5}
-                  onPress={(item) => {
-                    tap();
-                    if (item?.value > 0) {
-                      Toast.show({text2: item.month + ' : ' + money(item.value), type: 'info'});
-                    }
-                  }}
-                  noOfSections={4}
-                  yAxisThickness={0}
-                  xAxisColor="#E6E6EC"
-                  rulesColor="#EFEFF4"
-                  yAxisTextStyle={{color: '#9A9AA5', fontSize: 10}}
-                  xAxisLabelTextStyle={{color: '#7A7A85', fontSize: 11, textAlign: 'center'}}
-                  formatYLabel={v => {
-                    const n = Number(v);
-                    return n >= 1000 ? `${Math.round(n / 100) / 10}k` : `${Math.round(n)}`;
-                  }}
-                  yAxisLabelWidth={34}
-                  isAnimated
-                />
-              </View>
+              <BarChart
+                data={lineData}
+                height={150}
+                barWidth={CHART_BAR}
+                spacing={CHART_GAP}
+                initialSpacing={4}
+                endSpacing={0}
+                disableScroll
+                barBorderRadius={5}
+                noOfSections={4}
+                yAxisThickness={0}
+                xAxisColor="#E6E6EC"
+                rulesColor="#EFEFF4"
+                yAxisTextStyle={{color: '#9A9AA5', fontSize: 10}}
+                xAxisLabelTextStyle={{color: '#7A7A85', fontSize: 11, textAlign: 'center'}}
+                formatYLabel={v => {
+                  const n = Number(v);
+                  return n >= 1000 ? `${Math.round(n / 100) / 10}k` : `${Math.round(n)}`;
+                }}
+                yAxisLabelWidth={34}
+                isAnimated
+                onPress={data => {
+                  tap();
+                  if (data?.value > 0) {
+                    Toast.show({
+                      text2: data?.month + ' : ' + money(data?.value),
+                      type: 'info',
+                    });
+                  }
+                }}
+              />
             ) : (
               <View style={styles.empty}>
                 <Icon name="chart-box-outline" size={36} color="#C9C9D2" />
@@ -503,6 +503,8 @@ const DashboardScreen = ({navigation}) => {
 // 12 bars must fit inside the card (screen - page padding - card padding - y labels)
 const CHART_INNER = Dimensions.get('window').width - 32 - 36 - 34 - 8;
 const CHART_SLOT = CHART_INNER / 12;
+const CHART_BAR = Math.floor(CHART_SLOT * 0.55);
+const CHART_GAP = Math.floor(CHART_SLOT * 0.45);
 
 const Skeleton = ({w = '100%', h = 14, r = 8, style}) => (
   <Animatable.View
