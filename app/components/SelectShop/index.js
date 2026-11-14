@@ -117,6 +117,8 @@ const ShopSelector = ({shops, selectedId, onSelect, isVisible, onClose}) => {
           <Animated.View style={[styles.backdrop, backdropStyle]} />
         </TouchableWithoutFeedback>
         <Animated.View style={[styles.sheet, {maxHeight: height * 0.7}, sheetStyle]}>
+          {/* the spring overshoots upward on open: this skirt keeps the sheet's colour under it so the screen behind never shows through */}
+          <View pointerEvents="none" style={styles.skirt} />
           <View {...pan.panHandlers}>
             <View style={styles.handle} />
             <View style={styles.header}>
@@ -167,6 +169,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 28,
     paddingBottom: Platform.OS === 'ios' ? 28 : 16,
   },
+  skirt: {position: 'absolute', left: 0, right: 0, top: '100%', height: 400, backgroundColor: '#fff'},
   handle: {
     alignSelf: 'center',
     width: 42,
