@@ -9,7 +9,8 @@ import {navigationRef} from '../../navigation/NavigationService';
 const ITEMS = [
   {name: 'Containers', icon: 'cube-outline', title: 'Container Charges'},
   {name: 'SecurityDeposit', icon: 'shield-checkmark-outline', title: 'Security Deposit'},
-  {name: 'PropertyDocuments', icon: 'document-text-outline', title: 'Shop Documents'},
+  {name: 'Contracts', icon: 'document-text-outline', title: 'Contracts'},
+  {name: 'Compliance', icon: 'ribbon-outline', title: 'Compliance'},
 ];
 
 // The "More" menu: it takes the place of the bottom bar (the bar fades out, see navigation/BottomTab) and springs open from the

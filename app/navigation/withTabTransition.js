@@ -19,6 +19,8 @@ const ORDER = [
   'Pay',
   'Containers',
   'SecurityDeposit',
+  'Contracts',
+  'Compliance',
   'PropertyDocuments',
   'HelpAndSupport',
   'Profile',

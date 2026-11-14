@@ -28,7 +28,7 @@ const handleNotification = remoteMessage => {
   // Server-provided deep link (e.g. security deposit notifications carry screen: 'SecurityDeposit').
   const screen = remoteMessage?.data?.screen;
   if (screen) {
-    if (['Bills', 'Charges', 'Pay', 'Containers', 'SecurityDeposit', 'PropertyDocuments', 'Profile', 'Dashboard'].includes(screen)) {
+    if (['Bills', 'Charges', 'Pay', 'Containers', 'SecurityDeposit', 'Contracts', 'Compliance', 'PropertyDocuments', 'Profile', 'Dashboard'].includes(screen)) {
       goToTab(screen);
     } else {
       navigationRef.current?.navigate(screen);

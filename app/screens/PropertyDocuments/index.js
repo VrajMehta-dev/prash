@@ -82,7 +82,9 @@ function DocCard({icon, title, subtitle, days, fields, onOpen, hasFile}) {
   );
 }
 
-export default function PropertyDocuments({navigation}) {
+// One list screen, two views: mode 'contracts' (rental contracts) or 'compliance' (FSSAI licence and other compliance documents).
+export default function PropertyDocuments({navigation, mode = 'contracts'}) {
+  const isContracts = mode === 'contracts';
   const shop = useSelector(s => s.auth.shopSelected);
   const [data, setData] = useState(null);
   const [failed, setFailed] = useState(false);
@@ -123,8 +125,8 @@ export default function PropertyDocuments({navigation}) {
     }
   };
 
-  const contracts = data?.contracts || [];
-  const fssai = data?.fssai;
+  const contracts = isContracts ? data?.contracts || [] : [];
+  const fssai = isContracts ? null : data?.fssai;
   const empty = data && !contracts.length && !fssai;
 
   return (
@@ -143,7 +145,7 @@ export default function PropertyDocuments({navigation}) {
           />
         }
         contentContainerStyle={{paddingBottom: TAB_BAR_SPACE}}>
-        <ScreenHeader title="Shop documents" subtitle={shop?.property_name} overlap />
+        <ScreenHeader title={isContracts ? 'Contracts' : 'Compliance'} subtitle={shop?.property_name} overlap />
 
         <View style={styles.body}>
           {!data && !failed && <ActivityIndicator color={Brand.primary} style={{marginTop: 40}} />}
@@ -155,8 +157,12 @@ export default function PropertyDocuments({navigation}) {
           )}
           {empty && (
             <View style={styles.card}>
-              <Text style={styles.title}>No documents yet</Text>
-              <Text style={styles.sub}>Your rental contract and FSSAI licence will appear here once they are added.</Text>
+              <Text style={styles.title}>{isContracts ? 'No contracts yet' : 'No compliance documents yet'}</Text>
+              <Text style={styles.sub}>
+                {isContracts
+                  ? 'Your rental contracts will appear here once they are added.'
+                  : 'Your FSSAI licence and other compliance documents will appear here once they are added.'}
+              </Text>
             </View>
           )}
 

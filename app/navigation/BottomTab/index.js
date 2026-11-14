@@ -56,7 +56,7 @@ const PILL = [
   {key: 'Pay', label: 'Pay', icon: {type: Icons.Ionicons, name: 'wallet-outline', on: 'wallet'}},
 ];
 const MORE = {type: Icons.Ionicons, name: 'grid-outline', on: 'grid'};
-const MORE_ROUTES = ['Containers', 'SecurityDeposit', 'PropertyDocuments'];
+const MORE_ROUTES = ['Containers', 'SecurityDeposit', 'Contracts', 'Compliance', 'PropertyDocuments'];
 // Full-page screens reached from elsewhere (the avatar on Home, and Help & Support which opens from Profile): no bar on them.
 const NO_BAR_ROUTES = ['Profile', 'HelpAndSupport'];
 const ACTIVE = Brand.primary;

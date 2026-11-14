@@ -46,7 +46,8 @@ import PayHub from '@screens/PayHub';
 import Containers from '@screens/Containers';
 import SecurityDeposit from '@screens/SecurityDeposit';
 import HelpAndSupport from '@screens/HelpAndSupport';
-import PropertyDocuments from '@screens/PropertyDocuments';
+import Contracts from '@screens/Contracts';
+import Compliance from '@screens/Compliance';
 
 const DashboardTab = withTabTransition(Dashboard);
 const BillsTab = withTabTransition(withDepositGate(BillsDashboard));
@@ -55,7 +56,8 @@ const PayTab = withTabTransition(withDepositGate(PayHub));
 const ContainersTab = withTabTransition(withDepositGate(Containers));
 const HelpTab = withTabTransition(HelpAndSupport);
 const DepositTab = withTabTransition(SecurityDeposit);
-const DocumentsTab = withTabTransition(PropertyDocuments);
+const ContractsTab = withTabTransition(Contracts);
+const ComplianceTab = withTabTransition(Compliance);
 const ProfileTab = withTabTransition(Profile);
 
 const CustomDrawer = ({navigation}) => {
@@ -462,7 +464,10 @@ const CustomDrawer = ({navigation}) => {
           />
           <Tab.Screen name="HelpAndSupport" options={navOptions} component={HelpTab} />
           <Tab.Screen name="SecurityDeposit" options={navOptions} component={DepositTab} />
-          <Tab.Screen name="PropertyDocuments" options={navOptions} component={DocumentsTab} />
+          <Tab.Screen name="Contracts" options={navOptions} component={ContractsTab} />
+          <Tab.Screen name="Compliance" options={navOptions} component={ComplianceTab} />
+          {/* old name, kept so links / push taps that still say PropertyDocuments open the contracts */}
+          <Tab.Screen name="PropertyDocuments" options={navOptions} component={ContractsTab} />
           <Tab.Screen name="Profile" component={ProfileTab} options={navOptions} />
         </Tab.Navigator>
       </Animated.View>
