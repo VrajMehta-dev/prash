@@ -19,7 +19,7 @@ import {
 import TouchableOpacity from '@components/PressableScale';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import IonIcon from 'react-native-vector-icons/Ionicons';
-import {BarChart} from 'react-native-gifted-charts';
+import {LineChart} from 'react-native-gifted-charts';
 
 import {useSelector} from 'react-redux';
 import * as Animatable from 'react-native-animatable';
@@ -138,44 +138,15 @@ const DashboardScreen = ({navigation}) => {
       console.error('Error fetching data:', error);
     }
   };
-  const allMonths = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
-  const monthlyData = {
-    labels: allMonths,
-    datasets: [
-      {
-        data: allMonths.map(month => {
-          const found = dashboardList?.graph?.find(entry =>
-            entry.month?.startsWith(month),
-          );
-          return found ? parseFloat(found?.payment_amount) : 0;
-        }),
-      },
-    ],
-  };
-
-  // Tapping a bar shows that month inside the chart card (the old pop-up toast covered the Total due at the top and looked like it
-  // had changed). Tap the same bar again to go back to the year total.
-  const [selBar, setSelBar] = useState(null);
-  const barData = monthlyData.labels.map((month, index) => ({
-    value: monthlyData.datasets[0].data[index],
-    label: month.charAt(0), // one letter per bar so 12 labels never collide
-    month,
-    frontColor: selBar === null || selBar === index ? '#632240' : '#D9C3CE',
-  }));
-  console.log('barData', barData);
+  // The yearly figure is the current FINANCIAL year (1 Apr - 31 Mar). The server sends it as `graph_fy`; older servers only
+  // send the calendar year in `graph`.
+  const FY_MONTHS = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'];
+  const fyRows = dashboardList?.graph_fy || dashboardList?.graph || [];
+  const lineData = FY_MONTHS.map(month => {
+    const found = fyRows.find(entry => entry.month?.startsWith(month));
+    return {value: found ? parseFloat(found.payment_amount) : 0, label: month.charAt(0), month};
+  });
+  const fyLabel = dashboardList?.fy_label || '';
 
   const fetchDashboardData = async () => {
     // Do not fetch dashboard data without a selected shop
@@ -225,7 +196,7 @@ const DashboardScreen = ({navigation}) => {
   };
   const dues = queue.items || [];
   const totalDue = dues.reduce((sum, d) => sum + Number(d?.amount || 0), 0);
-  const yearTotal = barData.reduce((sum, b) => sum + (b.value || 0), 0);
+  const yearTotal = lineData.reduce((sum, b) => sum + (b.value || 0), 0);
   const multiOutlet = Array.isArray(shopList) && shopList.length > 1;
   const noOutlet = shopsLoaded && Array.isArray(shopList) && shopList.length === 0;
   const showError = loadError && !loading && !noOutlet;
@@ -457,36 +428,46 @@ const DashboardScreen = ({navigation}) => {
           {!noOutlet && !showError && !loading && !deposit?.locked && (
           <Animatable.View animation="fadeInUp" delay={260} duration={450} style={styles.card}>
             <View style={styles.cardHead}>
-              <Text style={styles.cardTitle}>{selBar === null ? 'Billed this year' : `Billed in ${barData[selBar]?.month}`}</Text>
-              <Text style={styles.cardFigure}>{money(selBar === null ? yearTotal : barData[selBar]?.value || 0)}</Text>
+              <View>
+                <Text style={styles.cardTitle}>Billed this financial year</Text>
+                {!!fyLabel && <Text style={styles.cardSub}>FY {fyLabel}</Text>}
+              </View>
+              <Text style={styles.cardFigure}>{money(yearTotal)}</Text>
             </View>
             {yearTotal > 0 ? (
-              <BarChart
-                data={barData}
-                height={150}
-                barWidth={CHART_BAR}
-                spacing={CHART_GAP}
-                initialSpacing={4}
-                endSpacing={0}
-                disableScroll
-                barBorderRadius={5}
-                noOfSections={4}
-                yAxisThickness={0}
-                xAxisColor="#E6E6EC"
-                rulesColor="#EFEFF4"
-                yAxisTextStyle={{color: '#9A9AA5', fontSize: 10}}
-                xAxisLabelTextStyle={{color: '#7A7A85', fontSize: 11, textAlign: 'center'}}
-                formatYLabel={v => {
-                  const n = Number(v);
-                  return n >= 1000 ? `${Math.round(n / 100) / 10}k` : `${Math.round(n)}`;
-                }}
-                yAxisLabelWidth={34}
-                isAnimated
-                onPress={(item, index) => {
-                  tap();
-                  setSelBar(prev => (prev === index ? null : index));
-                }}
-              />
+              // a plain picture: no taps, no tooltips
+              <View pointerEvents="none">
+                <LineChart
+                  data={lineData}
+                  height={150}
+                  spacing={CHART_SLOT}
+                  initialSpacing={8}
+                  endSpacing={4}
+                  disableScroll
+                  curved
+                  areaChart
+                  color="#632240"
+                  thickness={3}
+                  startFillColor="#632240"
+                  endFillColor="#632240"
+                  startOpacity={0.18}
+                  endOpacity={0.02}
+                  dataPointsColor="#632240"
+                  dataPointsRadius={3}
+                  noOfSections={4}
+                  yAxisThickness={0}
+                  xAxisColor="#E6E6EC"
+                  rulesColor="#EFEFF4"
+                  yAxisTextStyle={{color: '#9A9AA5', fontSize: 10}}
+                  xAxisLabelTextStyle={{color: '#7A7A85', fontSize: 11, textAlign: 'center'}}
+                  formatYLabel={v => {
+                    const n = Number(v);
+                    return n >= 1000 ? `${Math.round(n / 100) / 10}k` : `${Math.round(n)}`;
+                  }}
+                  yAxisLabelWidth={34}
+                  isAnimated
+                />
+              </View>
             ) : (
               <View style={styles.empty}>
                 <Icon name="chart-box-outline" size={36} color="#C9C9D2" />
@@ -516,8 +497,6 @@ const DashboardScreen = ({navigation}) => {
 // 12 bars must fit inside the card (screen - page padding - card padding - y labels)
 const CHART_INNER = Dimensions.get('window').width - 32 - 36 - 34 - 8;
 const CHART_SLOT = CHART_INNER / 12;
-const CHART_BAR = Math.floor(CHART_SLOT * 0.55);
-const CHART_GAP = Math.floor(CHART_SLOT * 0.45);
 
 const Skeleton = ({w = '100%', h = 14, r = 8, style}) => (
   <Animatable.View
@@ -683,6 +662,7 @@ const styles = StyleSheet.create({
   card: {backgroundColor: '#fff', borderRadius: 22, padding: 18, marginTop: 18, ...SHADOW},
   cardHead: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14},
   cardTitle: {color: '#17171C', fontSize: 16, fontWeight: 'bold'},
+  cardSub: {color: '#8A8A95', fontSize: 12, marginTop: 2},
   cardFigure: {color: Brand.primary, fontSize: 15, fontWeight: 'bold'},
   progressTrack: {height: 10, borderRadius: 5, backgroundColor: '#F0E4EA', marginTop: 14, overflow: 'hidden'},
   progressFill: {height: '100%', borderRadius: 5, backgroundColor: Brand.primary},
