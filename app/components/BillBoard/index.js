@@ -88,6 +88,11 @@ const BillCard = ({
   onDownloadInvoice,
   onDownloadReceipt,
   isLast,
+  // Other charge types (Extras) reuse this card: `title` replaces the month heading, `subtitle` the due-date line and `rows`
+  // ({label, value, kind?}) the rent breakdown, so every payable item looks and behaves the same.
+  title,
+  subtitle,
+  rows,
 }) => {
   const {
     month,
@@ -171,9 +176,11 @@ const BillCard = ({
         style={styles.card}>
         <View style={styles.cardHeader}>
           <View>
-            <Text style={styles.month}>{moment(month).format('MMM YYYY')}</Text>
-            <Text style={styles.statusText}>
-              {isPaid
+            <Text style={styles.month} numberOfLines={1}>{title ?? moment(month).format('MMM YYYY')}</Text>
+            <Text style={styles.statusText} numberOfLines={subtitle ? 1 : undefined}>
+              {subtitle
+                ? subtitle
+                : isPaid
                 ? 'Payment completed'
                 : due_date
                 ? (() => {
@@ -276,7 +283,17 @@ const BillCard = ({
             />
           </View>
         </TouchableOpacity>
-        {expanded && (
+        {expanded && rows && (
+          <View style={styles.billDetails}>
+            {rows.map((row, i) => (
+              <View key={i} style={styles.row}>
+                <Text style={[styles.label, row.kind === 'rounded' && styles.roundedLabel]}>{row.label}</Text>
+                <Text style={[styles.value, row.kind === 'rounded' && styles.roundedValue]}>{row.value}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+        {expanded && !rows && (
         <View style={styles.billDetails}>
           <View style={styles.row}>
             <Text style={styles.label}>Rent</Text>
@@ -930,5 +947,5 @@ const styles = StyleSheet.create({
   detailsToggleText: {fontSize: 13, color: '#632240', fontWeight: '600'},
 });
 
-export {TabSelector};
+export {TabSelector, BillCard};
 export default BillsDashboard;

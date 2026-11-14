@@ -43,6 +43,7 @@ import ResetNewPassword from '@screens/ResetNewPassword';
 import SignUpMethods from '@screens/SignUpMethods';
 import CreatePost from '@screens/CreatePost';
 import CheckoutSheet from '@components/CheckoutSheet';
+import MoreMenu from '@components/MoreMenu';
 import UserProfile from '@screens/UserProfile';
 import ChatMessage from '@screens/ChatMessage';
 import CreateTrip from '@screens/CreateTrip';
@@ -314,6 +315,7 @@ function App() {
         <NoInternet />
         <RemotePushController />
       </NavigationContainer>
+      <MoreMenu />
       <CheckoutSheet />
       <Toast visibilityTime={3500} autoHide={true} topOffset={TOAST_TOP} config={toastConfig} />
     </>

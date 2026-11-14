@@ -10,95 +10,12 @@ import {apiGet} from '@utils/authedApi';
 import {startCheckout} from '@utils/checkout';
 import {onPaymentChange} from '@utils/paymentEvents';
 import {usePaymentQueue} from '@utils/usePaymentQueue';
-import {TabSelector} from '@components/BillBoard';
+import {TabSelector, BillCard} from '@components/BillBoard';
 import ScreenHeader from '@components/ScreenHeader';
 import {downloadPdf} from '@utils/downloadPdf';
 import {TAB_BAR_SPACE} from '@navigation/BottomTab';
 
 const money = n => '₹' + Number(n || 0).toLocaleString('en-IN');
-
-function ChargeCard({charge, navigation, blockedBy}) {
-  const paid = charge.status === 'paid';
-  const [busy, setBusy] = useState(false);
-  const id = charge.container_charge_id;
-  // Title/description are clamped (1 and 2 lines). Hidden unclamped copies tell us if anything is cut off.
-  const [expanded, setExpanded] = useState(false);
-  const [titleCut, setTitleCut] = useState(false);
-  const [descCut, setDescCut] = useState(false);
-  const cut = titleCut || descCut;
-  return (
-    <View style={styles.card}>
-      <View style={styles.top}>
-        <View style={styles.iconBox}>
-          <Icon name="package-variant-closed" size={22} color={Brand.primary} />
-        </View>
-        <View style={{flex: 1}}>
-          <Text style={styles.title} numberOfLines={expanded ? undefined : 1}>{charge.title}</Text>
-          {!!charge.description && (
-            <Text style={styles.desc} numberOfLines={expanded ? undefined : 2}>{charge.description}</Text>
-          )}
-          {/* invisible, unclamped copies used only to detect truncation */}
-          <Text
-            style={[styles.title, styles.measure]}
-            onTextLayout={e => setTitleCut(e.nativeEvent.lines.length > 1)}>
-            {charge.title}
-          </Text>
-          {!!charge.description && (
-            <Text
-              style={[styles.desc, styles.measure]}
-              onTextLayout={e => setDescCut(e.nativeEvent.lines.length > 2)}>
-              {charge.description}
-            </Text>
-          )}
-          {cut && (
-            <TouchableOpacity onPress={() => setExpanded(v => !v)} hitSlop={8} style={styles.moreBtn}>
-              <Text style={styles.more}>{expanded ? 'Show less' : 'Read more'}</Text>
-            </TouchableOpacity>
-          )}
-          <Text style={styles.date}>Added {moment(charge.created_at).format('DD MMM YYYY')}</Text>
-        </View>
-        <View style={{alignItems: 'flex-end'}}>
-          <Text style={styles.amount}>{money(charge.payment_amount)}</Text>
-          <View style={[styles.chip, paid ? styles.chipPaid : styles.chipDue]}>
-            <Text style={[styles.chipText, {color: paid ? '#1E7B4B' : '#9A5B00'}]}>
-              {paid ? 'PAID' : 'DUE'}
-            </Text>
-          </View>
-        </View>
-      </View>
-      {!paid && !!blockedBy && (
-        <Text style={{color: '#9A5B00', fontSize: 12, fontWeight: '600', marginTop: 10}}>{`Pay "${blockedBy}" first`}</Text>
-      )}
-      <View style={styles.actions}>
-        {!paid && (
-          <TouchableOpacity
-            disabled={!!blockedBy}
-            style={[styles.btn, styles.btnPrimary, !!blockedBy && {backgroundColor: '#ECECF1'}]}
-            onPress={() =>
-              startCheckout({kind: 'container_charge', id, title: charge.title, subtitle: 'Container charge', amount: charge.payment_amount})
-            }>
-            <Icon name={blockedBy ? 'lock-outline' : 'credit-card-outline'} size={18} color={blockedBy ? '#8A8A95' : '#fff'} />
-            <Text style={[styles.btnPrimaryText, !!blockedBy && {color: '#8A8A95'}]}>{blockedBy ? 'Locked' : 'Pay now'}</Text>
-          </TouchableOpacity>
-        )}
-        {paid && (
-          <TouchableOpacity
-            style={[styles.btn, styles.btnPrimary, {backgroundColor: '#2E9E65'}]}
-            onPress={() => downloadPdf(`client/container-charges/receipt/${id}`, `receipt-${id}.pdf`)}>
-            <Icon name="download" size={18} color="#fff" />
-            <Text style={styles.btnPrimaryText}>Receipt</Text>
-          </TouchableOpacity>
-        )}
-        <TouchableOpacity
-          style={[styles.btn, styles.btnGhost]}
-          onPress={() => downloadPdf(`client/container-charges/invoice/${id}`, `invoice-${id}.pdf`)}>
-          <Icon name="file-document-outline" size={18} color={Brand.primary} />
-          <Text style={styles.btnGhostText}>Invoice</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-}
 
 export default function ContainerCharges({navigation}) {
   const prId = useSelector(s => s.auth.shopSelected?.pr_id);
@@ -152,12 +69,28 @@ export default function ContainerCharges({navigation}) {
             <Text style={styles.emptyText}>Charges for containers issued to your outlet will appear here.</Text>
           </View>
         ) : (
-          shown.map(c => (
-            <ChargeCard
+          shown.map((c, i) => (
+            <BillCard
               key={c.container_charge_id}
-              charge={c}
-              navigation={navigation}
+              bill={{
+                bill_id: c.container_charge_id,
+                status: c.status === 'paid' ? 'paid' : 'pending',
+                payment_amount: c.payment_amount,
+                rounded_amount: 0,
+              }}
+              title={c.title}
+              subtitle={c.status === 'paid' ? 'Payment completed' : c.description || 'Container charge'}
+              rows={[
+                {label: 'Amount', value: money(c.amount ?? c.payment_amount)},
+                {label: 'Added on', value: moment(c.created_at).format('DD MMM YYYY')},
+              ]}
               blockedBy={c.status !== 'paid' ? queue.blockedOf('container_charge', c.container_charge_id) : undefined}
+              isLast={i === shown.length - 1}
+              onPayNow={id =>
+                startCheckout({kind: 'container_charge', id, title: c.title, subtitle: 'Container charge', amount: c.payment_amount})
+              }
+              onDownloadReceipt={id => downloadPdf(`client/container-charges/receipt/${id}`, `receipt-${id}.pdf`)}
+              onDownloadInvoice={id => downloadPdf(`client/container-charges/invoice/${id}`, `invoice-${id}.pdf`)}
             />
           ))
         )}

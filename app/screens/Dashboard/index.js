@@ -13,7 +13,8 @@ import {
   Dimensions,
   Alert,
   StatusBar,
-  RefreshControl
+  RefreshControl,
+  Image,
 } from 'react-native';
 import TouchableOpacity from '@components/PressableScale';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -321,37 +322,31 @@ const DashboardScreen = ({navigation}) => {
         <LinearGradient
           colors={[Brand.gradientTop, Brand.gradientBottom]}
           style={[styles.hero, {paddingTop: heroTop}]}>
-          <View style={styles.heroRow}>
-            <View style={{flex: 1}}>
-              <Text style={styles.greeting}>{greeting},</Text>
-              {!!festival && MOTIFS[festival.key] && (
-                <View style={styles.festivalRow}>
-                  <FestivalMark name={festival.key} size={22} />
-                  <Text style={styles.festivalText}>{festival.greeting}</Text>
-                </View>
+          {/* one tidy row: who you are + alerts, then the two things you can act on (outlet, festival tag) */}
+          <View style={styles.topBar}>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Profile"
+              activeOpacity={0.8}
+              onPress={() => go('Profile')}
+              style={styles.avatarBtn}>
+              {userData?.profile_photo_url ? (
+                <Image source={{uri: userData.profile_photo_url}} style={styles.avatarPhoto} />
+              ) : (
+                <Text style={styles.avatarInitials}>
+                  {`${userData?.first_name?.charAt(0) || ''}${userData?.last_name?.charAt(0) || ''}`.toUpperCase() || '?'}
+                </Text>
               )}
+            </TouchableOpacity>
+            <View style={styles.headText}>
+              <Text style={styles.greeting}>{greeting}</Text>
               <Text style={styles.name} numberOfLines={1}>
                 {userData?.first_name || 'there'}
               </Text>
-              <TouchableOpacity
-                activeOpacity={multiOutlet ? 0.8 : 1}
-                disabled={!multiOutlet}
-                onPress={() => {
-                  tap();
-                  setIsBottomSheetVisible(true);
-                  fetchData();
-                }}
-                style={[styles.outletChip, !multiOutlet && {paddingRight: 12}]}>
-                <Icon name="storefront-outline" size={16} color="#fff" />
-                <Text style={styles.outletText} numberOfLines={1}>
-                  {shopSelected?.property_name || 'Select an outlet'}
-                </Text>
-                {multiOutlet && (
-                  <Icon name="chevron-down" size={18} color="#fff" />
-                )}
-              </TouchableOpacity>
             </View>
             <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Notifications"
               activeOpacity={0.8}
               onPress={() => go('NotificationScreen')}
               style={styles.bell}>
@@ -360,6 +355,29 @@ const DashboardScreen = ({navigation}) => {
               </Animatable.View>
               {hasUnread && <View style={styles.bellDot} />}
             </TouchableOpacity>
+          </View>
+          <View style={styles.chipsRow}>
+            <TouchableOpacity
+              activeOpacity={multiOutlet ? 0.8 : 1}
+              disabled={!multiOutlet}
+              onPress={() => {
+                tap();
+                setIsBottomSheetVisible(true);
+                fetchData();
+              }}
+              style={[styles.outletChip, !multiOutlet && {paddingRight: 12}]}>
+              <Icon name="storefront-outline" size={16} color="#fff" />
+              <Text style={styles.outletText} numberOfLines={1}>
+                {shopSelected?.property_name || 'Select an outlet'}
+              </Text>
+              {multiOutlet && <Icon name="chevron-down" size={18} color="#fff" />}
+            </TouchableOpacity>
+            {!!festival && MOTIFS[festival.key] && (
+              <View style={styles.festivalPill}>
+                <FestivalMark name={festival.key} size={16} />
+                <Text style={styles.festivalText} numberOfLines={1}>{festival.greeting}</Text>
+              </View>
+            )}
           </View>
         </LinearGradient>
 
@@ -596,22 +614,29 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
   },
+  topBar: {flexDirection: 'row', alignItems: 'center', gap: 12},
+  headText: {flex: 1},
+  chipsRow: {flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8, marginTop: 16},
+  festivalPill: {flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 7, paddingHorizontal: 11, borderRadius: 20, backgroundColor: 'rgba(255,210,122,0.16)'},
+  avatarBtn: {width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.16)', borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.5)', overflow: 'hidden'},
+  avatarPhoto: {width: '100%', height: '100%'},
+  avatarInitials: {color: '#fff', fontSize: 16, fontWeight: '700'},
   heroRow: {flexDirection: 'row', alignItems: 'flex-start'},
-  greeting: {color: 'rgba(255,255,255,0.75)', fontSize: 14},
+  greeting: {color: 'rgba(255,255,255,0.75)', fontSize: 13},
   festivalRow: {flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2},
-  festivalText: {color: '#FFD27A', fontSize: 13, fontWeight: '700'},
-  name: {color: '#fff', fontSize: 26, fontWeight: 'bold', marginTop: 2},
+  festivalText: {color: '#FFD27A', fontSize: 12, fontWeight: '700'},
+  name: {color: '#fff', fontSize: 22, fontWeight: 'bold'},
   outletChip: {
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    marginTop: 12,
     paddingVertical: 7,
     paddingLeft: 10,
     paddingRight: 6,
     borderRadius: 20,
     backgroundColor: 'rgba(255,255,255,0.16)',
-    maxWidth: '92%',
+    maxWidth: '100%',
+    flexShrink: 1,
     gap: 6,
   },
   outletText: {color: '#fff', fontSize: 13, fontWeight: '600', flexShrink: 1},

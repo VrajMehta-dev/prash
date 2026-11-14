@@ -163,8 +163,17 @@ const ProfileScreen = ({navigation}) => {
   return (
     <View style={styles.screen}>
       {isFocused && <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />}
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{paddingBottom: TAB_BAR_SPACE}}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{paddingBottom: 32}}>
         <LinearGradient colors={[Brand.gradientTop, Brand.gradientBottom]} style={[styles.hero, {paddingTop: top}]}>
+          {/* full page: the bottom bar is hidden here (BottomTab NO_BAR_ROUTES), so it has its own way back */}
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="Back"
+            activeOpacity={0.8}
+            onPress={() => navigation.navigate('Dashboard')}
+            style={[styles.backBtn, {top}]}>
+            <Icon name="chevron-left" size={26} color="#fff" />
+          </TouchableOpacity>
           <View style={styles.avatar}>
             {photoUrl && !photoFailed ? (
               <Image source={{uri: photoUrl}} style={styles.avatarImg} onError={() => setPhotoFailed(true)} />
@@ -224,7 +233,7 @@ const ProfileScreen = ({navigation}) => {
           </Group>
 
           <Group title="Documents">
-            <Row icon="card-account-details-outline" title="Aadhar" value={show(userData?.aadhar_num) || 'Not added'} />
+            <Row icon="card-account-details-outline" title="Aadhaar" value={show(userData?.aadhar_num) || 'Not added'} />
             <Row icon="card-text-outline" title="PAN" value={show(userData?.pan_num) || 'Not added'} />
             <Row icon="file-certificate-outline" title="GST certificate" value={show(userData?.gst_num) || 'Not added'} />
             <Row icon="file-document-outline" title="TAN" value={show(userData?.tan_num) || 'Not added'} last />
@@ -256,7 +265,7 @@ const ProfileScreen = ({navigation}) => {
               v{DeviceInfo.getVersion()} ({DeviceInfo.getBuildNumber()})
               {isLatest === true ? ' \u00B7 Latest' : isLatest === false ? ` \u00B7 Update available (${latestBuild})` : ''}
             </Text>
-            <Text style={styles.footerLine}>Built and managed by</Text>
+            <Text style={styles.footerLine}>Built and maintained by</Text>
             <Text
               accessibilityRole="link"
               onPress={() => openWebsite('https://aystera.com/', 'profile_footer')}
@@ -274,6 +283,7 @@ const SHADOW = {shadowColor: '#1B1230', shadowOffset: {width: 0, height: 4}, sha
 const styles = StyleSheet.create({
   screen: {flex: 1, backgroundColor: '#F4F5FA'},
   hero: {alignItems: 'center', paddingTop: TOP, paddingBottom: 28, paddingHorizontal: 20, borderBottomLeftRadius: 30, borderBottomRightRadius: 30},
+  backBtn: {position: 'absolute', left: 16, width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.16)', zIndex: 2},
   avatar: {width: 76, height: 76, borderRadius: 38, backgroundColor: 'rgba(255,255,255,0.18)', borderWidth: 2, borderColor: 'rgba(255,255,255,0.5)', alignItems: 'center', justifyContent: 'center'},
   avatarImg: {width: 72, height: 72, borderRadius: 36},
   avatarText: {color: '#fff', fontSize: 28, fontWeight: 'bold'},

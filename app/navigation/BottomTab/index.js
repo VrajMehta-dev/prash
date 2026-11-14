@@ -6,7 +6,7 @@ import {translate} from '@lang/Translate';
 import {tap} from '@utils/haptics';
 import {Brand} from '@config/brand';
 import {navigationRef} from '../NavigationService';
-import MoreSheet from './MoreSheet';
+import {openMore, useMoreOpen} from '@utils/moreMenu';
 import {useSafeAreaInsets, initialWindowMetrics} from 'react-native-safe-area-context';
 import Animated, {
   useSharedValue,
@@ -45,17 +45,20 @@ const TabIcon = ({icon, focused, color}) => {
   );
 };
 
-// Layout: [round Home] [pill: Rent | Extras | Pay | More]. Notifications live in the screen headers.
+// Layout: [pill: Home | Rent | Extras | Pay] [round More]. More is set apart from the pill because it is not a screen: it opens
+// the menu (components/MoreMenu), which takes the bar's place while it is open. Notifications live in the screen headers.
 // Tab routes (CustomDrawer): Dashboard, Bills, Charges, Pay, Containers, Profile.
 // Containers + Profile live under "More", so More is highlighted while either is open.
 const PILL = [
+  {key: 'Dashboard', label: 'Home', icon: {type: Icons.Ionicons, name: 'home-outline', on: 'home'}},
   {key: 'Bills', label: 'Rent', icon: {type: Icons.Ionicons, name: 'receipt-outline', on: 'receipt'}},
   {key: 'Charges', label: 'Extras', icon: {type: Icons.Ionicons, name: 'layers-outline', on: 'layers'}},
   {key: 'Pay', label: 'Pay', icon: {type: Icons.Ionicons, name: 'wallet-outline', on: 'wallet'}},
-  {key: 'More', label: 'More', icon: {type: Icons.Ionicons, name: 'grid-outline', on: 'grid'}},
 ];
-const HOME = {type: Icons.Ionicons, name: 'home-outline', on: 'home'};
-const MORE_ROUTES = ['Containers', 'SecurityDeposit', 'PropertyDocuments', 'HelpAndSupport', 'Profile'];
+const MORE = {type: Icons.Ionicons, name: 'grid-outline', on: 'grid'};
+const MORE_ROUTES = ['Containers', 'SecurityDeposit', 'PropertyDocuments', 'HelpAndSupport'];
+// Full-page screens reached from elsewhere (the avatar on Home): the bar is not shown on them.
+const NO_BAR_ROUTES = ['Profile'];
 const ACTIVE = Brand.primary;
 const INACTIVE = '#9A9AA0';
 
@@ -64,10 +67,11 @@ const BAR_PAD = 4;
 
 export default function BottomTabBar({state, navigation}) {
   const insets = useSafeAreaInsets();
-  const [moreOpen, setMoreOpen] = useState(false);
+  const moreOpen = useMoreOpen();
   const [barW, setBarW] = useState(0);
   const current = state.routes[state.index]?.name;
-  const activeIdx = PILL.findIndex(t => (t.key === 'More' ? MORE_ROUTES.includes(current) || moreOpen : current === t.key));
+  const activeIdx = PILL.findIndex(t => current === t.key);
+  const moreFocused = MORE_ROUTES.includes(current) || moreOpen;
   const itemW = (barW - BAR_PAD * 2) / PILL.length;
   const slide = useSharedValue(0);
   const show = useSharedValue(0);
@@ -77,6 +81,15 @@ export default function BottomTabBar({state, navigation}) {
     }
     show.value = withTiming(activeIdx >= 0 ? 1 : 0, {duration: 150});
   }, [activeIdx, itemW]);
+  // while the More menu is open it takes the bar's place: the bar sinks and fades, then springs back on close
+  const away = useSharedValue(0);
+  useEffect(() => {
+    away.value = withSpring(moreOpen ? 1 : 0, {damping: 20, stiffness: 240});
+  }, [moreOpen]);
+  const rowStyle = useAnimatedStyle(() => ({
+    opacity: 1 - away.value,
+    transform: [{translateY: away.value * 28}, {scale: 1 - away.value * 0.06}],
+  }));
   const selector = useAnimatedStyle(() => ({opacity: show.value, transform: [{translateX: slide.value}]}));
 
   const go = name => {
@@ -84,24 +97,15 @@ export default function BottomTabBar({state, navigation}) {
     if (current !== name) navigation.navigate(name);
   };
 
+  if (NO_BAR_ROUTES.includes(current)) return null;
+
   return (
     <View style={[styles.wrap, {paddingBottom: Platform.OS === 'ios' ? Math.max(insets.bottom, 24) : 14 + insets.bottom}]}>
-      <View style={styles.row}>
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessibilityLabel="Home"
-          activeOpacity={0.8}
-          style={styles.round}
-          onPress={() => go('Dashboard')}>
-          {current === 'Dashboard' && <View pointerEvents="none" style={styles.homeTint} />}
-          <TabIcon icon={HOME} focused={current === 'Dashboard'} color={current === 'Dashboard' ? ACTIVE : INACTIVE} />
-          <Text style={[styles.label, {color: current === 'Dashboard' ? ACTIVE : INACTIVE, fontWeight: current === 'Dashboard' ? '700' : '500'}]}>Home</Text>
-        </TouchableOpacity>
-
+      <Animated.View style={[styles.row, rowStyle]} pointerEvents={moreOpen ? 'none' : 'auto'}>
         <View style={styles.bar} onLayout={e => setBarW(e.nativeEvent.layout.width)}>
           {itemW > 0 && <Animated.View pointerEvents="none" style={[styles.selector, {width: itemW}, selector]} />}
           {PILL.map(t => {
-            const focused = t.key === 'More' ? MORE_ROUTES.includes(current) || moreOpen : current === t.key;
+            const focused = current === t.key;
             const color = focused ? ACTIVE : INACTIVE;
             return (
               <TouchableOpacity
@@ -110,7 +114,7 @@ export default function BottomTabBar({state, navigation}) {
                 accessibilityState={focused ? {selected: true} : {}}
                 activeOpacity={0.7}
                 style={styles.tab}
-                onPress={() => (t.key === 'More' ? (tap(), setMoreOpen(true)) : go(t.key))}>
+                onPress={() => go(t.key)}>
                 <TabIcon icon={t.icon} focused={focused} color={color} />
                 <Text numberOfLines={1} style={[styles.label, {color, fontWeight: focused ? '700' : '500'}]}>
                   {t.label}
@@ -120,15 +124,17 @@ export default function BottomTabBar({state, navigation}) {
           })}
         </View>
 
-      </View>
-      <MoreSheet
-        visible={moreOpen}
-        onClose={() => setMoreOpen(false)}
-        onGo={name => {
-          setMoreOpen(false);
-          go(name);
-        }}
-      />
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel="More"
+          activeOpacity={0.8}
+          style={styles.round}
+          onPress={() => (tap(), openMore())}>
+          {moreFocused && <View pointerEvents="none" style={styles.homeTint} />}
+          <TabIcon icon={MORE} focused={moreFocused} color={moreFocused ? ACTIVE : INACTIVE} />
+          <Text style={[styles.label, {color: moreFocused ? ACTIVE : INACTIVE, fontWeight: moreFocused ? '700' : '500'}]}>More</Text>
+        </TouchableOpacity>
+      </Animated.View>
     </View>
   );
 }

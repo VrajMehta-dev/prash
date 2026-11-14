@@ -22,7 +22,7 @@ import ScreenHeader from '@components/ScreenHeader';
 import {usePaymentQueue} from '@utils/usePaymentQueue';
 import BaseSetting from '@config/setting';
 import * as Animatable from 'react-native-animatable';
-import RBSheet from 'react-native-raw-bottom-sheet';
+import {BillCard} from '@components/BillBoard';
 import {isNull} from 'lodash';
 import {useIsFocused} from '@react-navigation/native';
 import {startCheckout} from '@utils/checkout';
@@ -77,266 +77,27 @@ const TabSelector = ({activeTab, onTabChange}) => (
   </View>
 );
 
-const ChargeCard = ({
-  charge,
-  isLast,
-  onViewDetails,
-  onDownloadInvoice,
-  onDownloadReceipt,
-  onPayNow,
-  blockedBy,
-  shouldAnimate,
-}) => {
-  const {
-    additional_charge_id,
-    title,
-    description,
-    amount,
-    cgst_amount,
-    sgst_amount,
-    igst_amount,
-    tds_amount,
-    payment_amount,
-    total_amount,
-    status,
-    cgst_percent,
-    sgst_percent,
-    igst_percent,
-    tds_percent,
-    rounded_amount,
-  } = charge;
-
-  const isPaid = status === 'paid';
-  const statusNow = status;
-  const [loader, setLoader] = useState(false);
-  const pulseAnim = useRef(new Animated.Value(1)).current;
-
-  // Start pulse animation when shouldAnimate is true
-  useEffect(() => {
-    if (shouldAnimate && !isPaid) {
-      const pulseAnimation = Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulseAnim, {
-            toValue: 1.1,
-            duration: 800,
-            useNativeDriver: true,
-          }),
-          Animated.timing(pulseAnim, {
-            toValue: 1,
-            duration: 800,
-            useNativeDriver: true,
-          }),
-        ]),
-      );
-      pulseAnimation.start();
-
-      // Stop animation after 3 seconds
-      setTimeout(() => {
-        pulseAnimation.stop();
-        pulseAnim.setValue(1);
-      }, 3000);
-    }
-  }, [shouldAnimate, isPaid, pulseAnim]);
-
-  const totalGST =
-    parseFloat(cgst_amount || 0) +
-    parseFloat(sgst_amount || 0) +
-    parseFloat(igst_amount || 0);
-  const gstPercentage =
-    cgst_percent && sgst_percent && igst_percent
-      ? Number(
-          parseFloat(cgst_percent) +
-            parseFloat(sgst_percent) +
-            parseFloat(igst_percent),
-        )
-      : totalGST > 0
-      ? Math.round(
-          (totalGST / (parseFloat(payment_amount || 0) - totalGST)) * 100,
-        )
-      : 0;
-
-  return (
-    <Animated.View
-      style={[styles.cardContainer, isLast && {marginBottom: 100}]}>
-      <LinearGradient
-        colors={isPaid ? ['#ffffff', '#f8f9fa'] : ['#ffffff', '#fff5f5']}
-        style={styles.card}>
-        <View style={styles.cardHeader}>
-          <View style={{flex: 1}}>
-            <Text style={styles.title}>{title}</Text>
-            <TouchableOpacity
-              onPress={() => onViewDetails(charge)}
-              style={styles.viewDetailsButton}>
-              <Text style={styles.viewDetailsText}>View Details</Text>
-              <Icon name="chevron-right" size={16} color="#632240" />
-            </TouchableOpacity>
-          </View>
-          <View
-            style={[
-              styles.statusBadge,
-              statusNow === 'overdue'
-                ? styles.overdueBadge
-                : isPaid
-                ? styles.paidBadge
-                : styles.pendingBadge,
-            ]}>
-            <Icon
-              name={isPaid ? 'check-circle' : 'clock'}
-              size={16}
-              color={
-                statusNow === 'overdue'
-                  ? BaseColors.white
-                  : isPaid
-                  ? '#4caf50'
-                  : '#ff9800'
-              }
-            />
-            <Text
-              style={[
-                styles.statusBadgeText,
-                statusNow === 'overdue'
-                  ? styles.overdueText
-                  : isPaid
-                  ? styles.paidText
-                  : styles.pendingText,
-              ]}>
-              {statusNow === 'overdue'
-                ? 'OVERDUE'
-                : isPaid
-                ? 'PAID'
-                : 'PENDING'}
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.chargeDetails}>
-          <View style={styles.row}>
-            <Text style={styles.label}>Base Amount</Text>
-            <Text style={styles.value}>
-              ₹{parseFloat(amount || 0).toLocaleString()}
-            </Text>
-          </View>
-
-          {totalGST > 0 && (
-            <View style={styles.row}>
-              <Text style={styles.label}>
-                GST {gstPercentage > 0 ? `(${gstPercentage}%)` : ''}
-              </Text>
-              <Text style={styles.value}>₹{totalGST.toLocaleString()}</Text>
-            </View>
-          )}
-
-          {parseFloat(tds_amount || 0) > 0 && (
-            <View style={styles.row}>
-              <Text style={styles.label}>
-                TDS ({tds_percent ? `${tds_percent}%` : 'N/A'})
-              </Text>
-              <Text style={styles.value}>
-                ₹{parseFloat(tds_amount || 0).toLocaleString()}
-              </Text>
-            </View>
-          )}
-
-          {/* Rounded Amount - only show if greater than 0 */}
-          {parseFloat(rounded_amount || 0) > 0 && (
-            <View style={styles.row}>
-              <View style={styles.labelWithIcon}>
-                <Text style={[styles.label, styles.roundedLabel]}>
-                  Rounded Amount
-                </Text>
-              </View>
-              <Text style={[styles.value, styles.roundedValue]}>
-                ₹{parseFloat(rounded_amount || 0).toLocaleString()}
-              </Text>
-            </View>
-          )}
-        </View>
-
-        <View style={styles.totalContainer}>
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Total Amount</Text>
-            <Text style={styles.totalValue}>
-              ₹{parseFloat(payment_amount || 0).toLocaleString()}
-            </Text>
-          </View>
-        </View>
-
-        {!isPaid && !!blockedBy && (
-          <Text style={{color: '#9A5B00', fontSize: 12, fontWeight: '600', marginBottom: 8}}>
-            {`Pay "${blockedBy}" first`}
-          </Text>
-        )}
-        <Animated.View
-          style={[
-            shouldAnimate &&
-              !isPaid && {
-                transform: [{scale: pulseAnim}],
-              },
-          ]}>
-          <TouchableOpacity
-            onPress={() => {
-              if (!isPaid && blockedBy) {
-                return;
-              }
-              if (!isPaid) {
-                onPayNow(additional_charge_id);
-              } else {
-                onDownloadReceipt(additional_charge_id);
-              }
-            }}
-            style={[
-              styles.button,
-              isPaid ? styles.downloadButton : styles.payButton,
-              !isPaid && !!blockedBy && {backgroundColor: '#ECECF1'},
-            ]}
-            activeOpacity={blockedBy && !isPaid ? 1 : 0.8}>
-            <Icon
-              name={isPaid ? 'download' : blockedBy ? 'lock-outline' : 'credit-card'}
-              size={20}
-              color={!isPaid && blockedBy ? '#8A8A95' : '#fff'}
-            />
-            <Text style={[styles.buttonText, !isPaid && !!blockedBy && {color: '#8A8A95'}]}>
-              {isPaid ? 'Download Receipt' : blockedBy ? 'Locked' : 'Pay Now'}
-            </Text>
-          </TouchableOpacity>
-        </Animated.View>
-        <TouchableOpacity
-          disabled={loader}
-          onPress={() => {
-            onDownloadInvoice(additional_charge_id);
-            setLoader(true);
-            setTimeout(() => {
-              setLoader(false);
-            }, 5000);
-          }}
-          style={[styles.button, {borderColor: '#632240', borderWidth: 1}]}
-          activeOpacity={0.8}>
-          {loader ? (
-            <ActivityIndicator size="small" color="#632240" />
-          ) : (
-            <>
-              <Icon name={'download'} size={20} color="#632240" />
-              <Text style={{color: '#632240', marginLeft: 6}}>
-                Download Invoice
-              </Text>
-            </>
-          )}
-        </TouchableOpacity>
-      </LinearGradient>
-    </Animated.View>
-  );
+const money = n => `₹${parseFloat(n || 0).toLocaleString('en-IN')}`;
+const chargeRows = c => {
+  const gst = parseFloat(c.cgst_amount || 0) + parseFloat(c.sgst_amount || 0) + parseFloat(c.igst_amount || 0);
+  const gstPct = parseFloat(c.cgst_percent || 0) + parseFloat(c.sgst_percent || 0) + parseFloat(c.igst_percent || 0);
+  return [
+    {label: 'Amount', value: money(c.amount)},
+    {label: `GST${gstPct > 0 ? ` (${gstPct}%)` : ''}`, value: money(gst)},
+    ...(parseFloat(c.tds_amount || 0) > 0
+      ? [{label: `TDS (${c.tds_percent ? `${c.tds_percent}%` : 'N/A'})`, value: money(c.tds_amount)}]
+      : []),
+    ...(parseFloat(c.rounded_amount || 0) > 0 ? [{label: 'Rounded Amount', value: money(c.rounded_amount), kind: 'rounded'}] : []),
+  ];
 };
 
 const AdditionalCharges = ({navigation, route}) => {
   const queue = usePaymentQueue();
   const [activeTab, setActiveTab] = useState('pending');
   const [chargesList, setChargesList] = useState([]);
-  const [selectedCharge, setSelectedCharge] = useState(null);
-  console.log("🚀 ~ AdditionalCharges ~ selectedCharge:", selectedCharge)
   const [animatePaymentButton, setAnimatePaymentButton] = useState(false);
   const {accessToken} = useSelector(state => state.auth);
   const {shopSelected} = useSelector(state => state.auth);
-  const rbSheetRef = useRef();
   const isFocused = useIsFocused();
 
   const fetchAdditionalCharges = useCallback(async () => {
@@ -407,10 +168,6 @@ const AdditionalCharges = ({navigation, route}) => {
     filteredCharges.sort((a, b) => a.additional_charge_id - b.additional_charge_id);
   }
 
-  const handleViewDetails = charge => {
-    setSelectedCharge(charge);
-    rbSheetRef.current?.open();
-  };
 
   const fetchPaymentLink = id => {
     const c = chargesList.find(x => x.additional_charge_id === id);
@@ -471,195 +228,28 @@ const AdditionalCharges = ({navigation, route}) => {
             }
 
             return (
-              <ChargeCard
+              <BillCard
                 key={`charge-${charge.additional_charge_id}`}
-                charge={charge}
+                bill={{
+                  bill_id: charge.additional_charge_id,
+                  status: charge.status,
+                  payment_amount: charge.payment_amount,
+                  rounded_amount: charge.rounded_amount,
+                }}
+                title={charge.title}
+                subtitle={charge.status === 'paid' ? 'Payment completed' : charge.description || 'Extra charge'}
+                rows={chargeRows(charge)}
                 blockedBy={queue.blockedOf('additional_charge', charge.additional_charge_id)}
                 isLast={index === filteredCharges.length - 1}
-                onViewDetails={handleViewDetails}
                 onDownloadInvoice={fetchInvoiceLink}
                 onDownloadReceipt={receiptDownload}
                 onPayNow={fetchPaymentLink}
-                shouldAnimate={shouldAnimate}
               />
             );
           })
         )}
       </Animatable.View>
 
-      {/* RBSheet for Charge Details */}
-      <RBSheet
-        ref={rbSheetRef}
-        closeOnDragDown={true}
-        closeOnPressMask={true}
-        customStyles={{
-          wrapper: {
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          },
-          draggableIcon: {
-            backgroundColor: '#000',
-          },
-          container: {
-            borderTopLeftRadius: 20,
-            borderTopRightRadius: 20,
-            paddingTop: 20,
-          },
-        }}
-        height={Dimensions.get('window').height * 0.7}>
-        {selectedCharge && (
-          <ScrollView style={styles.detailsContainer}>
-            <View style={styles.detailsHeader}>
-              <Text style={styles.detailsTitle}>{selectedCharge.title}</Text>
-              <TouchableOpacity
-                onPress={() => rbSheetRef.current?.close()}
-                style={styles.closeButton}>
-                <Icon name="close" size={24} color="#666" />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.detailsContent}>
-              <View style={styles.descriptionContainer}>
-                <Text style={styles.detailLabel}>Description</Text>
-                <View style={styles.descriptionBox}>
-                  <Text style={styles.descriptionText}>
-                    {selectedCharge.description}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Status</Text>
-                <View
-                  style={[
-                    styles.statusBadge,
-                    selectedCharge.status === 'overdue'
-                      ? styles.overdueBadge
-                      : selectedCharge.status === 'paid'
-                      ? styles.paidBadge
-                      : styles.pendingBadge,
-                  ]}>
-                  <Icon
-                    name={
-                      selectedCharge.status === 'paid'
-                        ? 'check-circle'
-                        : 'clock'
-                    }
-                    size={16}
-                    color={
-                      selectedCharge.status === 'overdue'
-                        ? BaseColors.white
-                        : selectedCharge.status === 'paid'
-                        ? '#4caf50'
-                        : '#ff9800'
-                    }
-                  />
-                  <Text
-                    style={[
-                      styles.statusBadgeText,
-                      selectedCharge.status === 'overdue'
-                        ? styles.overdueText
-                        : selectedCharge.status === 'paid'
-                        ? styles.paidText
-                        : styles.pendingText,
-                    ]}>
-                    {selectedCharge.status === 'overdue'
-                      ? 'OVERDUE'
-                      : selectedCharge.status === 'paid'
-                      ? 'PAID'
-                      : 'PENDING'}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Base Amount</Text>
-                <Text style={styles.detailValue}>
-                  ₹{parseFloat(selectedCharge.amount || 0).toLocaleString()}
-                </Text>
-              </View>
-
-              {parseFloat(selectedCharge.cgst_amount || 0) > 0 && (
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>
-                    CGST ({selectedCharge.cgst_percent}%)
-                  </Text>
-                  <Text style={styles.detailValue}>
-                    ₹
-                    {parseFloat(
-                      selectedCharge.cgst_amount || 0,
-                    ).toLocaleString()}
-                  </Text>
-                </View>
-              )}
-
-              {parseFloat(selectedCharge.sgst_amount || 0) > 0 && (
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>
-                    SGST ({selectedCharge.sgst_percent}%)
-                  </Text>
-                  <Text style={styles.detailValue}>
-                    ₹
-                    {parseFloat(
-                      selectedCharge.sgst_amount || 0,
-                    ).toLocaleString()}
-                  </Text>
-                </View>
-              )}
-
-              {parseFloat(selectedCharge.igst_amount || 0) > 0 && (
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>
-                    IGST ({selectedCharge.igst_percent}%)
-                  </Text>
-                  <Text style={styles.detailValue}>
-                    ₹
-                    {parseFloat(
-                      selectedCharge.igst_amount || 0,
-                    ).toLocaleString()}
-                  </Text>
-                </View>
-              )}
-
-              {parseFloat(selectedCharge.tds_amount || 0) > 0 && (
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>
-                    TDS ({selectedCharge.tds_percent}%)
-                  </Text>
-                  <Text style={styles.detailValue}>
-                    ₹
-                    {parseFloat(
-                      selectedCharge.tds_amount || 0,
-                    ).toLocaleString()}
-                  </Text>
-                </View>
-              )}
-
-              {/* Rounded Amount - only show if greater than 0 */}
-              {parseFloat(selectedCharge.rounded_amount || 0) > 0 && (
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Rounded Amount</Text>
-                  <Text style={[styles.detailValue, styles.roundedValue]}>
-                    ₹
-                    {parseFloat(
-                      selectedCharge.rounded_amount || 0,
-                    ).toLocaleString()}
-                  </Text>
-                </View>
-              )}
-
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Total Amount</Text>
-                <Text style={[styles.detailValue, styles.totalAmount]}>
-                  ₹
-                  {parseFloat(
-                    selectedCharge.payment_amount || 0,
-                  ).toLocaleString()}
-                </Text>
-              </View>
-            </View>
-          </ScrollView>
-        )}
-      </RBSheet>
     </ScrollView>
     </>
   );
